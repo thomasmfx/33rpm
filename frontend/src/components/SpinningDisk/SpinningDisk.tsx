@@ -8,7 +8,6 @@ const capas = [
   '/images/capas/thriller.jpg',
   '/images/capas/tpab.jpg',
   '/images/capas/thedarksideofthemoon.jpg',
-  '/images/capas/tpab.jpg',
   '/images/capas/ridethelightning.jpg',
   '/images/capas/am.jpg',
   '/images/capas/mezmerize.jpg',

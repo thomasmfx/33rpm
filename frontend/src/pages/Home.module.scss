@@ -1,9 +1,14 @@
-/* Home.module.scss */
+.main {
+  margin-top: 8em;
+  max-width: 1000px;
+  justify-self: center;
+  margin-bottom: 8em;
+}
 
 .heroContainer {
-  margin-top: 8em;
   display: flex;
   justify-content: center;
+  margin-bottom: 9em;
 }
 
 .hero {
@@ -14,7 +19,6 @@
 }
 
 .heroText {
-  max-width: 80ch;
   display: flex;
   flex-direction: column;
   gap: 16px; 
@@ -23,7 +27,13 @@
   border-radius: 8px; 
 }
 
-/* Nem precisamos mais da classe .heroDisk com position absolute! */
 .heroDisk {
-  flex-shrink: 0; /* Impede que o flexbox esmague o disco se a tela diminuir */
+  flex-shrink: 0; 
+}
+
+.section {
+  margin-top: 8em;
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
 }
