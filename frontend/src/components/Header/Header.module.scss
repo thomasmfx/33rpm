@@ -1,0 +1,30 @@
+.header {
+  background-color: #000000;
+  color: #ffffff;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3em;
+  padding-inline: 5em;
+  gap: 5em;
+}
+
+.headerLogo {
+  text-decoration: none;
+  color: #fff;
+
+   > p {
+    font-size: 2rem;
+   }
+}
+
+.headerLink{
+  text-decoration: none;
+  color: #fff;
+  transition: 100ms ease-in-out;
+  
+  &:hover {
+    opacity: 0.8;
+  }
+}
