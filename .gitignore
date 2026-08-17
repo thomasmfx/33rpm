@@ -1,0 +1,68 @@
+# =========================
+# SISTEMA OPERACIONAL
+# =========================
+.DS_Store
+Thumbs.db
+*~
+*.swp
+
+# =========================
+# EDITORES DE CÓDIGO (IDEs)
+# =========================
+.idea/
+.vscode/
+*.eclipse/
+*.sublime-workspace
+*.sublime-project
+
+# =========================
+# FRONTEND (Node / React)
+# =========================
+# Dependências
+/frontend/node_modules/
+/frontend/.pnp
+/frontend/.pnp.js
+
+# Builds e compilação
+/frontend/dist/
+/frontend/build/
+
+# Logs do Node
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# BACKEND (Java / Spring Boot)
+# =========================
+# Compilados
+*.class
+*.log
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Diretórios de build (Maven / Gradle)
+/backend/target/
+/backend/build/
+/backend/out/
+/backend/.gradle/
+
+# =========================
+# TESTES (Cypress)
+# =========================
+/frontend/cypress/videos/
+/frontend/cypress/screenshots/
+
+# =========================
+# VARIÁVEIS DE AMBIENTE E SECRETS
+# =========================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
