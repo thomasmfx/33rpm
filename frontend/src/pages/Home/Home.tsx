@@ -1,7 +1,7 @@
 import styles from "./Home.module.scss";
 import { Container, Flex, Group, Stack, Title } from "@mantine/core";
-import SpinningDisk from "../components/SpinningDisk/SpinningDisk";
-import VinylCarousel from "../components/VinylCarousel/VinylCarousel";
+import SpinningDisk from "../../components/SpinningDisk/SpinningDisk";
+import VinylCarousel from "../../components/VinylCarousel/VinylCarousel";
 
 function Home() {
   return (
