@@ -1,4 +1,5 @@
 import '@mantine/core/styles.css';
+import '@mantine/dates/styles.css';
 import './index.scss'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'

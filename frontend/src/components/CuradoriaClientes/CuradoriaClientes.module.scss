@@ -1,0 +1,40 @@
+.painelClientes {
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
+}
+
+.navBar {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1em;
+}
+
+.navButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: 100ms ease-in-out;
+
+  &:hover {
+    opacity: 0.7;
+  }
+}
+
+.actionButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: 100ms ease-in-out;
+
+  &:hover > :not(.toggleIcon) {
+    opacity: 0.7;
+  }
+
+  > svg:hover {
+    filter: brightness(70%);
+  }
+}

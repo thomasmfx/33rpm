@@ -16,14 +16,14 @@ interface VinylCardProps {
 function VinylCard({ thumbSrc, diskInfo }: Readonly<VinylCardProps>) {
   return (
     <Card 
-      component={Link} // O Card agora é renderizado como um <Link>
-      to={`/disco/${diskInfo.id}`} // O destino do link
+      component={Link} 
+      to={`/disco/${diskInfo.id}`} 
       padding="md" 
       radius="md" 
       style={{ 
         backgroundColor: 'transparent',
-        textDecoration: 'none', // Remove o sublinhado padrão de links
-        color: 'inherit' // Mantém a cor do texto normal
+        textDecoration: 'none', 
+        color: 'inherit'
       }}
     >
       <Card.Section 
@@ -45,7 +45,7 @@ function VinylCard({ thumbSrc, diskInfo }: Readonly<VinylCardProps>) {
       </Card.Section>
 
       <Stack mt="md" >
-        <Stack gap="xs">
+        <Stack style={{gap: 0}}>
           <Text size="lg" fw={700}>
             {diskInfo.title}
           </Text>

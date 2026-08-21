@@ -12,15 +12,15 @@ function Header() {
       <TextInput
         radius="sm"
         flex={0.7}
-        placeholder="Qual a vibe de hoje?"
+        placeholder="Busque um disco em nosso acervo"
         rightSection={<IconSearch color="#000"/>}
       />
       <Group>
-        <Link to="/discos" className={styles.headerLink}> 
-          <Text fw={700}>Explorar</Text>
+        <Link to="/acervo" className={styles.headerLink}> 
+          <Text fw={700}>Acervo</Text>
         </ Link>
-        <Link to="/gerenciar" className={styles.headerLink}> 
-          <Text fw={700}>Gerenciar</Text>
+        <Link to="/curadoria" className={styles.headerLink}> 
+          <Text fw={700}>Curadoria</Text>
         </ Link>
       </Group>
     </header>

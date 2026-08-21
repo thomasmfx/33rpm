@@ -12,7 +12,8 @@ const capas = [
   '/images/capas/am.jpg',
   '/images/capas/mezmerize.jpg',
   '/images/capas/awakenmylove.jpg',
-  '/images/capas/damn.jpg',
+  '/images/capas/anti.jpg',
+  '/images/capas/damn.jpg'
 ];
 
 function SpinningDisk() {
