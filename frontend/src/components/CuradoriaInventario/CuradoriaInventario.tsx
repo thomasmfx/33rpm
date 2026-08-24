@@ -59,8 +59,7 @@ import {
 } from '../../utils/estoque';
 import { nomeFormato, nomesEdicoes } from '../../utils/catalogo';
 import { formatarBRL, nomeGrupoPrecificacao } from '../../utils/precificacao';
-import { discosMock } from '../../utils/discosMock';
-import { entradasEstoqueMock } from '../../utils/estoqueMock';
+import { useLoja } from '../../contexts/loja';
 import FormDisco, { type FormDiscoValues } from '../FormDisco/FormDisco';
 import FormEntradaEstoque, {
   type FormEntradaEstoqueValues,
@@ -83,9 +82,7 @@ const OPCOES_FORMATO_FILTRO = [
 ];
 
 export default function CuradoriaInventario() {
-  const [discos, setDiscos] = useState<Disco[]>(discosMock);
-  const [entradas, setEntradas] =
-    useState<EntradaEstoque[]>(entradasEstoqueMock);
+  const { discos, setDiscos, entradas, setEntradas } = useLoja();
   const [filtros, setFiltros] = useState<FiltrosDiscos>(FILTROS_DISCOS_VAZIOS);
 
   const [isFormDiscoVisible, setIsFormDiscoVisible] = useState(false);
