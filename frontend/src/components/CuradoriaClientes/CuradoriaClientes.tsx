@@ -307,7 +307,7 @@ function CuradoriaClientes() {
                 <Group justify="flex-end">
                   <Button
                     variant="subtle"
-                    color="dark"
+                    color="black"
                     size="xs"
                     onClick={handleLimparFiltros}
                   >
