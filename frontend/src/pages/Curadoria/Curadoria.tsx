@@ -8,6 +8,7 @@ import {
 import { Button } from '@mantine/core';
 import { useState } from 'react';
 import CuradoriaClientes from '../../components/CuradoriaClientes/CuradoriaClientes';
+import CuradoriaInventario from '../../components/CuradoriaInventario/CuradoriaInventario';
 
 function Curadoria() {
   const [painel, setPainel] = useState<string>('Clientes');
@@ -67,9 +68,8 @@ function Curadoria() {
         </nav>
       </div>
       <main className={styles.main}>
-        {painel === 'Clientes' && (
-          <CuradoriaClientes />
-        )}
+        {painel === 'Clientes' && <CuradoriaClientes />}
+        {painel === 'Inventário' && <CuradoriaInventario />}
       </main>
     </div>
   );
