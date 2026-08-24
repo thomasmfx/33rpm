@@ -1,0 +1,23 @@
+.main {
+  margin-top: 4em;
+  margin-bottom: 8em;
+  max-width: 1000px;
+  justify-self: center;
+  padding-inline: 1em;
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
+}
+
+.filtros {
+  display: flex;
+  gap: 1em;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 1.5em;
+}

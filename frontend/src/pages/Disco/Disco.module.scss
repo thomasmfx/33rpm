@@ -1,0 +1,39 @@
+.main {
+  margin-top: 4em;
+  margin-bottom: 8em;
+  max-width: 1000px;
+  justify-self: center;
+  padding-inline: 1em;
+}
+
+.conteudo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3em;
+  align-items: start;
+}
+
+.capa {
+  position: sticky;
+  top: 2em;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #ededed;
+}
+
+.relacionados {
+  margin-top: 6em;
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
+}
+
+@media (max-width: 800px) {
+  .conteudo {
+    grid-template-columns: 1fr;
+  }
+
+  .capa {
+    position: static;
+  }
+}
