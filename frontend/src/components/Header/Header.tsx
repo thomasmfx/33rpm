@@ -1,6 +1,6 @@
 import styles from "./Header.module.scss";
 import { Link } from "react-router-dom";
-import { Group, NavLink, Text, TextInput } from "@mantine/core";
+import { Group, Text, TextInput } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
 
 function Header() {
