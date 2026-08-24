@@ -1,9 +1,12 @@
 import styles from "./Header.module.scss";
 import { Link } from "react-router-dom";
-import { Group, Text, TextInput } from "@mantine/core";
-import { IconSearch } from "@tabler/icons-react";
+import { Group, Indicator, Text, TextInput } from "@mantine/core";
+import { IconSearch, IconShoppingCart } from "@tabler/icons-react";
+import { useLoja } from "../../contexts/loja";
 
 function Header() {
+  const { itensNoCarrinho } = useLoja();
+
   return (
     <header className={styles.header}>
       <Link to="/" className={styles.headerLogo}>
@@ -21,6 +24,16 @@ function Header() {
         </ Link>
         <Link to="/curadoria" className={styles.headerLink}> 
           <Text fw={700}>Curadoria</Text>
+        </ Link>
+        <Link to="/carrinho" className={styles.headerLink} aria-label="Carrinho">
+          <Indicator
+            label={itensNoCarrinho}
+            size={16}
+            color="orange"
+            disabled={itensNoCarrinho === 0}
+          >
+            <IconShoppingCart />
+          </Indicator>
         </ Link>
       </Group>
     </header>
