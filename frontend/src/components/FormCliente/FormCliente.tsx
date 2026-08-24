@@ -12,7 +12,7 @@ import { DatePickerInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { IconX } from '@tabler/icons-react';
 import type { Cliente } from '../../types/cliente';
-import { apenasDigitos } from '../../utils/filtrarClientes';
+import { apenasDigitos } from '../../utils/texto';
 
 export interface FormClienteValues {
   nome: string;
