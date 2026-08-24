@@ -1,7 +1,12 @@
 import styles from "./Home.module.scss";
-import { Container, Flex, Group, Stack, Title } from "@mantine/core";
+import { Title } from "@mantine/core";
 import SpinningDisk from "../../components/SpinningDisk/SpinningDisk";
 import VinylCarousel from "../../components/VinylCarousel/VinylCarousel";
+import {
+  discosEmAlta,
+  discosMaisVendidos,
+  discosNovidades,
+} from "../../utils/discosMock";
 
 function Home() {
   return (
@@ -20,17 +25,17 @@ function Home() {
 
       <section className={styles.section}>
         <Title>Em alta</Title>
-        <VinylCarousel />
+        <VinylCarousel discos={discosEmAlta} />
       </section>
 
       <section className={styles.section}>
         <Title>Mais vendidos</Title>
-        <VinylCarousel />
+        <VinylCarousel discos={discosMaisVendidos} />
       </section>
 
       <section className={styles.section}>
         <Title>Novidades</Title>
-        <VinylCarousel />
+        <VinylCarousel discos={discosNovidades} />
       </section>
     </main>
   )

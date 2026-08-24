@@ -2,20 +2,13 @@ import '@mantine/carousel/styles.css';
 import styles from './VinylCarousel.module.scss';
 import { Carousel } from '@mantine/carousel';
 import VinylCard from '../VinylCard/VinylCard';
-import { vinylMock } from '../../utils/vinylMock';
+import type { Disco } from '../../types/disco';
 
-const thumbSrc = vinylMock.images[0].uri;
-
-const diskInfo = {
-  id: vinylMock.id,
-  title: vinylMock.title,
-  artist: vinylMock.artists[0].name,
-  releaseYear: vinylMock.year,
-  genre: vinylMock.genres[0],
-  price: 500
+interface VinylCarouselProps {
+  discos: Disco[];
 }
 
-function VinylCarousel() {
+function VinylCarousel({ discos }: Readonly<VinylCarouselProps>) {
   return (
     <Carousel
       withIndicators
@@ -33,27 +26,21 @@ function VinylCarousel() {
         control: styles.controle,
       }}
     >
-      <Carousel.Slide>
-        <VinylCard thumbSrc={thumbSrc} diskInfo={diskInfo} />
-      </Carousel.Slide> 
-      <Carousel.Slide>
-        <VinylCard thumbSrc={thumbSrc} diskInfo={diskInfo} />
-      </Carousel.Slide> 
-      <Carousel.Slide>
-        <VinylCard thumbSrc={thumbSrc} diskInfo={diskInfo} />
-      </Carousel.Slide> 
-      <Carousel.Slide>
-        <VinylCard thumbSrc={thumbSrc} diskInfo={diskInfo} />
-      </Carousel.Slide> 
-      <Carousel.Slide>
-        <VinylCard thumbSrc={thumbSrc} diskInfo={diskInfo} />
-      </Carousel.Slide> 
-      <Carousel.Slide>
-        <VinylCard thumbSrc={thumbSrc} diskInfo={diskInfo} />
-      </Carousel.Slide> 
-      <Carousel.Slide>
-        <VinylCard thumbSrc={thumbSrc} diskInfo={diskInfo} />
-      </Carousel.Slide> 
+      {discos.map((disco) => (
+        <Carousel.Slide key={disco.id}>
+          <VinylCard
+            thumbSrc={disco.coverSrc}
+            diskInfo={{
+              id: disco.id,
+              title: disco.title,
+              artist: disco.artist,
+              releaseYear: disco.releaseYear,
+              genre: disco.styles[0] ?? disco.genres[0],
+              price: disco.price,
+            }}
+          />
+        </Carousel.Slide>
+      ))}
     </Carousel>
   )
 }

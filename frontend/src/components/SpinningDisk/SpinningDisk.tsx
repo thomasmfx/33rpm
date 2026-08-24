@@ -16,20 +16,30 @@ const capas = [
   '/images/capas/damn.jpg'
 ];
 
+function embaralhar(itens: string[]): string[] {
+  const copia = [...itens];
+  for (let i = copia.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copia[i], copia[j]] = [copia[j], copia[i]];
+  }
+  return copia;
+}
+
 function SpinningDisk() {
+  const [ordem] = useState(() => embaralhar(capas));
   const [indexCapa, setIndexCapa] = useState(0);
 
   useEffect(() => {
     const intervalo = setInterval(() => {
-      setIndexCapa((prev) => (prev + 1) % capas.length);
+      setIndexCapa((prev) => (prev + 1) % ordem.length);
     }, 10000);
     return () => clearInterval(intervalo);
-  }, []);
+  }, [ordem]);
 
 return (
   <div className={classes.meioDiscoContainer}>
     <div className={classes.wrapperAnimacao}>
-       <img src={capas[indexCapa]} className={classes.capaTraseira} />
+       <img src={ordem[indexCapa]} className={classes.capaTraseira} />
        <img src={vinilSvg} className={classes.discoFrente} />
     </div>
   </div>
