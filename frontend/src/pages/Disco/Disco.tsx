@@ -17,7 +17,7 @@ import {
 } from '@mantine/core';
 import { IconArrowLeft, IconCheck, IconShoppingCartPlus } from '@tabler/icons-react';
 import { formatarBRL } from '../../utils/precificacao';
-import { nomeFormato, obterEdicao } from '../../utils/catalogo';
+import { faixasDoDisco, nomeFormato, obterEdicao } from '../../utils/catalogo';
 import VinylCarousel from '../../components/VinylCarousel/VinylCarousel';
 import { useLoja } from '../../contexts/loja';
 
@@ -59,6 +59,7 @@ function Disco() {
   }
 
   const esgotado = disco.estoque === 0;
+  const faixas = faixasDoDisco(disco.id);
 
   const fichaTecnica = [
     ['Gravadora', disco.gravadora],
@@ -76,7 +77,7 @@ function Disco() {
       <Anchor component={Link} to="/" c="dimmed" mb="2em" display="inline-block">
         <Group gap={6}>
           <IconArrowLeft size={16} />
-          <Text size="sm">Voltar ao acervo</Text>
+          <Text size="sm">Voltar</Text>
         </Group>
       </Anchor>
 
@@ -175,6 +176,29 @@ function Disco() {
             <Title order={3} size="18">Sobre este disco</Title>
             <Text fw={300} size="sm">{disco.descricao}</Text>
           </Stack>
+
+          {faixas.length > 0 && (
+            <Stack gap="xs">
+              <Title order={3} size="18">Faixas</Title>
+              <Table withTableBorder>
+                <Table.Tbody>
+                  {faixas.map((faixa) => (
+                    <Table.Tr key={`${faixa.posicao}-${faixa.titulo}`}>
+                      <Table.Td w={50}>
+                        <Text size="sm" c="dimmed">{faixa.posicao}</Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="sm" fw={300}>{faixa.titulo}</Text>
+                      </Table.Td>
+                      <Table.Td w={70} ta="right">
+                        <Text size="sm" c="dimmed">{faixa.duracao}</Text>
+                      </Table.Td>
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            </Stack>
+          )}
 
           <Stack gap="xs">
             <Title order={3} size="18">Ficha técnica</Title>

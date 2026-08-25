@@ -1,6 +1,8 @@
 import styles from './Carrinho.module.scss';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
+  Alert,
   Anchor,
   Button,
   Divider,
@@ -11,14 +13,31 @@ import {
   Text,
   Title,
 } from '@mantine/core';
-import { IconTrash } from '@tabler/icons-react';
+import { IconAlertTriangle, IconTrash } from '@tabler/icons-react';
 import { useLoja } from '../../contexts/loja';
+import { IconShoppingCartOff } from '@tabler/icons-react';
+import EstadoVazio from '../../components/EstadoVazio/EstadoVazio';
+import { AVISO_ANTES_MINUTOS, PRAZO_BLOQUEIO_MINUTOS } from '../../utils/carrinho';
+import type { AjusteCarrinho } from '../../utils/carrinho';
 import { formatarBRL } from '../../utils/precificacao';
 import { nomeFormato } from '../../utils/catalogo';
 
 function Carrinho() {
-  const { carrinho, discos, alterarQuantidade, removerDoCarrinho, limparCarrinho } =
-    useLoja();
+  const {
+    carrinho,
+    discos,
+    alterarQuantidade,
+    removerDoCarrinho,
+    limparCarrinho,
+    minutosParaExpirar,
+    itensExpirados,
+    descartarItensExpirados,
+    sincronizarCarrinho,
+    adicionarAoCarrinho,
+  } = useLoja();
+  const navegar = useNavigate();
+
+  const [ajustes, setAjustes] = useState<AjusteCarrinho[]>([]);
 
   const itens = carrinho.flatMap((item) => {
     const disco = discos.find((candidato) => candidato.id === item.discoId);
@@ -30,20 +49,94 @@ function Carrinho() {
     0,
   );
 
+  function handleReadicionarExpirados(): void {
+    itensExpirados.forEach((item) => adicionarAoCarrinho(item.discoId, item.quantidade));
+    descartarItensExpirados();
+  }
+
+  function handleFinalizarCompra(): void {
+    const novosAjustes = sincronizarCarrinho();
+    if (novosAjustes.length > 0) {
+      setAjustes(novosAjustes);
+      return;
+    }
+    navegar('/checkout');
+  }
+
+  const alertaExpirados = itensExpirados.length > 0 && (
+    <Alert color="red" title="Itens removidos por expiração" icon={<IconAlertTriangle size={18} />}>
+      <Stack gap={4}>
+        <Text size="sm">
+          O prazo de reserva caiu e estes discos saíram do seu carrinho:
+        </Text>
+        {itensExpirados.map((item) => {
+          const disco = discos.find((candidato) => candidato.id === item.discoId);
+          return (
+            <Text size="sm" key={item.discoId}>
+              {disco?.title ?? 'Disco indisponível'} — quantidade: {item.quantidade}
+            </Text>
+          );
+        })}
+        <Group mt="xs">
+          <Button size="xs" color="dark" onClick={handleReadicionarExpirados}>
+            Adicionar novamente
+          </Button>
+          <Button size="xs" variant="default" onClick={descartarItensExpirados}>
+            Dispensar
+          </Button>
+        </Group>
+      </Stack>
+    </Alert>
+  );
+
   if (itens.length === 0) {
     return (
       <main className={styles.main}>
-        <Title order={1} size="40">Seu carrinho</Title>
-        <Text fw={300}>Nenhum disco por aqui ainda.</Text>
-        <Anchor component={Link} to="/acervo" fw={700}>
-          Explorar o acervo
-        </Anchor>
+        {alertaExpirados}
+        <EstadoVazio
+          icone={<IconShoppingCartOff size={104} stroke={1.1} />}
+          titulo="Seu carrinho está vazio"
+          descricao="Nenhum disco por aqui ainda. Vá ao acervo e comece a garimpar."
+          rotuloAcao="Explorar o acervo"
+          paraAcao="/acervo"
+        />
       </main>
     );
   }
 
+  const isPrestesAExpirar =
+    minutosParaExpirar !== null && minutosParaExpirar <= AVISO_ANTES_MINUTOS;
+  const textoRestante =
+    minutosParaExpirar === 1
+      ? 'resta 1 minuto'
+      : `restam ${minutosParaExpirar} minutos`;
+
   return (
     <main className={styles.main}>
+      {alertaExpirados}
+
+      {minutosParaExpirar !== null && (
+        <Alert color={isPrestesAExpirar ? 'orange' : 'blue'}>
+          {isPrestesAExpirar
+            ? `Sua reserva está perto de cair: ${textoRestante}.`
+            : `Os itens ficam reservados por ${PRAZO_BLOQUEIO_MINUTOS} minutos a partir da última alteração. ${textoRestante}.`}
+        </Alert>
+      )}
+
+      {ajustes.length > 0 && (
+        <Alert color="orange" title="Carrinho ajustado ao estoque" icon={<IconAlertTriangle size={18} />}>
+          <Stack gap={4}>
+            {ajustes.map((ajuste) => (
+              <Text size="sm" key={ajuste.discoId}>
+                {ajuste.quantidadeNova > 0
+                  ? `${ajuste.titulo}: ${ajuste.quantidadeAnterior} → ${ajuste.quantidadeNova} unidade(s)`
+                  : `${ajuste.titulo}: removido, sem estoque`}
+              </Text>
+            ))}
+          </Stack>
+        </Alert>
+      )}
+
       <Group justify="space-between" align="center">
         <Title order={1} size="40">Seu carrinho</Title>
         <Button variant="subtle" color="black" onClick={limparCarrinho}>
@@ -104,7 +197,7 @@ function Carrinho() {
       </Group>
 
       <Group justify="flex-end">
-        <Button color="dark" size="md" disabled>
+        <Button color="dark" size="md" onClick={handleFinalizarCompra}>
           Finalizar compra
         </Button>
       </Group>

@@ -22,6 +22,10 @@
   font-display: swap;
 }
 
+:root {
+  --largura-conteudo: 1000px;
+}
+
 *, *::before, *::after {
     box-sizing: border-box;
 }

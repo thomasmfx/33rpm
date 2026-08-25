@@ -1,0 +1,36 @@
+.main {
+  margin-top: 4em;
+  margin-bottom: 8em;
+  width: 100%;
+  max-width: var(--largura-conteudo);
+  margin-inline: auto;
+  padding-inline: 1em;
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 48px 1fr auto auto;
+  gap: 1em;
+  align-items: center;
+}
+
+.capa {
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: #ededed;
+}
+
+.linhaValor {
+  display: flex;
+  justify-content: space-between;
+}
+
+@media (max-width: 700px) {
+  .item {
+    grid-template-columns: 40px 1fr;
+    row-gap: 0.4em;
+  }
+}

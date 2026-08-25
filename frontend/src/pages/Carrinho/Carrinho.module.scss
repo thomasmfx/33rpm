@@ -1,11 +1,11 @@
 .main {
   margin-top: 4em;
   margin-bottom: 8em;
-  max-width: 900px;
-  justify-self: center;
+  width: 100%;
+  max-width: var(--largura-conteudo);
+  margin-inline: auto;
   padding-inline: 1em;
   display: flex;
-  align-items: center;
   flex-direction: column;
   gap: 2em;
 }

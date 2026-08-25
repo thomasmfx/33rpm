@@ -122,7 +122,7 @@ export default function FormEntradaEstoque({
 
       <Group gap="md" align="flex-start" mb="lg" wrap="nowrap">
         <Image
-          src={disco.coverSrc}
+          src={disco.coverThumb ?? disco.coverSrc}
           alt={disco.title}
           w={60}
           h={60}

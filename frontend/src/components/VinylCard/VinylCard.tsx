@@ -1,5 +1,6 @@
-import { Card, Image, Text, Stack } from "@mantine/core";
-import { Link } from "react-router-dom";
+import styles from './VinylCard.module.scss';
+import { Card, Image, Text, Stack } from '@mantine/core';
+import { Link } from 'react-router-dom';
 
 interface VinylCardProps {
   thumbSrc: string;
@@ -15,27 +16,15 @@ interface VinylCardProps {
 
 function VinylCard({ thumbSrc, diskInfo }: Readonly<VinylCardProps>) {
   return (
-    <Card 
-      component={Link} 
-      to={`/disco/${diskInfo.id}`} 
-      padding="md"
+    <Card
+      component={Link}
+      to={`/disco/${diskInfo.id}`}
+      padding={0}
       radius="md"
       shadow="sm"
-      h={470}
-      style={{
-        backgroundColor: 'transparent',
-        textDecoration: 'none',
-        color: 'inherit',
-        overflow: 'hidden'
-      }}
+      className={styles.card}
     >
-      <Card.Section
-        bg="#EDEDED"
-        style={{
-          height: 260,
-          width: 260
-        }}
-      >
+      <div className={styles.capa}>
         <Image
           src={thumbSrc}
           w="100%"
@@ -43,10 +32,10 @@ function VinylCard({ thumbSrc, diskInfo }: Readonly<VinylCardProps>) {
           fit="cover"
           alt={diskInfo.title}
         />
-      </Card.Section>
+      </div>
 
-      <Stack mt="md" flex={1} justify="space-between">
-        <Stack style={{gap: 0}}>
+      <Stack className={styles.info} justify="space-between">
+        <Stack gap={0}>
           <Text size="lg" fw={700} lineClamp={2} lh={1.3}>
             {diskInfo.title}
           </Text>
@@ -60,7 +49,6 @@ function VinylCard({ thumbSrc, diskInfo }: Readonly<VinylCardProps>) {
           <Text size="sm" fw={300}>{diskInfo.genre}</Text>
           <Text size="sm" fw={300}>R${diskInfo.price}</Text>
         </Stack>
-
       </Stack>
     </Card>
   );

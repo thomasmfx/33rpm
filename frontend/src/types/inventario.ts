@@ -91,7 +91,7 @@ export const EDICOES: TipoEdicao[] = [
   },
   {
     id: 'ed-vinil-colorido',
-    nome: 'Vinil Colorido / Splatter',
+    nome: 'Splatter',
     descricao:
       'Disco tingido em vez do preto clássico. No splatter o efeito imita tinta espirrada sobre o vinil.',
   },

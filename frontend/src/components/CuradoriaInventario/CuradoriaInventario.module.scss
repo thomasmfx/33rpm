@@ -58,3 +58,24 @@
 .linhaInativa {
   opacity: 0.55;
 }
+
+// larguras fixas: sem isso a coluna dimensiona pelo conteúdo e a tabela pula de
+// tamanho a cada troca de página, conforme o tamanho do texto de cada célula
+.tabela {
+  table-layout: fixed;
+  min-width: 1200px;
+}
+
+// a altura vale para TODA linha do corpo, inclusive as de preenchimento: fixar
+// só na linha vazia deixava a última página com altura diferente das outras
+.tabela tbody tr {
+  height: 64px;
+}
+
+.tabela tbody td {
+  overflow: hidden;
+}
+
+.linhaVazia {
+  pointer-events: none;
+}

@@ -1,8 +1,9 @@
 .main {
   margin-top: 4em;
   margin-bottom: 8em;
-  max-width: 1000px;
-  justify-self: center;
+  width: 100%;
+  max-width: var(--largura-conteudo);
+  margin-inline: auto;
   padding-inline: 1em;
 }
 

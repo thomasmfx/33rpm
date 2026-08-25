@@ -1,0 +1,18 @@
+.main {
+  margin-top: 4em;
+  margin-bottom: 8em;
+  width: 100%;
+  max-width: var(--largura-conteudo);
+  margin-inline: auto;
+  padding-inline: 1em;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5em;
+}
+
+.capa {
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: #ededed;
+  flex-shrink: 0;
+}

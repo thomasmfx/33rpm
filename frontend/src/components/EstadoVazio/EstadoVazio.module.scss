@@ -1,0 +1,18 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.25em;
+  padding: 5em 1em 6em;
+}
+
+.icone {
+  color: #000;
+  opacity: 0.18;
+  line-height: 0;
+}
+
+.texto {
+  max-width: 42ch;
+}

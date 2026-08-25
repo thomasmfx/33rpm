@@ -8,6 +8,7 @@ import {
   Image,
   Indicator,
   Modal,
+  Pagination,
   NumberInput,
   Popover,
   Select,
@@ -65,6 +66,9 @@ import FormEntradaEstoque, {
   type FormEntradaEstoqueValues,
 } from '../FormEntradaEstoque/FormEntradaEstoque';
 
+// tabela cheia re-renderizava inteira a cada clique, inclusive para abrir modal
+const POR_PAGINA = 12;
+
 const OPCOES_GRUPO_FILTRO = [
   { value: '', label: 'Todos' },
   ...GRUPOS_PRECIFICACAO.map((grupo) => ({
@@ -94,6 +98,7 @@ export default function CuradoriaInventario() {
   const [justificativaStatus, setJustificativaStatus] = useState('');
   const [isInativacaoAutomaticaVisible, setIsInativacaoAutomaticaVisible] =
     useState(false);
+  const [pagina, setPagina] = useState(1);
   const [isFiltroAberto, { toggle: toggleFiltro, close: fecharFiltro }] =
     useDisclosure(false);
 
@@ -109,6 +114,19 @@ export default function CuradoriaInventario() {
       discos.filter((disco) => elegivelParaInativacaoAutomatica(disco, hoje)),
     [discos, hoje]
   );
+  const totalPaginas = Math.max(1, Math.ceil(discosFiltrados.length / POR_PAGINA));
+  // filtrar pode encurtar a lista com a página lá na frente
+  const paginaAtual = Math.min(pagina, totalPaginas);
+
+  const discosDaPagina = useMemo(
+    () =>
+      discosFiltrados.slice(
+        (paginaAtual - 1) * POR_PAGINA,
+        paginaAtual * POR_PAGINA,
+      ),
+    [discosFiltrados, paginaAtual],
+  );
+
   const qtdFiltrosAtivos = contarFiltrosDiscosAtivos(filtros);
 
   function handleAlterarFiltro<Campo extends keyof FiltrosDiscos>(
@@ -141,7 +159,15 @@ export default function CuradoriaInventario() {
     if (discoEmEdicao) {
       setDiscos((discosAtuais) =>
         discosAtuais.map((disco) =>
-          disco.id === discoEmEdicao.id ? { ...disco, ...valores } : disco
+          disco.id === discoEmEdicao.id
+            ? {
+                ...disco,
+                ...valores,
+                // a miniatura do Discogs não vale mais se a capa mudou
+                coverThumb:
+                  valores.coverSrc === disco.coverSrc ? disco.coverThumb : undefined,
+              }
+            : disco
         )
       );
     } else {
@@ -158,6 +184,7 @@ export default function CuradoriaInventario() {
           ultimaVendaEm: null,
         },
       ]);
+
     }
 
     handleFecharFormDisco();
@@ -192,6 +219,7 @@ export default function CuradoriaInventario() {
       )
     );
 
+
     handleFecharFormEntrada();
   }
 
@@ -225,6 +253,7 @@ export default function CuradoriaInventario() {
           : disco
       )
     );
+
 
     handleCancelarAlterarStatus();
   }
@@ -659,18 +688,23 @@ export default function CuradoriaInventario() {
           />
         </nav>
         <div className={styles.tabelaContainer}>
-          <Table withTableBorder withColumnBorders highlightOnHover>
+          <Table
+            withTableBorder
+            withColumnBorders
+            highlightOnHover
+            className={styles.tabela}
+          >
             <Table.Thead>
               <Table.Tr>
-                <Table.Th>Capa</Table.Th>
-                <Table.Th>Título</Table.Th>
-                <Table.Th>Artista</Table.Th>
-                <Table.Th>Ano</Table.Th>
-                <Table.Th>Categorias</Table.Th>
-                <Table.Th>Grupo</Table.Th>
-                <Table.Th>Preço</Table.Th>
-                <Table.Th>Estoque</Table.Th>
-                <Table.Th>Ações</Table.Th>
+                <Table.Th w={70}>Capa</Table.Th>
+                <Table.Th w={240}>Título</Table.Th>
+                <Table.Th w={170}>Artista</Table.Th>
+                <Table.Th w={70}>Ano</Table.Th>
+                <Table.Th w={190}>Categorias</Table.Th>
+                <Table.Th w={120}>Grupo</Table.Th>
+                <Table.Th w={120}>Preço</Table.Th>
+                <Table.Th w={90}>Estoque</Table.Th>
+                <Table.Th w={130}>Ações</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -683,14 +717,14 @@ export default function CuradoriaInventario() {
                   </Table.Td>
                 </Table.Tr>
               )}
-              {discosFiltrados.map((disco) => (
+              {discosDaPagina.map((disco) => (
                 <Table.Tr
                   key={disco.id}
                   className={disco.isAtivo ? undefined : styles.linhaInativa}
                 >
                   <Table.Td>
                     <Image
-                      src={disco.coverSrc}
+                      src={disco.coverThumb ?? disco.coverSrc}
                       w={44}
                       h={44}
                       radius="sm"
@@ -722,11 +756,13 @@ export default function CuradoriaInventario() {
                     </Stack>
                   </Table.Td>
                   <Table.Td>
-                    <Text size="sm">{disco.artist}</Text>
+                    <Text truncate="end" size="sm">
+                      {disco.artist}
+                    </Text>
                   </Table.Td>
                   <Table.Td>{disco.releaseYear}</Table.Td>
                   <Table.Td>
-                    <Group gap={4} wrap="wrap">
+                    <Group gap={4} wrap="nowrap">
                       {disco.genres.slice(0, 2).map((genero) => (
                         <Badge
                           key={genero}
@@ -829,8 +865,27 @@ export default function CuradoriaInventario() {
                   </Table.Td>
                 </Table.Tr>
               ))}
+              {discosDaPagina.length > 0 &&
+                Array.from(
+                  { length: POR_PAGINA - discosDaPagina.length },
+                  (_, indice) => (
+                    <Table.Tr key={`vazia-${indice}`} className={styles.linhaVazia}>
+                      <Table.Td colSpan={9} />
+                    </Table.Tr>
+                  ),
+                )}
             </Table.Tbody>
           </Table>
+
+          {totalPaginas > 1 && (
+            <Pagination
+              total={totalPaginas}
+              value={paginaAtual}
+              onChange={setPagina}
+              color="dark"
+              mt="md"
+            />
+          )}
         </div>
       </div>
     </>
