@@ -1,4 +1,4 @@
-.painelInventario {
+.painelPedidos {
   width: 100%;
   min-height: 100%;
   display: flex;
@@ -14,26 +14,6 @@
   gap: 1em;
 }
 
-.navButton {
-  background: none;
-  border: none;
-  cursor: pointer;
-  transition: 100ms ease-in-out;
-
-  &:hover {
-    opacity: 0.7;
-  }
-
-  &:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-
-    &:hover {
-      opacity: 0.3;
-    }
-  }
-}
-
 .tabelaContainer {
   width: 100%;
   overflow-x: auto;
@@ -45,31 +25,47 @@
   cursor: pointer;
   transition: 100ms ease-in-out;
 
-  &:hover > :not(.toggleIcon) {
+  &:hover {
     opacity: 0.7;
-  }
-
-  > svg:hover {
-    filter: brightness(70%);
   }
 }
 
-// RN0015: disco inativo some da loja, mas o admin precisa achá-lo na tabela
-.linhaInativa {
-  opacity: 0.55;
+.linhaPedido {
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--mantine-color-dark-4);
+    outline-offset: -2px;
+  }
+}
+
+// RF0043: troca ainda sem cupom gerado precisa saltar aos olhos do admin
+.linhaTrocaPendente {
+  background-color: var(--mantine-color-yellow-0);
+}
+
+.itemDetalhe {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+}
+
+.linhaValor {
+  display: flex;
+  justify-content: space-between;
 }
 
 // larguras fixas: sem isso a coluna dimensiona pelo conteúdo e a tabela pula de
 // tamanho a cada troca de página, conforme o tamanho do texto de cada célula
 .tabela {
   table-layout: fixed;
-  min-width: 1200px;
+  min-width: 1120px;
 }
 
 // a altura vale para TODA linha do corpo, inclusive as de preenchimento: fixar
 // só na linha vazia deixava a última página com altura diferente das outras
 .tabela tbody tr {
-  height: 64px;
+  height: 52px;
 }
 
 .tabela tbody td {

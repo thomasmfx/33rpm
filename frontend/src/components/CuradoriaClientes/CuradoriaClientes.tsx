@@ -1,5 +1,6 @@
 import styles from './CuradoriaClientes.module.scss';
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Button,
   Flex,
@@ -26,7 +27,6 @@ import {
   IconToggleRightFilled,
   IconUserPlus,
 } from '@tabler/icons-react';
-import { mockClientes } from './mockClientes';
 import type {
   Cliente,
   FiltrosClientes,
@@ -40,9 +40,12 @@ import {
 import FormCliente, {
   type FormClienteValues,
 } from '../FormCliente/FormCliente';
+import { useLoja } from '../../contexts/loja';
+import { telefoneCompleto } from '../../utils/perfilCliente';
 
 function CuradoriaClientes() {
-  const [clientes, setClientes] = useState<Cliente[]>(mockClientes);
+  const { clientes, setClientes, entrarComoCliente } = useLoja();
+  const navegar = useNavigate();
   const [filtros, setFiltros] = useState<FiltrosClientes>(FILTROS_VAZIOS);
   const [isFormClienteVisible, setIsFormClienteVisible] =
     useState<boolean>(false);
@@ -90,8 +93,11 @@ function CuradoriaClientes() {
       email: valores.email,
       telefone: valores.telefone,
       cpf: valores.cpf,
+      genero: valores.genero,
       dataNascimento: valores.dataNascimento,
       isAtivo: valores.isAtivo,
+      enderecos: valores.enderecos,
+      cartoes: valores.cartoes,
     };
 
     if (clienteEmEdicao) {
@@ -114,6 +120,11 @@ function CuradoriaClientes() {
     }
 
     handleFecharFormCliente();
+  }
+
+  function handleEntrarComoCliente(clienteId: string): void {
+    entrarComoCliente(clienteId);
+    navegar('/');
   }
 
   function handleSolicitarAlterarStatus(cliente: Cliente): void {
@@ -362,7 +373,7 @@ function CuradoriaClientes() {
                     {cliente.email}
                   </Text>
                 </Table.Td>
-                <Table.Td>{cliente.telefone}</Table.Td>
+                <Table.Td>{telefoneCompleto(cliente.telefone)}</Table.Td>
                 <Table.Td>
                   <Flex>
                     {[1, 2, 3, 4, 5].map((star) => {
@@ -380,8 +391,14 @@ function CuradoriaClientes() {
                   }}
                 >
                   <Flex gap="0.5em">
-                    <button className={styles.actionButton} type="button">
-                      <IconLogin stroke={1.8} />
+                    <button
+                      className={styles.actionButton}
+                      type="button"
+                      disabled={!cliente.isAtivo}
+                      aria-label={`Navegar como ${cliente.nome}`}
+                      onClick={() => handleEntrarComoCliente(cliente.id)}
+                    >
+                      <IconLogin stroke={1.8} opacity={cliente.isAtivo ? 1 : 0.3} />
                     </button>
                     <button
                       className={styles.actionButton}
