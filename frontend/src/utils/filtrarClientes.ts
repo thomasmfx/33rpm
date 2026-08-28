@@ -1,5 +1,6 @@
 import type { Cliente, FiltrosClientes } from '../types/cliente';
 import { contemDigitos, contemTexto } from './texto';
+import { telefoneCompleto } from './perfilCliente';
 
 export const FILTROS_VAZIOS: FiltrosClientes = {
   nome: '',
@@ -20,7 +21,7 @@ export function filtrarClientes(
       contemTexto(cliente.nome, filtros.nome) &&
       contemTexto(cliente.email, filtros.email) &&
       contemTexto(cliente.id, filtros.id) &&
-      contemDigitos(cliente.telefone, filtros.telefone) &&
+      contemDigitos(telefoneCompleto(cliente.telefone), filtros.telefone) &&
       contemDigitos(cliente.cpf, filtros.cpf) &&
       (filtros.status === 'todos' ||
         cliente.isAtivo === (filtros.status === 'ativos')) &&

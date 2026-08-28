@@ -1,6 +1,12 @@
-import type { Disco } from '../types/disco';
+import type { Disco, Faixa } from '../types/disco';
 import type { FormatoDisco, TipoEdicao } from '../types/inventario';
 import { EDICOES, FORMATOS_DISCO, GENEROS, GRAVADORAS } from '../types/inventario';
+
+import { faixasPorDisco } from './faixasMock';
+
+export function faixasDoDisco(discoId: number): Faixa[] {
+  return faixasPorDisco[discoId] ?? [];
+}
 
 export function obterFormato(id: string): FormatoDisco | undefined {
   return FORMATOS_DISCO.find((formato) => formato.id === id);

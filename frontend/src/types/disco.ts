@@ -1,3 +1,10 @@
+/** Uma faixa do disco, como vem da tracklist do Discogs. */
+export interface Faixa {
+  posicao: string;
+  titulo: string;
+  duracao: string;
+}
+
 export interface Dimensoes {
   altura: number; // cm
   largura: number; // cm
@@ -28,7 +35,13 @@ export interface Disco {
   styles: string[];
   /** Valor de venda em R$, derivado do custo pela RF0052 + RN0051. */
   price: number;
+  /** Capa em 600px (images[].uri do Discogs), para o card e a página do disco. */
   coverSrc: string;
+  /**
+   * Miniatura em 150px (images[].uri150), para tabelas e listas compactas.
+   * Opcional: disco cadastrado à mão tem só uma URL, e aí a capa serve.
+   */
+  coverThumb?: string;
   /** Cópias à venda no marketplace do Discogs — NÃO é o nosso estoque. */
   numForSale: number;
   discogsUri: string;
