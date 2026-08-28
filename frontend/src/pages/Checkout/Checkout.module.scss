@@ -7,25 +7,12 @@
   padding-inline: 1em;
   display: flex;
   flex-direction: column;
-  gap: 2em;
-}
-
-.item {
-  display: grid;
-  grid-template-columns: 90px 1fr auto auto auto;
-  gap: 1.5em;
-  align-items: center;
+  gap: 2.5em;
 }
 
 .capa {
   border-radius: 6px;
   overflow: hidden;
   background-color: #ededed;
-}
-
-@media (max-width: 700px) {
-  .item {
-    grid-template-columns: 70px 1fr;
-    row-gap: 0.8em;
-  }
+  flex-shrink: 0;
 }

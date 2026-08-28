@@ -12,20 +12,25 @@
 
 .item {
   display: grid;
-  grid-template-columns: 90px 1fr auto auto auto;
-  gap: 1.5em;
+  grid-template-columns: 48px 1fr auto auto;
+  gap: 1em;
   align-items: center;
 }
 
 .capa {
-  border-radius: 6px;
+  border-radius: 4px;
   overflow: hidden;
   background-color: #ededed;
 }
 
+.linhaValor {
+  display: flex;
+  justify-content: space-between;
+}
+
 @media (max-width: 700px) {
   .item {
-    grid-template-columns: 70px 1fr;
-    row-gap: 0.8em;
+    grid-template-columns: 40px 1fr;
+    row-gap: 0.4em;
   }
 }

@@ -12,12 +12,16 @@ function VinylCarousel({ discos }: Readonly<VinylCarouselProps>) {
   return (
     <Carousel
       withIndicators
-      slideSize="25%"
+      // largura que não fecha 100% de propósito: sobra sempre um card cortado
+      // na borda, sinalizando que há mais disco para o lado
+      slideSize={{ base: '80%', xs: '55%', sm: '40%', md: '30%', lg: '22%' }}
       slideGap="lg"
       emblaOptions={{
         loop: false,
         dragFree: true,
-        align: 'start'
+        align: 'start',
+        // sem isso o fim do carrossel abre espaço vazio depois do último disco
+        containScroll: 'trimSnaps'
       }}
       classNames={{
         indicator: styles.indicador,

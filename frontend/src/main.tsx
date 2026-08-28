@@ -11,6 +11,11 @@ import { createTheme, MantineProvider } from '@mantine/core'
 const router = createBrowserRouter(routes)
 
 const theme = createTheme({
+  components: {
+    Modal: {
+      defaultProps: { transitionProps: { duration: 120 } },
+    },
+  },
   fontFamily: '"Uxum Grotesque", sans-serif',
   headings: {
     fontFamily: '"Uxum Grotesque", sans-serif',

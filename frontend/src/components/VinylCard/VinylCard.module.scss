@@ -1,0 +1,23 @@
+.card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: transparent;
+  text-decoration: none;
+  color: inherit;
+}
+
+// a capa acompanha a largura do card e se mantém quadrada: com tamanho fixo
+// sobrava faixa vazia sempre que o card esticava além dela
+.capa {
+  width: 100%;
+  aspect-ratio: 1;
+  background-color: #ededed;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.info {
+  flex: 1;
+  padding: 1rem;
+}

@@ -1,21 +1,11 @@
 import { useState, useEffect } from 'react';
 import classes from './SpinningDisk.module.scss';
-import vinilSvg from '../../../public/images/vinil.svg';
+import vinilSvg from '/images/vinil.svg';
+import { discosMock } from '../../utils/discosMock';
 
-const capas = [
-  '/images/capas/astroworld.jpg',
-  '/images/capas/currents.jpg',
-  '/images/capas/thriller.jpg',
-  '/images/capas/tpab.jpg',
-  '/images/capas/thedarksideofthemoon.jpg',
-  '/images/capas/ridethelightning.jpg',
-  '/images/capas/am.jpg',
-  '/images/capas/mezmerize.jpg',
-  '/images/capas/awakenmylove.jpg',
-  '/images/capas/anti.jpg',
-  '/images/capas/damn.jpg'
-];
+const capas = discosMock.map((disco) => disco.coverSrc);
 
+// Fisher-Yates: toda permutação com a mesma probabilidade
 function embaralhar(itens: string[]): string[] {
   const copia = [...itens];
   for (let i = copia.length - 1; i > 0; i--) {
@@ -26,6 +16,7 @@ function embaralhar(itens: string[]): string[] {
 }
 
 function SpinningDisk() {
+  // initializer lazy: embaralha uma vez por carregamento, não a cada render
   const [ordem] = useState(() => embaralhar(capas));
   const [indexCapa, setIndexCapa] = useState(0);
 
@@ -36,14 +27,14 @@ function SpinningDisk() {
     return () => clearInterval(intervalo);
   }, [ordem]);
 
-return (
-  <div className={classes.meioDiscoContainer}>
-    <div className={classes.wrapperAnimacao}>
-       <img src={ordem[indexCapa]} className={classes.capaTraseira} />
-       <img src={vinilSvg} className={classes.discoFrente} />
+  return (
+    <div className={classes.meioDiscoContainer}>
+      <div className={classes.wrapperAnimacao}>
+        <img src={ordem[indexCapa]} alt="" className={classes.capaTraseira} />
+        <img src={vinilSvg} alt="" className={classes.discoFrente} />
+      </div>
     </div>
-  </div>
-);
+  );
 }
 
 export default SpinningDisk;

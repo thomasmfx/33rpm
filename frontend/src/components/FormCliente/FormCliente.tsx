@@ -1,29 +1,42 @@
 import styles from './FormCliente.module.scss';
+import { useState } from 'react';
 import {
+  Badge,
   Button,
   Flex,
+  Select,
   Text,
   TextInput,
   PasswordInput,
   Switch,
   Group,
+  Tabs,
 } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { IconX } from '@tabler/icons-react';
-import type { Cliente } from '../../types/cliente';
+import type { Cartao, Cliente, Endereco, Telefone } from '../../types/cliente';
+import { GENEROS, TIPOS_TELEFONE } from '../../types/cliente';
 import { apenasDigitos } from '../../utils/texto';
+import { tiposFaltando } from '../../utils/perfilCliente';
+import ListaEnderecos from './ListaEnderecos';
+import ListaCartoes from './ListaCartoes';
 
 export interface FormClienteValues {
   nome: string;
   email: string;
-  telefone: string;
+  genero: string;
+  telefone: Telefone;
   cpf: string;
   dataNascimento: string | null;
   password: string;
   confirmPassword: string;
   isAtivo: boolean;
+  enderecos: Endereco[];
+  cartoes: Cartao[];
 }
+
+type CamposCliente = Omit<FormClienteValues, 'enderecos' | 'cartoes'>;
 
 interface FormClienteProps {
   initialValues?: Cliente;
@@ -38,12 +51,26 @@ export default function FormCliente({
   onClose,
   onSubmit,
 }: Readonly<FormClienteProps>) {
-  const form = useForm<FormClienteValues>({
+  const [enderecos, setEnderecos] = useState<Endereco[]>(
+    initialValues?.enderecos ?? [],
+  );
+  const [cartoes, setCartoes] = useState<Cartao[]>(initialValues?.cartoes ?? []);
+  const [abaAtiva, setAbaAtiva] = useState<string | null>('dados');
+  const [isSubFormAberto, setIsSubFormAberto] = useState(false);
+
+  const faltandoEndereco = tiposFaltando(enderecos);
+
+  const form = useForm<CamposCliente>({
     mode: 'uncontrolled',
     initialValues: {
       nome: initialValues?.nome || '',
       email: initialValues?.email || '',
-      telefone: initialValues?.telefone || '',
+      genero: initialValues?.genero || '',
+      telefone: {
+        tipo: initialValues?.telefone?.tipo || 'Celular',
+        ddd: initialValues?.telefone?.ddd || '',
+        numero: initialValues?.telefone?.numero || '',
+      },
       cpf: initialValues?.cpf || '',
       dataNascimento: initialValues?.dataNascimento ?? null,
       password: '',
@@ -55,6 +82,14 @@ export default function FormCliente({
       nome: (value) =>
         value.length < 3 ? 'O nome deve ter pelo menos 3 letras' : null,
       email: (value) => (/^\S+@\S+$/.test(value) ? null : 'E-mail inválido'),
+      genero: (value) => (!value ? 'Selecione um gênero' : null),
+      telefone: {
+        ddd: (value) => (apenasDigitos(value).length !== 2 ? 'DDD inválido' : null),
+        numero: (value) => {
+          const digitos = apenasDigitos(value).length;
+          return digitos === 8 || digitos === 9 ? null : 'Número inválido';
+        },
+      },
       cpf: (value) =>
         apenasDigitos(value).length !== 11 ? 'CPF inválido' : null,
 
@@ -75,8 +110,17 @@ export default function FormCliente({
     },
   });
 
+  // RN0021 e RN0022: sem endereço de entrega e de cobrança o cadastro não fecha
+  function handleSubmit(valores: CamposCliente): void {
+    if (faltandoEndereco.length > 0) {
+      setAbaAtiva('enderecos');
+      return;
+    }
+    onSubmit({ ...valores, enderecos, cartoes });
+  }
+
   return (
-    <form className={styles.form} onSubmit={form.onSubmit(onSubmit)}>
+    <form className={styles.form} onSubmit={form.onSubmit(handleSubmit)}>
       <Flex
         className={styles.formHeader}
         justify="space-between"
@@ -93,7 +137,31 @@ export default function FormCliente({
         </Button>
       </Flex>
 
-      <Flex direction="column" gap="sm" >
+      <Tabs
+        value={abaAtiva}
+        onChange={setAbaAtiva}
+        color="dark"
+        keepMounted={false}
+      >
+        <Tabs.List>
+          <Tabs.Tab value="dados">Dados</Tabs.Tab>
+          <Tabs.Tab
+            value="enderecos"
+            rightSection={
+              faltandoEndereco.length > 0 ? (
+                <Badge size="xs" circle color="orange">
+                  !
+                </Badge>
+              ) : null
+            }
+          >
+            Endereços
+          </Tabs.Tab>
+          <Tabs.Tab value="cartoes">Cartões</Tabs.Tab>
+        </Tabs.List>
+
+        <Tabs.Panel value="dados" pt="md">
+          <Flex direction="column" gap="sm" >
         <TextInput
           label="Nome Completo"
           placeholder="Ex: João da Silva"
@@ -115,6 +183,18 @@ export default function FormCliente({
             flex="1"
           />
 
+          <Select
+            label="Gênero"
+            placeholder="Selecione um gênero"
+            withAsterisk
+            data={GENEROS}
+            allowDeselect={false}
+            radius="sm"
+            key={form.key('genero')}
+            {...form.getInputProps('genero')}
+            flex="1"
+          />
+
           <TextInput
             label="CPF"
             placeholder="000.000.000-00"
@@ -128,26 +208,47 @@ export default function FormCliente({
         </Flex>
 
         <Flex gap="2em">
-          <TextInput
-            label="Telefone"
-            placeholder="(11) 90000-0000"
+          <Select
+            label="Tipo"
+            data={TIPOS_TELEFONE}
+            allowDeselect={false}
             withAsterisk
-            key={form.key('telefone')}
-            {...form.getInputProps('telefone')}
-            flex="1"
             radius="sm"
+            w={140}
+            key={form.key('telefone.tipo')}
+            {...form.getInputProps('telefone.tipo')}
           />
 
           <TextInput
-            label="E-mail"
-            placeholder="cliente@email.com"
+            label="DDD"
+            placeholder="11"
             withAsterisk
-            key={form.key('email')}
-            {...form.getInputProps('email')}
-            flex="1"
             radius="sm"
+            w={80}
+            key={form.key('telefone.ddd')}
+            {...form.getInputProps('telefone.ddd')}
+          />
+
+          <TextInput
+            label="Número"
+            placeholder="90000-0000"
+            withAsterisk
+            radius="sm"
+            flex={1}
+            key={form.key('telefone.numero')}
+            {...form.getInputProps('telefone.numero')}
           />
         </Flex>
+
+        <TextInput
+          label="E-mail"
+          placeholder="cliente@email.com"
+          withAsterisk
+          key={form.key('email')}
+          {...form.getInputProps('email')}
+          flex="1"
+          radius="sm"
+        />
 
         <PasswordInput
           label={isEdit ? 'Nova Senha (opcional)' : 'Senha'}
@@ -178,16 +279,36 @@ export default function FormCliente({
             {...form.getInputProps('isAtivo', { type: 'checkbox' })}
           />
         )}
-      </Flex>
+          </Flex>
+        </Tabs.Panel>
 
-      <Group justify="flex-end" mt="xl">
-        <Button variant="default" onClick={onClose}>
-          Cancelar
-        </Button>
-        <Button type="submit" color="dark">
-          {isEdit ? 'Salvar' : 'Cadastrar'}
-        </Button>
-      </Group>
+        <Tabs.Panel value="enderecos" pt="md">
+          <ListaEnderecos
+            enderecos={enderecos}
+            onChange={setEnderecos}
+            onFormAberto={setIsSubFormAberto}
+          />
+        </Tabs.Panel>
+
+        <Tabs.Panel value="cartoes" pt="md">
+          <ListaCartoes
+            cartoes={cartoes}
+            onChange={setCartoes}
+            onFormAberto={setIsSubFormAberto}
+          />
+        </Tabs.Panel>
+      </Tabs>
+
+      {!isSubFormAberto && (
+        <Group justify="flex-end" mt="xl">
+          <Button variant="default" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button type="submit" color="dark">
+            {isEdit ? 'Salvar' : 'Cadastrar'}
+          </Button>
+        </Group>
+      )}
     </form>
   );
 }

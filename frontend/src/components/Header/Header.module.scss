@@ -4,15 +4,32 @@
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 0.5em;
   padding-inline: 1em;
-  gap: 5em;
+  gap: 1.5em;
+}
+
+.headerBusca {
+  flex: 0 1 380px;
+}
+
+.buscaBotao {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+}
+
+.headerAcoes {
+  margin-left: auto;
+  flex-wrap: nowrap;
 }
 
 .headerLogo {
   text-decoration: none;
   color: #fff;
+  flex-shrink: 0;
 
    > p {
     font-size: 2rem;
@@ -24,6 +41,18 @@
   color: #fff;
   transition: 100ms ease-in-out;
   
+  &:hover {
+    opacity: 0.8;
+  }
+}
+.sessaoBotao {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 0;
+  transition: 100ms ease-in-out;
+
   &:hover {
     opacity: 0.8;
   }
