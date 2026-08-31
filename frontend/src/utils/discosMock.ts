@@ -1511,7 +1511,7 @@ export const discosMock: Disco[] = [
 ];
 
 // Recortes para as seções da home
-const LIMITE_VITRINE = 15;
+export const LIMITE_VITRINE = 15;
 
 // disco inativo saiu da loja (RF0012): a página dele responde "não encontrado",
 // então deixá-lo na vitrine seria oferecer um link morto

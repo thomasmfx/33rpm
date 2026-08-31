@@ -11,6 +11,7 @@ import {
   NumberInput,
   Stack,
   Table,
+  Tabs,
   Text,
   Title,
   Tooltip,
@@ -19,6 +20,7 @@ import { IconArrowLeft, IconCheck, IconShoppingCartPlus } from '@tabler/icons-re
 import { formatarBRL } from '../../utils/precificacao';
 import { faixasDoDisco, nomeFormato, obterEdicao } from '../../utils/catalogo';
 import VinylCarousel from '../../components/VinylCarousel/VinylCarousel';
+import { LIMITE_VITRINE } from '../../utils/discosMock';
 import { useLoja } from '../../contexts/loja';
 
 function Disco() {
@@ -34,12 +36,22 @@ function Disco() {
 
   const relacionados = useMemo(() => {
     if (!disco) return [];
-    return discos.filter(
-      (outro) =>
-        outro.id !== disco.id &&
-        outro.isAtivo &&
-        outro.genres.some((genero) => disco.genres.includes(genero)),
-    );
+
+    // estilo pesa o dobro do gênero: 'Trap' diz muito mais sobre semelhança do
+    // que 'Hip Hop', que sozinho já cobre a maior parte do acervo
+    const semelhanca = (outro: (typeof discos)[number]) =>
+      outro.styles.filter((estilo) => disco.styles.includes(estilo)).length * 2 +
+      outro.genres.filter((genero) => disco.genres.includes(genero)).length;
+
+    return discos
+      .filter(
+        (outro) =>
+          outro.id !== disco.id && outro.isAtivo && semelhanca(outro) > 0,
+      )
+      .sort(
+        (a, b) => semelhanca(b) - semelhanca(a) || b.numForSale - a.numForSale,
+      )
+      .slice(0, LIMITE_VITRINE);
   }, [disco, discos]);
 
   if (!disco) {
@@ -177,46 +189,59 @@ function Disco() {
             <Text fw={300} size="sm">{disco.descricao}</Text>
           </Stack>
 
-          {faixas.length > 0 && (
-            <Stack gap="xs">
-              <Title order={3} size="18">Faixas</Title>
+          {/* keepMounted false: sem isso a tabela de faixas monta junto com a
+              ficha técnica, e alguns discos passam de 20 faixas */}
+          <Tabs
+            defaultValue={faixas.length > 0 ? 'faixas' : 'ficha'}
+            color="dark"
+            keepMounted={false}
+          >
+            <Tabs.List>
+              {faixas.length > 0 && (
+                <Tabs.Tab value="faixas">Faixas ({faixas.length})</Tabs.Tab>
+              )}
+              <Tabs.Tab value="ficha">Ficha técnica</Tabs.Tab>
+            </Tabs.List>
+
+            {faixas.length > 0 && (
+              <Tabs.Panel value="faixas" pt="md">
+                <Table withTableBorder>
+                  <Table.Tbody>
+                    {faixas.map((faixa) => (
+                      <Table.Tr key={`${faixa.posicao}-${faixa.titulo}`}>
+                        <Table.Td w={50}>
+                          <Text size="sm" c="dimmed">{faixa.posicao}</Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Text size="sm" fw={300}>{faixa.titulo}</Text>
+                        </Table.Td>
+                        <Table.Td w={70} ta="right">
+                          <Text size="sm" c="dimmed">{faixa.duracao}</Text>
+                        </Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              </Tabs.Panel>
+            )}
+
+            <Tabs.Panel value="ficha" pt="md">
               <Table withTableBorder>
                 <Table.Tbody>
-                  {faixas.map((faixa) => (
-                    <Table.Tr key={`${faixa.posicao}-${faixa.titulo}`}>
-                      <Table.Td w={50}>
-                        <Text size="sm" c="dimmed">{faixa.posicao}</Text>
+                  {fichaTecnica.map(([rotulo, valor]) => (
+                    <Table.Tr key={rotulo}>
+                      <Table.Td w="45%">
+                        <Text size="sm" c="dimmed">{rotulo}</Text>
                       </Table.Td>
                       <Table.Td>
-                        <Text size="sm" fw={300}>{faixa.titulo}</Text>
-                      </Table.Td>
-                      <Table.Td w={70} ta="right">
-                        <Text size="sm" c="dimmed">{faixa.duracao}</Text>
+                        <Text size="sm" fw={300}>{valor}</Text>
                       </Table.Td>
                     </Table.Tr>
                   ))}
                 </Table.Tbody>
               </Table>
-            </Stack>
-          )}
-
-          <Stack gap="xs">
-            <Title order={3} size="18">Ficha técnica</Title>
-            <Table withTableBorder>
-              <Table.Tbody>
-                {fichaTecnica.map(([rotulo, valor]) => (
-                  <Table.Tr key={rotulo}>
-                    <Table.Td w="45%">
-                      <Text size="sm" c="dimmed">{rotulo}</Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="sm" fw={300}>{valor}</Text>
-                    </Table.Td>
-                  </Table.Tr>
-                ))}
-              </Table.Tbody>
-            </Table>
-          </Stack>
+            </Tabs.Panel>
+          </Tabs>
         </Stack>
       </div>
 

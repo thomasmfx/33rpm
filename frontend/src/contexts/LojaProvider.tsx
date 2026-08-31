@@ -20,85 +20,25 @@ import {
 } from '../utils/carrinho';
 import { LojaContext } from './loja';
 
-// subir a versão invalida o que está salvo, sem código de migração:
-// a chave muda e o localStorage antigo simplesmente deixa de ser lido
-const VERSAO = 8;
-
-/**
- * A chave carrega uma impressão do próprio mock: mudou o mock, muda a chave, e
- * a cópia salva é abandonada sozinha. Sem isso, todo ajuste nos dados semente
- * exigia lembrar de subir a VERSAO à mão — e esquecer disso fazia a tela seguir
- * mostrando o acervo antigo sem nenhum erro aparente.
- */
-function impressao(valor: unknown): string {
-  const texto = JSON.stringify(valor) ?? '';
-  let hash = 0;
-  for (let i = 0; i < texto.length; i++) {
-    hash = (hash * 31 + texto.charCodeAt(i)) | 0;
-  }
-  return (hash >>> 0).toString(36);
-}
-
-function chaveDe(chave: string, padrao: unknown): string {
-  return `33rpm:v${VERSAO}:${chave}:${impressao(padrao)}`;
-}
-
-/**
- * O `valido` é a rede de segurança para o resto: dado salvo é entrada externa e
- * nunca passou pelo TypeScript, então formato torto é descartado em vez de
- * propagado até a tela quebrar com undefined.
- */
-function ler<T>(chave: string, padrao: T, valido?: (dado: T) => boolean): T {
+function ler<T>(nome: string, padrao: T): T {
   try {
-    const bruto = localStorage.getItem(chaveDe(chave, padrao));
-    if (!bruto) return padrao;
-
-    const dado = JSON.parse(bruto) as T;
-    return valido && !valido(dado) ? padrao : dado;
+    const bruto = localStorage.getItem(`33rpm:${nome}`);
+    return bruto ? (JSON.parse(bruto) as T) : padrao;
   } catch {
     return padrao;
   }
 }
 
-function listaCom<T>(campos: (keyof T)[]) {
-  return (dado: unknown): dado is T[] =>
-    Array.isArray(dado) &&
-    (dado.length === 0 ||
-      campos.every((campo) => (dado[0] as T)[campo] !== undefined));
-}
-
-function gravar(chave: string, padrao: unknown, valor: unknown): void {
-  const atual = chaveDe(chave, padrao);
-
-  // chaves de mocks anteriores nunca mais serão lidas: varrer evita acumular
-  // cópias mortas do acervo a cada ajuste nos dados semente
-  for (const outra of Object.keys(localStorage)) {
-    if (outra.includes(`:${chave}:`) && outra !== atual) {
-      localStorage.removeItem(outra);
-    }
-  }
-
-  localStorage.setItem(atual, JSON.stringify(valor));
+function gravar(nome: string, valor: unknown): void {
+  localStorage.setItem(`33rpm:${nome}`, JSON.stringify(valor));
 }
 
 export default function LojaProvider({ children }: Readonly<{ children: ReactNode }>) {
-  const [discos, setDiscos] = useState<Disco[]>(() => ler(
-      'discos',
-      discosMock,
-      listaCom<Disco>(['formatoId', 'edicaoIds', 'dimensoes', 'estoque']),
-    ));
+  const [discos, setDiscos] = useState<Disco[]>(() => ler('discos', discosMock));
   const [entradas, setEntradas] = useState<EntradaEstoque[]>(() =>
-    ler(
-      'entradas',
-      entradasEstoqueMock,
-      listaCom<EntradaEstoque>(['discoId', 'valorCusto', 'fornecedor']),
-    ),
+    ler('entradas', entradasEstoqueMock),
   );
-  const [clientes, setClientes] = useState<Cliente[]>(() => ler(
-      'clientes',
-      mockClientes,
-      listaCom<Cliente>(['genero', 'telefone', 'enderecos', 'cartoes']),
-    ));
+  const [clientes, setClientes] = useState<Cliente[]>(() => ler('clientes', mockClientes));
   const [clienteAtivoId, setClienteAtivoId] = useState<string | null>(() =>
     ler('sessao', null),
   );
@@ -106,21 +46,13 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
   const [carrinhos, setCarrinhos] = useState<Record<string, ItemCarrinho[]>>(() =>
     ler('carrinhos', {}),
   );
-  const [cupons, setCupons] = useState<Cupom[]>(() => ler(
-      'cupons',
-      cuponsMock,
-      listaCom<Cupom>(['codigo', 'tipo', 'valor']),
-    ));
+  const [cupons, setCupons] = useState<Cupom[]>(() => ler('cupons', cuponsMock));
   const [carrinhoAtualizadoEm, setCarrinhoAtualizadoEm] = useState<string | null>(
     () => ler('carrinhoAtualizadoEm', null),
   );
   const [itensExpirados, setItensExpirados] = useState<ItemCarrinho[]>([]);
   const [agora, setAgora] = useState(() => Date.now());
-  const [pedidos, setPedidos] = useState<Pedido[]>(() => ler(
-      'pedidos',
-      pedidosMock,
-      listaCom<Pedido>(['itens', 'status', 'enderecoEntrega', 'troca']),
-    ));
+  const [pedidos, setPedidos] = useState<Pedido[]>(() => ler('pedidos', pedidosMock));
 
   // RF0023: inativar o cliente derruba a sessão dele na hora
   const clienteAtivo =
@@ -154,14 +86,14 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
 
   const sairDaSessao = useCallback(() => setClienteAtivoId(null), []);
 
-  useEffect(() => gravar('discos', discosMock, discos), [discos]);
-  useEffect(() => gravar('entradas', entradasEstoqueMock, entradas), [entradas]);
-  useEffect(() => gravar('carrinhos', {}, carrinhos), [carrinhos]);
-  useEffect(() => gravar('clientes', mockClientes, clientes), [clientes]);
-  useEffect(() => gravar('sessao', null, clienteAtivoId), [clienteAtivoId]);
-  useEffect(() => gravar('cupons', cuponsMock, cupons), [cupons]);
+  useEffect(() => gravar('discos', discos), [discos]);
+  useEffect(() => gravar('entradas', entradas), [entradas]);
+  useEffect(() => gravar('carrinhos', carrinhos), [carrinhos]);
+  useEffect(() => gravar('clientes', clientes), [clientes]);
+  useEffect(() => gravar('sessao', clienteAtivoId), [clienteAtivoId]);
+  useEffect(() => gravar('cupons', cupons), [cupons]);
   useEffect(
-    () => gravar('carrinhoAtualizadoEm', null, carrinhoAtualizadoEm),
+    () => gravar('carrinhoAtualizadoEm', carrinhoAtualizadoEm),
     [carrinhoAtualizadoEm],
   );
 
@@ -187,7 +119,7 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
 
     return () => clearInterval(intervalo);
   }, [carrinho, carrinhoAtualizadoEm, setCarrinho]);
-  useEffect(() => gravar('pedidos', pedidosMock, pedidos), [pedidos]);
+  useEffect(() => gravar('pedidos', pedidos), [pedidos]);
 
 
   // RN0031: o carrinho nunca passa do que existe em estoque
