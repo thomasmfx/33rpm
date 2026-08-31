@@ -2,7 +2,6 @@ import styles from './Acervo.module.scss';
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
-  Button,
   Group,
   NumberInput,
   Select,
@@ -21,7 +20,10 @@ import {
 import { useLoja } from '../../contexts/loja';
 import VinylCard from '../../components/VinylCard/VinylCard';
 
-const FILTROS_LOJA: FiltrosDiscos = { ...FILTROS_DISCOS_VAZIOS, status: 'ativos' };
+const FILTROS_LOJA: FiltrosDiscos = {
+  ...FILTROS_DISCOS_VAZIOS,
+  status: 'ativos',
+};
 
 const OPCOES_FORMATO = [
   { value: '', label: 'Todos os formatos' },
@@ -40,24 +42,26 @@ function Acervo() {
   const busca = parametros.get('busca') ?? '';
   const filtrosAplicados = useMemo(
     () => ({ ...filtros, titulo: busca }),
-    [filtros, busca],
+    [filtros, busca]
   );
 
   const resultado = useMemo(
     () => filtrarDiscos(discos, filtrosAplicados),
-    [discos, filtrosAplicados],
+    [discos, filtrosAplicados]
   );
 
   function handleAlterarFiltro<Campo extends keyof FiltrosDiscos>(
     campo: Campo,
-    valor: FiltrosDiscos[Campo],
+    valor: FiltrosDiscos[Campo]
   ): void {
     setFiltros((atuais) => ({ ...atuais, [campo]: valor }));
   }
 
   return (
     <main className={styles.main}>
-      <Title order={1} size="40">Acervo</Title>
+      <Title order={1} size="40">
+        Acervo
+      </Title>
 
       <div className={styles.busca}>
         <TextInput
@@ -72,70 +76,73 @@ function Acervo() {
               evento.currentTarget.value
                 ? { busca: evento.currentTarget.value }
                 : {},
-              { replace: true },
+              { replace: true }
             )
           }
         />
       </div>
 
-      <div className={styles.filtros}>
-        <TextInput
-          label="Artista"
-          placeholder="Nome do artista"
-          radius="sm"
-          value={filtros.artista}
-          onChange={(evento) =>
-            handleAlterarFiltro('artista', evento.currentTarget.value)
-          }
-        />
-        <TextInput
-          label="Categoria"
-          placeholder="Rock, Hip Hop..."
-          radius="sm"
-          value={filtros.categoria}
-          onChange={(evento) =>
-            handleAlterarFiltro('categoria', evento.currentTarget.value)
-          }
-        />
-        <Select
-          label="Formato"
-          radius="sm"
-          w={180}
-          data={OPCOES_FORMATO}
-          value={filtros.formatoId}
-          onChange={(valor) => handleAlterarFiltro('formatoId', valor ?? '')}
-        />
-        <Group gap="xs">
-          <NumberInput
-            label="Preço de"
+      <div className={styles.filtrosContainer}>
+        <div className={styles.filtros}>
+          <TextInput
+            label="Artista"
+            placeholder="Nome do artista"
             radius="sm"
-            w={100}
-            hideControls
-            prefix="R$ "
-            value={filtros.precoMin}
-            onChange={(valor) => handleAlterarFiltro('precoMin', String(valor))}
+            value={filtros.artista}
+            onChange={(evento) =>
+              handleAlterarFiltro('artista', evento.currentTarget.value)
+            }
           />
-          <NumberInput
-            label="até"
+          <TextInput
+            label="Categoria"
+            placeholder="Rock, Hip Hop..."
             radius="sm"
-            w={100}
-            hideControls
-            prefix="R$ "
-            value={filtros.precoMax}
-            onChange={(valor) => handleAlterarFiltro('precoMax', String(valor))}
+            value={filtros.categoria}
+            onChange={(evento) =>
+              handleAlterarFiltro('categoria', evento.currentTarget.value)
+            }
           />
-        </Group>
+          <Select
+            label="Formato"
+            radius="sm"
+            w={180}
+            data={OPCOES_FORMATO}
+            value={filtros.formatoId}
+            onChange={(valor) => handleAlterarFiltro('formatoId', valor ?? '')}
+          />
+          <Group gap="xs">
+            <NumberInput
+              label="Preço de"
+              radius="sm"
+              w={100}
+              hideControls
+              prefix="R$ "
+              value={filtros.precoMin}
+              onChange={(valor) => handleAlterarFiltro('precoMin', String(valor))}
+            />
+            <NumberInput
+              label="até"
+              radius="sm"
+              w={100}
+              hideControls
+              prefix="R$ "
+              value={filtros.precoMax}
+              onChange={(valor) => handleAlterarFiltro('precoMax', String(valor))}
+            />
+          </Group>
+        </div>
         {contarFiltrosDiscosAtivos(filtrosAplicados) > 0 && (
-          <Button
-            variant="subtle"
+          <button
+            className={styles.limparFiltrosBtn}
             color="black"
+            type="button"
             onClick={() => {
               setFiltros(FILTROS_LOJA);
               setParametros({}, { replace: true });
             }}
           >
             Limpar filtros
-          </Button>
+          </button>
         )}
       </div>
 

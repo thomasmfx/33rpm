@@ -198,6 +198,7 @@ export default function Chatbot({ onFechar }: Readonly<ChatbotProps>) {
             size="md"
             value={mensagemAtual}
             onChange={(evento) => setMensagemAtual(evento.currentTarget.value)}
+            autoComplete="off"
           />
           <ActionIcon type="submit" size={42} radius="sm" variant="filled" color="black">
             <IconSend size={20} />
