@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: rpm33
+  profiles:
+    default: dev
+  datasource:
+    url: jdbc:postgresql://localhost:5433/33rpm
+    username: 33rpm
+    password: 33rpm
+  jpa:
+    hibernate:
+      # o esquema é versionado em db/schema.sql; o Hibernate só confere
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  jackson:
+    default-property-inclusion: non_null
+
+server:
+  port: 8080
+
+app:
+  cors:
+    # porta do Vite definida em frontend/vite.config.ts
+    origem: http://localhost:3300
