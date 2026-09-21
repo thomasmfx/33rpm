@@ -1,0 +1,15 @@
+.main {
+  margin-top: 4em;
+  margin-bottom: 8em;
+  width: 100%;
+  max-width: var(--largura-conteudo);
+  margin-inline: auto;
+  padding-inline: 1em;
+  display: flex;
+  justify-content: center;
+}
+
+.cartao {
+  width: 100%;
+  max-width: 420px;
+}

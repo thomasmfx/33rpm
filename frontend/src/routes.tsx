@@ -12,6 +12,8 @@ import Carrinho from "./pages/Carrinho/Carrinho";
 import Checkout from "./pages/Checkout/Checkout";
 import Pedidos from "./pages/Pedidos/Pedidos";
 import Cupons from "./pages/Cupons/Cupons";
+import Login from "./pages/Login/Login";
+import Cadastro from "./pages/Cadastro/Cadastro";
 
 export const routes = [
   {
@@ -35,7 +37,9 @@ export const routes = [
       { path: '/carrinho', element: <Carrinho /> },
       { path: '/checkout', element: <Checkout /> },
       { path: '/pedidos', element: <Pedidos /> },
-      { path: '/cupons', element: <Cupons /> }
+      { path: '/cupons', element: <Cupons /> },
+      { path: '/login', element: <Login /> },
+      { path: '/cadastro', element: <Cadastro /> }
     ]
   },
 

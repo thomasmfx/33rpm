@@ -81,6 +81,8 @@ export const GENEROS: string[] = [
 
 export interface Cliente {
   id: string;
+  /** RNF0035: código único gerado pelo servidor, no formato CLI-000001. */
+  codigo: string;
   nome: string;
   email: string;
   genero: string;
@@ -100,7 +102,7 @@ export interface FiltrosClientes {
   email: string;
   telefone: string;
   cpf: string;
-  id: string;
+  codigo: string;
   status: StatusFiltro;
   rankingMinimo: number;
 }

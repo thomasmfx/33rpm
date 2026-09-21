@@ -12,7 +12,7 @@ import {
   Group,
   Tabs,
 } from '@mantine/core';
-import { DatePickerInput } from '@mantine/dates';
+import { DateInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { IconX } from '@tabler/icons-react';
 import type { Cartao, Cliente, Endereco, Telefone } from '../../types/cliente';
@@ -42,7 +42,11 @@ interface FormClienteProps {
   initialValues?: Cliente;
   isEdit: boolean;
   onClose?: () => void;
-  onSubmit: (valores: FormClienteValues) => void;
+  onSubmit: (valores: FormClienteValues) => void | Promise<void>;
+  /** RF0028: troca de senha sem passar pelo resto do cadastro. */
+  onAlterarSenha?: (senha: string, confirmacao: string) => void | Promise<void>;
+  /** RNF0034: endereços salvos sem passar pelo resto do cadastro. */
+  onAlterarEnderecos?: (enderecos: Endereco[]) => void | Promise<void>;
 }
 
 export default function FormCliente({
@@ -50,6 +54,8 @@ export default function FormCliente({
   isEdit,
   onClose,
   onSubmit,
+  onAlterarSenha,
+  onAlterarEnderecos,
 }: Readonly<FormClienteProps>) {
   const [enderecos, setEnderecos] = useState<Endereco[]>(
     initialValues?.enderecos ?? [],
@@ -110,6 +116,18 @@ export default function FormCliente({
     },
   });
 
+  function handleAlterarSenha(): void {
+    const { password, confirmPassword } = form.getValues();
+    if (form.validateField('password').hasError) return;
+    if (form.validateField('confirmPassword').hasError) return;
+    void onAlterarSenha?.(password, confirmPassword);
+  }
+
+  function handleAlterarEnderecos(): void {
+    if (faltandoEndereco.length > 0) return;
+    void onAlterarEnderecos?.(enderecos);
+  }
+
   // RN0021 e RN0022: sem endereço de entrega e de cobrança o cadastro não fecha
   function handleSubmit(valores: CamposCliente): void {
     if (faltandoEndereco.length > 0) {
@@ -132,7 +150,7 @@ export default function FormCliente({
             ? `Editar Cliente #${initialValues?.id || ''}`
             : 'Novo Cliente'}
         </Text>
-        <Button variant="subtle" color="gray" px="xs" onClick={onClose}>
+        <Button type="button" variant="subtle" color="gray" px="xs" onClick={onClose}>
           <IconX stroke={1.5} />
         </Button>
       </Flex>
@@ -144,9 +162,12 @@ export default function FormCliente({
         keepMounted={false}
       >
         <Tabs.List>
-          <Tabs.Tab value="dados">Dados</Tabs.Tab>
+          <Tabs.Tab value="dados" data-testid="aba-dados">
+            Dados
+          </Tabs.Tab>
           <Tabs.Tab
             value="enderecos"
+            data-testid="aba-enderecos"
             rightSection={
               faltandoEndereco.length > 0 ? (
                 <Badge size="xs" circle color="orange">
@@ -157,7 +178,9 @@ export default function FormCliente({
           >
             Endereços
           </Tabs.Tab>
-          <Tabs.Tab value="cartoes">Cartões</Tabs.Tab>
+          <Tabs.Tab value="cartoes" data-testid="aba-cartoes">
+            Cartões
+          </Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="dados" pt="md">
@@ -166,6 +189,7 @@ export default function FormCliente({
           label="Nome Completo"
           placeholder="Ex: João da Silva"
           withAsterisk
+          data-testid="input-nome"
           key={form.key('nome')}
           {...form.getInputProps('nome')}
           radius="sm"
@@ -173,11 +197,12 @@ export default function FormCliente({
         />
 
         <Flex gap="2em">
-          <DatePickerInput
+          <DateInput
             label="Data de Nascimento"
             placeholder="Selecione uma data"
             valueFormat="DD/MM/YYYY"
             clearable
+            data-testid="input-nascimento"
             key={form.key('dataNascimento')}
             {...form.getInputProps('dataNascimento')}
             flex="1"
@@ -189,6 +214,7 @@ export default function FormCliente({
             withAsterisk
             data={GENEROS}
             allowDeselect={false}
+            data-testid="select-genero"
             radius="sm"
             key={form.key('genero')}
             {...form.getInputProps('genero')}
@@ -199,6 +225,7 @@ export default function FormCliente({
             label="CPF"
             placeholder="000.000.000-00"
             disabled={isEdit}
+            data-testid="input-cpf"
             withAsterisk
             key={form.key('cpf')}
             {...form.getInputProps('cpf')}
@@ -212,6 +239,7 @@ export default function FormCliente({
             label="Tipo"
             data={TIPOS_TELEFONE}
             allowDeselect={false}
+            data-testid="select-tipo-telefone"
             withAsterisk
             radius="sm"
             w={140}
@@ -222,6 +250,7 @@ export default function FormCliente({
           <TextInput
             label="DDD"
             placeholder="11"
+            data-testid="input-ddd"
             withAsterisk
             radius="sm"
             w={80}
@@ -232,6 +261,7 @@ export default function FormCliente({
           <TextInput
             label="Número"
             placeholder="90000-0000"
+            data-testid="input-telefone"
             withAsterisk
             radius="sm"
             flex={1}
@@ -243,6 +273,7 @@ export default function FormCliente({
         <TextInput
           label="E-mail"
           placeholder="cliente@email.com"
+          data-testid="input-email"
           withAsterisk
           key={form.key('email')}
           {...form.getInputProps('email')}
@@ -253,6 +284,7 @@ export default function FormCliente({
         <PasswordInput
           label={isEdit ? 'Nova Senha (opcional)' : 'Senha'}
           placeholder="Sua senha segura"
+          data-testid="input-senha"
           withAsterisk={!isEdit}
           description="Mínimo 8 caracteres, maiúsculas, minúsculas e especial."
           key={form.key('password')}
@@ -263,15 +295,32 @@ export default function FormCliente({
         <PasswordInput
           label="Confirmação de Senha"
           placeholder="Digite a senha novamente"
+          data-testid="input-confirmar-senha"
           withAsterisk={!isEdit}
           key={form.key('confirmPassword')}
           {...form.getInputProps('confirmPassword')}
           radius="sm"
         />
 
+        {isEdit && onAlterarSenha && (
+          <Group justify="flex-start">
+            <Button
+              type="button"
+              variant="light"
+              color="dark"
+              size="xs"
+              data-testid="btn-alterar-somente-senha"
+              onClick={handleAlterarSenha}
+            >
+              Salvar apenas a senha
+            </Button>
+          </Group>
+        )}
+
         {isEdit && (
           <Switch
             label="Cliente Ativo no Sistema"
+            data-testid="switch-ativo"
             mt="md"
             color="green"
             withThumbIndicator={false}
@@ -288,6 +337,21 @@ export default function FormCliente({
             onChange={setEnderecos}
             onFormAberto={setIsSubFormAberto}
           />
+          {isEdit && onAlterarEnderecos && !isSubFormAberto && (
+            <Group justify="flex-start" mt="md">
+              <Button
+                type="button"
+                variant="light"
+                color="dark"
+                size="xs"
+                disabled={faltandoEndereco.length > 0}
+                data-testid="btn-alterar-somente-enderecos"
+                onClick={handleAlterarEnderecos}
+              >
+                Salvar apenas os endereços
+              </Button>
+            </Group>
+          )}
         </Tabs.Panel>
 
         <Tabs.Panel value="cartoes" pt="md">
@@ -301,10 +365,10 @@ export default function FormCliente({
 
       {!isSubFormAberto && (
         <Group justify="flex-end" mt="xl">
-          <Button variant="default" onClick={onClose}>
+          <Button type="button" variant="default" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="submit" color="dark">
+          <Button type="submit" color="dark" data-testid="btn-salvar-cliente">
             {isEdit ? 'Salvar' : 'Cadastrar'}
           </Button>
         </Group>

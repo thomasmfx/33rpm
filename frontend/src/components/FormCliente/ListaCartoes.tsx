@@ -84,6 +84,7 @@ export default function ListaCartoes({
                 <Text size="sm">{cartao.nomeImpresso}</Text>
                 {!cartao.isPreferencial && (
                   <Button
+                    type="button"
                     variant="subtle"
                     size="xs"
                     px={0}
@@ -96,6 +97,7 @@ export default function ListaCartoes({
 
               <Group gap="xs" wrap="nowrap">
                 <Button
+                  type="button"
                   variant="subtle"
                   color="gray"
                   px="xs"
@@ -105,6 +107,7 @@ export default function ListaCartoes({
                   <IconPencil size={18} stroke={1.5} />
                 </Button>
                 <Button
+                  type="button"
                   variant="subtle"
                   color="red"
                   px="xs"
@@ -120,8 +123,10 @@ export default function ListaCartoes({
       </div>
 
       <Button
+        type="button"
         variant="default"
         leftSection={<IconPlus size={18} stroke={1.5} />}
+        data-testid="btn-adicionar-cartao"
         onClick={() => abrirForm(null)}
       >
         Adicionar cartão

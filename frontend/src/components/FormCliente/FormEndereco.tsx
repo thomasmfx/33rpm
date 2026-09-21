@@ -78,7 +78,7 @@ export default function FormEndereco({
   });
 
   return (
-    <form onSubmit={form.onSubmit(onSubmit)}>
+    <div>
       <Text fw={600} size="lg" mb="md">
         {initialValues ? 'Editar endereço' : 'Novo endereço'}
       </Text>
@@ -88,6 +88,7 @@ export default function FormEndereco({
           label="Nome do endereço"
           placeholder="Ex: Casa da praia"
           withAsterisk
+          data-testid="endereco-nome"
           key={form.key('nome')}
           {...form.getInputProps('nome')}
         />
@@ -96,6 +97,7 @@ export default function FormEndereco({
           label="Tipo"
           data={OPCOES_TIPO_ENDERECO}
           withAsterisk
+          data-testid="endereco-tipo"
           allowDeselect={false}
           key={form.key('tipo')}
           {...form.getInputProps('tipo')}
@@ -107,6 +109,7 @@ export default function FormEndereco({
             placeholder="Selecione"
             data={TIPOS_RESIDENCIA}
             withAsterisk
+            data-testid="endereco-tipo-residencia"
             allowDeselect={false}
             key={form.key('tipoResidencia')}
             {...form.getInputProps('tipoResidencia')}
@@ -116,6 +119,7 @@ export default function FormEndereco({
             placeholder="Selecione"
             data={TIPOS_LOGRADOURO}
             withAsterisk
+            data-testid="endereco-tipo-logradouro"
             allowDeselect={false}
             key={form.key('tipoLogradouro')}
             {...form.getInputProps('tipoLogradouro')}
@@ -127,6 +131,7 @@ export default function FormEndereco({
             label="Logradouro"
             placeholder="Ex: das Flores"
             withAsterisk
+            data-testid="endereco-logradouro"
             key={form.key('logradouro')}
             {...form.getInputProps('logradouro')}
           />
@@ -134,6 +139,7 @@ export default function FormEndereco({
             label="Número"
             placeholder="Ex: 123"
             withAsterisk
+            data-testid="endereco-numero"
             key={form.key('numero')}
             {...form.getInputProps('numero')}
           />
@@ -143,6 +149,7 @@ export default function FormEndereco({
           <TextInput
             label="Bairro"
             withAsterisk
+            data-testid="endereco-bairro"
             key={form.key('bairro')}
             {...form.getInputProps('bairro')}
           />
@@ -150,6 +157,7 @@ export default function FormEndereco({
             label="CEP"
             placeholder="00000-000"
             withAsterisk
+            data-testid="endereco-cep"
             key={form.key('cep')}
             {...form.getInputProps('cep')}
           />
@@ -159,6 +167,7 @@ export default function FormEndereco({
           <TextInput
             label="Cidade"
             withAsterisk
+            data-testid="endereco-cidade"
             key={form.key('cidade')}
             {...form.getInputProps('cidade')}
           />
@@ -167,6 +176,7 @@ export default function FormEndereco({
             placeholder="UF"
             data={ESTADOS}
             withAsterisk
+            data-testid="endereco-estado"
             searchable
             allowDeselect={false}
             key={form.key('estado')}
@@ -175,6 +185,7 @@ export default function FormEndereco({
           <TextInput
             label="País"
             withAsterisk
+            data-testid="endereco-pais"
             key={form.key('pais')}
             {...form.getInputProps('pais')}
           />
@@ -184,6 +195,7 @@ export default function FormEndereco({
           label="Observações"
           placeholder="Opcional"
           autosize
+          data-testid="endereco-observacoes"
           minRows={2}
           key={form.key('observacoes')}
           {...form.getInputProps('observacoes')}
@@ -191,13 +203,18 @@ export default function FormEndereco({
       </Stack>
 
       <Group justify="flex-end" mt="xl">
-        <Button variant="default" onClick={onCancelar}>
+        <Button type="button" variant="default" onClick={onCancelar}>
           Cancelar
         </Button>
-        <Button type="submit" color="dark">
+        <Button
+          type="button"
+          color="dark"
+          data-testid="btn-salvar-endereco"
+          onClick={() => form.onSubmit(onSubmit)()}
+        >
           Salvar endereço
         </Button>
       </Group>
-    </form>
+    </div>
   );
 }

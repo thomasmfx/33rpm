@@ -1,0 +1,53 @@
+{
+  "novo": {
+    "nome": "Renata Bittencourt",
+    "nascimento": "12/04/1994",
+    "genero": "Feminino",
+    "cpf": "321.654.987-00",
+    "tipoTelefone": "Celular",
+    "ddd": "11",
+    "telefone": "97654-3210",
+    "email": "renata.bittencourt@email.com",
+    "senha": "Senha@123",
+    "confirmacao": "Senha@123"
+  },
+  "endereco": {
+    "nome": "Casa",
+    "tipo": "Entrega e cobrança",
+    "tipoResidencia": "Apartamento",
+    "tipoLogradouro": "Avenida",
+    "logradouro": "Angélica",
+    "numero": "1500",
+    "bairro": "Higienópolis",
+    "cep": "01227-200",
+    "cidade": "São Paulo",
+    "estado": "SP",
+    "observacoes": "Bloco B, apto 72"
+  },
+  "enderecoEntrega": {
+    "nome": "Escritório",
+    "tipo": "Entrega",
+    "tipoResidencia": "Comercial",
+    "tipoLogradouro": "Avenida",
+    "logradouro": "Paulista",
+    "numero": "1000",
+    "bairro": "Bela Vista",
+    "cep": "01310-100",
+    "cidade": "São Paulo",
+    "estado": "SP"
+  },
+  "cartao": {
+    "numero": "5555 4444 3333 2222",
+    "nomeImpresso": "RENATA BITTENCOURT",
+    "bandeira": "Mastercard",
+    "cvv": "321",
+    "preferencial": true
+  },
+  "segundoCartao": {
+    "numero": "4539 7812 3456 1002",
+    "nomeImpresso": "R BITTENCOURT",
+    "bandeira": "Visa",
+    "cvv": "123",
+    "preferencial": true
+  }
+}

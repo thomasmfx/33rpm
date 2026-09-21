@@ -10,9 +10,13 @@ import type { AjusteCarrinho } from '../utils/carrinho';
 
 export interface Loja {
   clientes: Cliente[];
-  setClientes: Dispatch<SetStateAction<Cliente[]>>;
+  /** Recarrega a lista a partir da API; usada depois de cada escrita. */
+  recarregarClientes: () => Promise<void>;
+  erroClientes: string | null;
   clienteAtivo: Cliente | null;
   entrarComoCliente: (clienteId: string) => void;
+  /** Sessão aberta por login ou cadastro: o cliente já vem autenticado do servidor. */
+  iniciarSessao: (cliente: Cliente) => void;
   sairDaSessao: () => void;
   discos: Disco[];
   setDiscos: Dispatch<SetStateAction<Disco[]>>;

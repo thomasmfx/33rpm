@@ -6,9 +6,10 @@ import type { EntradaEstoque } from '../types/inventario';
 import type { ItemCarrinho } from '../types/carrinho';
 import type { Cupom } from '../types/cupom';
 import type { Pedido, ValidacaoPagamento } from '../types/pedido';
-import { mockClientes } from '../utils/clientesMock';
-import { cuponsMock } from '../utils/cuponsMock';
-import { pedidosMock } from '../utils/pedidosMock';
+import { gerarCupons } from '../utils/cuponsMock';
+import { gerarPedidos } from '../utils/pedidosMock';
+import { FILTROS_VAZIOS } from '../utils/filtrarClientes';
+import { listarClientes } from '../services/clientesService';
 import { discosMock } from '../utils/discosMock';
 import { entradasEstoqueMock } from '../utils/estoqueMock';
 import { darBaixaEmEstoque } from '../utils/checkout';
@@ -38,7 +39,9 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
   const [entradas, setEntradas] = useState<EntradaEstoque[]>(() =>
     ler('entradas', entradasEstoqueMock),
   );
-  const [clientes, setClientes] = useState<Cliente[]>(() => ler('clientes', mockClientes));
+  // Clientes vêm da API; só eles saíram do mock até aqui
+  const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [erroClientes, setErroClientes] = useState<string | null>(null);
   const [clienteAtivoId, setClienteAtivoId] = useState<string | null>(() =>
     ler('sessao', null),
   );
@@ -46,13 +49,13 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
   const [carrinhos, setCarrinhos] = useState<Record<string, ItemCarrinho[]>>(() =>
     ler('carrinhos', {}),
   );
-  const [cupons, setCupons] = useState<Cupom[]>(() => ler('cupons', cuponsMock));
+  const [cupons, setCupons] = useState<Cupom[]>(() => ler('cupons', []));
   const [carrinhoAtualizadoEm, setCarrinhoAtualizadoEm] = useState<string | null>(
     () => ler('carrinhoAtualizadoEm', null),
   );
   const [itensExpirados, setItensExpirados] = useState<ItemCarrinho[]>([]);
   const [agora, setAgora] = useState(() => Date.now());
-  const [pedidos, setPedidos] = useState<Pedido[]>(() => ler('pedidos', pedidosMock));
+  const [pedidos, setPedidos] = useState<Pedido[]>(() => ler('pedidos', []));
 
   // RF0023: inativar o cliente derruba a sessão dele na hora
   const clienteAtivo =
@@ -86,10 +89,59 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
 
   const sairDaSessao = useCallback(() => setClienteAtivoId(null), []);
 
+  const iniciarSessao = useCallback((cliente: Cliente) => {
+    setClientes((atuais) =>
+      atuais.some((candidato) => candidato.id === cliente.id)
+        ? atuais.map((candidato) =>
+            candidato.id === cliente.id ? cliente : candidato,
+          )
+        : [...atuais, cliente],
+    );
+    setClienteAtivoId(cliente.id);
+  }, []);
+
+  const recarregarClientes = useCallback(async () => {
+    try {
+      setClientes(await listarClientes(FILTROS_VAZIOS));
+      setErroClientes(null);
+    } catch (erro) {
+      setErroClientes(
+        erro instanceof Error ? erro.message : 'Falha ao carregar os clientes.',
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    // carga inicial dos clientes a partir da API
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void recarregarClientes();
+  }, [recarregarClientes]);
+
+  /**
+   * Pedidos e cupons continuam mockados, mas apontam para clientes do banco:
+   * se os ids não baterem — banco recriado, por exemplo — a massa é regerada.
+   */
+  useEffect(() => {
+    if (clientes.length === 0) return;
+    const ids = new Set(clientes.map((cliente) => cliente.id));
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPedidos((atuais) =>
+      atuais.length > 0 && atuais.every((pedido) => ids.has(pedido.clienteId))
+        ? atuais
+        : gerarPedidos(clientes),
+    );
+    setCupons((atuais) =>
+      atuais.length > 0 &&
+      atuais.every((cupom) => cupom.clienteId === null || ids.has(cupom.clienteId))
+        ? atuais
+        : gerarCupons(clientes),
+    );
+  }, [clientes]);
+
   useEffect(() => gravar('discos', discos), [discos]);
   useEffect(() => gravar('entradas', entradas), [entradas]);
   useEffect(() => gravar('carrinhos', carrinhos), [carrinhos]);
-  useEffect(() => gravar('clientes', clientes), [clientes]);
   useEffect(() => gravar('sessao', clienteAtivoId), [clienteAtivoId]);
   useEffect(() => gravar('cupons', cupons), [cupons]);
   useEffect(
@@ -310,9 +362,11 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
   const valor = useMemo(
     () => ({
       clientes,
-      setClientes,
+      recarregarClientes,
+      erroClientes,
       clienteAtivo,
       entrarComoCliente,
+      iniciarSessao,
       sairDaSessao,
       discos,
       setDiscos,
@@ -341,8 +395,11 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
     }),
     [
       clientes,
+      recarregarClientes,
+      erroClientes,
       clienteAtivo,
       entrarComoCliente,
+      iniciarSessao,
       sairDaSessao,
       discos,
       entradas,

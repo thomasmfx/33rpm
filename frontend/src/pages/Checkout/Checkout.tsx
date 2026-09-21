@@ -23,6 +23,7 @@ import type { Cartao, Endereco } from '../../types/cliente';
 import type { Cupom } from '../../types/cupom';
 import type { Pedido } from '../../types/pedido';
 import { useLoja } from '../../contexts/loja';
+import { alterarCartoes, alterarEnderecos } from '../../services/clientesService';
 import { AVISO_ANTES_MINUTOS } from '../../utils/carrinho';
 import {
   calcularFrete,
@@ -56,7 +57,7 @@ function Checkout() {
     carrinho,
     discos,
     cupons,
-    setClientes,
+    recarregarClientes,
     registrarPedido,
     minutosParaExpirar,
     sincronizarCarrinho,
@@ -244,7 +245,7 @@ function Checkout() {
     });
   }
 
-  function handleFinalizarCompra(): void {
+  async function handleFinalizarCompra(): Promise<void> {
     if (!enderecoEscolhido) return;
 
     const idCupomTroca = troco > 0 ? crypto.randomUUID().slice(0, 8) : null;
@@ -279,35 +280,23 @@ function Checkout() {
 
     registrarPedido(pedido, cupomTroca);
 
+    // RF0035 e RF0036: endereço e cartão do checkout viram perfil no servidor
     if (isSalvarEndereco && enderecoAdHoc) {
-      setClientes((atuais) =>
-        atuais.map((registro) =>
-          registro.id === cliente.id
-            ? { ...registro, enderecos: [...registro.enderecos, enderecoAdHoc] }
-            : registro,
-        ),
-      );
+      await alterarEnderecos(cliente.id, [...cliente.enderecos, enderecoAdHoc]);
     }
 
     const cartoesParaSalvar = cartoesAdHoc.filter((cartao) =>
       cartoesAdHocParaSalvarIds.includes(cartao.id),
     );
     if (cartoesParaSalvar.length > 0) {
-      setClientes((atuais) =>
-        atuais.map((registro) =>
-          registro.id === cliente.id
-            ? {
-                ...registro,
-                cartoes: cartoesParaSalvar.reduce(
-                  (cartoesAtuais, cartao) => adicionarCartao(cartoesAtuais, cartao),
-                  registro.cartoes,
-                ),
-              }
-            : registro,
-        ),
+      const cartoes = cartoesParaSalvar.reduce(
+        (cartoesAtuais, cartao) => adicionarCartao(cartoesAtuais, cartao),
+        cliente.cartoes,
       );
+      await alterarCartoes(cliente.id, cartoes);
     }
 
+    await recarregarClientes();
     navegar('/pedidos');
   }
 

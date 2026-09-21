@@ -59,7 +59,7 @@ export default function FormCartao({
   });
 
   return (
-    <form onSubmit={form.onSubmit(onSubmit)}>
+    <div>
       <Text fw={600} size="lg" mb="md">
         {initialValues ? 'Editar cartão' : 'Novo cartão'}
       </Text>
@@ -69,6 +69,7 @@ export default function FormCartao({
           label="Número do cartão"
           placeholder="0000 0000 0000 0000"
           withAsterisk
+          data-testid="cartao-numero"
           key={form.key('numero')}
           {...form.getInputProps('numero')}
         />
@@ -77,6 +78,7 @@ export default function FormCartao({
           label="Nome impresso"
           placeholder="Ex: JOAO S SILVA"
           withAsterisk
+          data-testid="cartao-nome-impresso"
           key={form.key('nomeImpresso')}
           {...form.getInputProps('nomeImpresso')}
         />
@@ -87,6 +89,7 @@ export default function FormCartao({
             placeholder="Selecione"
             data={BANDEIRAS}
             withAsterisk
+            data-testid="cartao-bandeira"
             allowDeselect={false}
             key={form.key('bandeira')}
             {...form.getInputProps('bandeira')}
@@ -96,6 +99,7 @@ export default function FormCartao({
             label="Código de segurança"
             placeholder="CVV"
             withAsterisk
+            data-testid="cartao-cvv"
             key={form.key('codigoSeguranca')}
             {...form.getInputProps('codigoSeguranca')}
           />
@@ -103,19 +107,25 @@ export default function FormCartao({
 
         <Switch
           label="Cartão preferencial"
+          data-testid="cartao-preferencial"
           key={form.key('isPreferencial')}
           {...form.getInputProps('isPreferencial', { type: 'checkbox' })}
         />
       </Stack>
 
       <Group justify="flex-end" mt="xl">
-        <Button variant="default" onClick={onCancelar}>
+        <Button type="button" variant="default" onClick={onCancelar}>
           Cancelar
         </Button>
-        <Button type="submit" color="dark">
+        <Button
+          type="button"
+          color="dark"
+          data-testid="btn-salvar-cartao"
+          onClick={() => form.onSubmit(onSubmit)()}
+        >
           Salvar cartão
         </Button>
       </Group>
-    </form>
+    </div>
   );
 }

@@ -2,7 +2,14 @@ import styles from "./Header.module.scss";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Avatar, Group, Indicator, Menu, Text, TextInput } from "@mantine/core";
-import { IconSearch, IconShoppingCart, IconUserCog } from "@tabler/icons-react";
+import {
+  IconLogin2,
+  IconLogout,
+  IconSearch,
+  IconShoppingCart,
+  IconUserCog,
+  IconUserPlus,
+} from "@tabler/icons-react";
 import { useLoja } from "../../contexts/loja";
 
 function Header() {
@@ -68,7 +75,36 @@ function Header() {
             </button>
           </Menu.Target>
           <Menu.Dropdown>
-            <Menu.Label>Navegar como</Menu.Label>
+            {clienteAtivo ? (
+              <Menu.Item
+                leftSection={<IconLogout size={16} />}
+                data-testid="menu-sair"
+                onClick={sairDaSessao}
+              >
+                Sair
+              </Menu.Item>
+            ) : (
+              <>
+                <Menu.Item
+                  component={Link}
+                  to="/login"
+                  leftSection={<IconLogin2 size={16} />}
+                  data-testid="menu-entrar"
+                >
+                  Entrar
+                </Menu.Item>
+                <Menu.Item
+                  component={Link}
+                  to="/cadastro"
+                  leftSection={<IconUserPlus size={16} />}
+                  data-testid="menu-criar-conta"
+                >
+                  Criar conta
+                </Menu.Item>
+              </>
+            )}
+            <Menu.Divider />
+            <Menu.Label>Navegar como (curadoria)</Menu.Label>
             <Menu.Item
               leftSection={<IconUserCog size={16} />}
               disabled={!clienteAtivo}
@@ -76,7 +112,6 @@ function Header() {
             >
               Administrador
             </Menu.Item>
-            <Menu.Divider />
             {clientes
               .filter((cliente) => cliente.isAtivo)
               .map((cliente) => (

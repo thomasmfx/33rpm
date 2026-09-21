@@ -1,6 +1,6 @@
+import type { Cliente } from '../types/cliente';
 import type { Disco } from '../types/disco';
 import type { Pedido, StatusPedido } from '../types/pedido';
-import { mockClientes } from './clientesMock';
 import { discosMock } from './discosMock';
 import { calcularFrete, montarItensPedido, ultimosDigitos } from './checkout';
 
@@ -114,7 +114,7 @@ const JA_VALIDADO: StatusPedido[] = [
   'ITEM RECEBIDO',
 ];
 
-function gerarPedidos(): Pedido[] {
+export function gerarPedidos(clientes: Cliente[]): Pedido[] {
   const sorteio = criarSorteio(SEMENTE);
   const pedidos: Pedido[] = [];
   let sequencia = 0;
@@ -125,7 +125,7 @@ function gerarPedidos(): Pedido[] {
     const quantidade = base + Math.floor(sorteio() * 4);
 
     for (let i = 0; i < quantidade; i++) {
-      const cliente = mockClientes[Math.floor(sorteio() * mockClientes.length)];
+      const cliente = clientes[Math.floor(sorteio() * clientes.length)];
       const endereco =
         cliente.enderecos.find(
           (candidato) =>
@@ -222,5 +222,3 @@ function gerarPedidos(): Pedido[] {
 
   return pedidos.sort((a, b) => b.data.localeCompare(a.data));
 }
-
-export const pedidosMock: Pedido[] = gerarPedidos();

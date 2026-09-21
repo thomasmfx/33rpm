@@ -109,6 +109,7 @@ export default function ListaEnderecos({
 
                 <Group gap="xs" wrap="nowrap">
                   <Button
+                    type="button"
                     variant="subtle"
                     color="gray"
                     px="xs"
@@ -120,6 +121,7 @@ export default function ListaEnderecos({
                   <Tooltip label={motivoBloqueio} disabled={!motivoBloqueio}>
                     <span>
                       <Button
+                        type="button"
                         variant="subtle"
                         color="red"
                         px="xs"
@@ -139,8 +141,10 @@ export default function ListaEnderecos({
       </div>
 
       <Button
+        type="button"
         variant="default"
         leftSection={<IconPlus size={18} stroke={1.5} />}
+        data-testid="btn-adicionar-endereco"
         onClick={() => abrirForm(null)}
       >
         Adicionar endereço
