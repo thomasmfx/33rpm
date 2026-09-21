@@ -1,0 +1,52 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: 33rpm-db
+    environment:
+      POSTGRES_DB: 33rpm
+      POSTGRES_USER: 33rpm
+      POSTGRES_PASSWORD: 33rpm
+    ports:
+      - "5433:5432"
+    # o backend sobe com ddl-auto=validate e morre se conectar antes do initdb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U 33rpm -d 33rpm"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./db/seed.sql:/docker-entrypoint-initdb.d/02-dados-dominio.sql:ro
+      - ./db/clientes.sql:/docker-entrypoint-initdb.d/03-clientes.sql:ro
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: 33rpm-backend
+    ports:
+      - "8383:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # o perfil dev é o que expõe POST /api/dev/reset
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/33rpm
+      SPRING_DATASOURCE_USERNAME: 33rpm
+      SPRING_DATASOURCE_PASSWORD: 33rpm
+      APP_CORS_ORIGEM: http://localhost:3300
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: /api
+    container_name: 33rpm-frontend
+    ports:
+      - "3300:80"
+    # o nginx resolve o upstream no boot: sem o container do backend, não sobe
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
