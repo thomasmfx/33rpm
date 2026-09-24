@@ -13,7 +13,7 @@ discos por sonoridade, clima, estética e subgênero detalhado — "rap psicodé
 
 | Módulo | Situação |
 |---|---|
-| Cadastro de clientes | **Completo de ponta a ponta**: React → API Spring Boot → PostgreSQL, com 42 testes Cypress |
+| Cadastro de clientes | **Completo de ponta a ponta**: React → API Spring Boot → PostgreSQL, com 44 testes Cypress. Inclui o auto-cadastro, a área "Minha conta" e o login do administrador, que guarda a curadoria |
 | Catálogo, estoque, carrinho, compra, trocas, cupons e análise gerencial | Interface pronta, rodando sobre dados mockados em `localStorage` |
 | Assistente de recomendação | Funciona local; com as chaves do Dify.ai preenchidas, passa a conversar pelo serviço |
 
@@ -22,10 +22,10 @@ receber as demais entidades sem alteração das classes existentes.
 
 ## Stack
 
-**Frontend** — React 19 · TypeScript · Vite · Mantine 9 · SCSS Modules · react-router-dom 7 · Cypress
+**Frontend** — React 19 · TypeScript · Vite · Mantine 9 · SCSS Modules · react-router-dom 7 · Cypress. Visual definido por um guia de estilo próprio
 **Backend** — Java 21 · Spring Boot 4.1 · Spring Web MVC · Spring Data JPA · Hibernate · BCrypt
 **Banco** — PostgreSQL 16 com a extensão pgvector (busca semântica) e unaccent (consulta sem acento)
-**Externo** — Dify.ai com Google Gemini, para o assistente de recomendação
+**Externo** — Dify.ai com Google Gemini, para o assistente de recomendação · ViaCEP, para preencher o endereço pelo CEP (falha silenciosa: sem rede, o cliente digita)
 
 ---
 
@@ -71,9 +71,10 @@ Sobe o contêiner `33rpm-db` com PostgreSQL 16 + pgvector, publicado em **localh
 
 | Script | O que faz |
 |---|---|
-| [db/schema.sql](db/schema.sql) | o DDL, 29 tabelas |
+| [db/schema.sql](db/schema.sql) | o DDL, 30 tabelas |
 | [db/seed.sql](db/seed.sql) | tabelas de domínio do RNF0013: gênero, tipo de telefone, bandeira, as 27 unidades federativas e as operações de log |
 | [db/clientes.sql](db/clientes.sql) | cinco clientes de demonstração, com telefone, endereço e cartão |
+| [db/administradores.sql](db/administradores.sql) | o administrador da demonstração |
 
 `up -d` devolve o prompt antes de o banco aceitar conexões. Só siga quando o `pg_isready`
 responder `accepting connections`, ou quando `docker ps` mostrar o contêiner como
@@ -105,6 +106,12 @@ O banco já sobe com estes cinco cadastros, todos com a senha `Senha@123`:
 | CLI-000004 | Diego Ferraz | `diego.ferraz@email.com` | ativo, ranking 4, endereços de cobrança e entrega separados, 2 cartões |
 | CLI-000005 | Eduarda Lins | `eduarda.lins@email.com` | ativo, ranking 2, 1 endereço, 1 cartão |
 
+A curadoria só abre para o administrador, que tem tabela própria e senha `Admin@123`:
+
+| Código | Nome | E-mail |
+|---|---|---|
+| ADM-000001 | Thomas Moisés Fernandes | `admin@33rpm.com.br` |
+
 Carla é a inativa de propósito: é com ela que se demonstra o bloqueio de acesso da RF0023.
 Diego é o caso de cobrança e entrega em endereços distintos (RN0021 e RN0022) e de cartão
 preferencial entre dois (RF0027).
@@ -116,7 +123,7 @@ curl -X POST http://localhost:8080/api/dev/reset      # PowerShell: curl.exe -X 
 ```
 
 Esse endpoint, que só existe no perfil `dev`, é o que os testes usam: ele limpa o cadastro
-e deixa **apenas os três primeiros** clientes. Para ter os cinco de volta, recrie o volume
+e deixa **apenas os três primeiros** clientes. O administrador não é tocado. Para ter os cinco de volta, recrie o volume
 com `docker compose down -v && docker compose up -d`.
 
 ### 4. Frontend
@@ -185,10 +192,12 @@ Com os três serviços no ar e a massa carregada:
 
 | Onde | O que mostrar |
 |---|---|
+| `/curadoria` | sem sessão, ou como cliente, mostra o 403; entre como `admin@33rpm.com.br` / `Admin@123` para abrir o painel |
 | `/curadoria/clientes` | cadastrar (RF0021), consultar com filtros combinados (RF0024), alterar (RF0022), salvar apenas a senha (RF0028), salvar apenas os endereços (RNF0034), cartões e preferencial (RF0027), inativar e reativar (RF0023) |
 | `/login` | entrar como `ana.ribeiro@email.com` / `Senha@123`; tentar `carla.nogueira@email.com` para ver o bloqueio do cadastro inativo |
-| `/cadastro` | auto-cadastro do cliente, que já entra na loja ao concluir |
-| terminal | `npm run e2e` — os 42 testes contra a pilha real |
+| `/cadastro` | auto-cadastro em três etapas (Conta, Dados pessoais, Endereço), com o CEP preenchendo o endereço pelo ViaCEP; o cliente já entra na loja ao concluir |
+| `/perfil` | o próprio cliente altera dados, endereços (cobrança e entrega), cartões e senha, gravando na API |
+| terminal | `npm run e2e` — os 44 testes contra a pilha real |
 | banco | `docker compose exec db psql -U 33rpm -d 33rpm -c "SELECT codigo, nome, is_ativo FROM cliente;"` — a prova de que a tela escreveu no PostgreSQL |
 
 ## Testes de interface
@@ -210,10 +219,7 @@ npm run e2e:open                # abre o runner do Cypress
 | `alteracao.cy.ts` | 6 | RF0022, RF0028, RNF0034 |
 | `inativacao.cy.ts` | 4 | RF0023 — inativar sem excluir |
 | `cartoes.cy.ts` | 5 | RF0027, RN0024, RN0025 |
-| `sessao.cy.ts` | 4 | login, credencial inválida, cliente inativo, auto-cadastro |
-
-O mapa completo de requisito → código → teste está em
-[docs/RASTREABILIDADE-CLIENTE.md](docs/RASTREABILIDADE-CLIENTE.md).
+| `sessao.cy.ts` | 6 | login, credencial inválida, cliente inativo, auto-cadastro, login do administrador, curadoria recusada ao cliente |
 
 Cada teste chama `POST /api/dev/reset` antes de rodar, então a suíte é repetível sem
 recriar o banco. Esse reset trunca `cliente` **e** `log`: para mostrar o registro de
@@ -265,7 +271,11 @@ Todas as escritas passam pela Fachada e devolvem a entidade afetada, ou `400` co
 | `PUT` | `/api/clientes/{id}/cartoes` | alterar apenas os cartões (RF0036) |
 | `DELETE` | `/api/clientes/{id}` | inativar o cadastro (RF0023) |
 | `PUT` | `/api/clientes/{id}/ativacao` | reativar o cadastro |
-| `POST` | `/api/clientes/login` | autenticação simples por e-mail e senha |
+| `POST` | `/api/sessoes` | login de cliente ou administrador; devolve `{ papel, usuario }`, ou `401` |
+| `POST` | `/api/clientes/login` | autenticação simples por e-mail e senha, só de cliente |
+| `GET` | `/api/administradores/{id}` | carregar o administrador da sessão |
+| `PUT` | `/api/administradores/{id}` | alterar nome e e-mail do administrador |
+| `PUT` | `/api/administradores/{id}/senha` | alterar apenas a senha do administrador (RNF0031, RNF0032) |
 | `GET` | `/api/dominios` | listas de domínio: gêneros, tipos de telefone, bandeiras e estados |
 | `POST` | `/api/dev/reset` | recarrega a massa de teste (só no perfil `dev`) |
 
@@ -337,19 +347,12 @@ servidor.
 ```
 backend/     API REST Spring Boot: controller, service, model, repository
 db/          schema.sql e seed.sql do PostgreSQL
-docs/        DRS, DVP, backlog, rastreabilidade e diagramas
 frontend/    aplicação React, com a suíte Cypress em frontend/cypress
 ```
 
-Documentos:
-
-| Arquivo | O que é |
-|---|---|
-| [docs/DRS.docx](docs/DRS.docx) | Documento de Requisitos do Sistema — fonte dos RF, RNF e RN |
-| [docs/DVP.docx](docs/DVP.docx) | Documento de Visão de Projeto — arquitetura e diagramas |
-| [docs/BACKLOG.md](docs/BACKLOG.md) | as 111 atividades, com estimativa em três pontos |
-| [docs/RASTREABILIDADE-CLIENTE.md](docs/RASTREABILIDADE-CLIENTE.md) | requisito → código → teste que o prova |
-| [docs/diagramas/](docs/diagramas/) | casos de uso, classes, sequência, pacotes, implantação e dados |
+Os documentos da disciplina (DRS, DVP, backlog, rastreabilidade e diagramas) são entregues à
+parte e não ficam no repositório. Os IDs de requisito citados no código e nos testes vêm do
+DRS (Documento de Requisitos do Sistema).
 
 O DRS foi escrito para um e-commerce de livros; a adaptação para discos preserva a
 numeração original dos requisitos. Onde o documento diz "livro", leia "disco".
@@ -376,8 +379,8 @@ resposta imediata, mas quem decide é sempre o servidor.
 ## Escopo e limitações
 
 - **Autenticação é simples, não é segurança.** Há login por e-mail e senha, com a senha
-  guardada em hash BCrypt (RNF0033), mas não há JWT, sessão no servidor nem proteção de
-  rota: `/curadoria` está aberta.
+  guardada em hash BCrypt (RNF0033), e ele distingue cliente de administrador. A guarda de
+  `/curadoria` fica só no React: a API continua aberta, sem JWT nem sessão no servidor.
 - **Cliente não é excluído, é inativado.** O DRS só prevê a inativação (RF0023), e as
   chaves estrangeiras de `pedido` e `cupom` impedem o delete físico de quem tem histórico.
 - **Testes automatizados cobrem o CRUD de cliente**, por definição do professor.
@@ -423,8 +426,10 @@ relação às entidades. Mesma receita acima.
 porta. Libere a 3300 ou altere `frontend/vite.config.ts`, `app.cors.origem` no backend e
 o `baseUrl` de `frontend/cypress.config.ts` — os três precisam concordar.
 
-**A loja abre sem nenhum cliente.** O volume do banco é anterior ao
-[db/clientes.sql](db/clientes.sql): os scripts de inicialização só rodam em volume vazio.
+**A loja abre sem nenhum cliente, ou o login do admin falha.** O volume do banco é
+anterior ao [db/clientes.sql](db/clientes.sql) ou ao
+[db/administradores.sql](db/administradores.sql): os scripts de inicialização só rodam em
+volume vazio, e o backend nem sobe se a tabela `administrador` faltar.
 Recrie com `docker compose down -v && docker compose up -d`, ou carregue os três de teste
 com `POST /api/dev/reset`. Depois recarregue a página.
 
