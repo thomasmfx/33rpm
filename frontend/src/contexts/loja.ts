@@ -7,16 +7,24 @@ import type { ItemCarrinho } from '../types/carrinho';
 import type { Cupom } from '../types/cupom';
 import type { Pedido, ValidacaoPagamento } from '../types/pedido';
 import type { AjusteCarrinho } from '../utils/carrinho';
+import type { Administrador, RespostaSessao, Sessao } from '../types/sessao';
 
 export interface Loja {
   clientes: Cliente[];
   /** Recarrega a lista a partir da API; usada depois de cada escrita. */
   recarregarClientes: () => Promise<void>;
   erroClientes: string | null;
+  /** Verdadeiro até a primeira resposta da API, com sucesso ou erro. */
+  carregandoClientes: boolean;
+  /** Clientes ou, numa sessão de administrador, os dados dele ainda a caminho. */
+  carregandoSessao: boolean;
+  sessao: Sessao | null;
   clienteAtivo: Cliente | null;
+  administradorAtivo: Administrador | null;
+  atualizarAdministrador: (administrador: Administrador) => void;
   entrarComoCliente: (clienteId: string) => void;
-  /** Sessão aberta por login ou cadastro: o cliente já vem autenticado do servidor. */
-  iniciarSessao: (cliente: Cliente) => void;
+  /** Sessão aberta por login ou cadastro: quem entra já vem autenticado do servidor. */
+  iniciarSessao: (resposta: RespostaSessao) => void;
   sairDaSessao: () => void;
   discos: Disco[];
   setDiscos: Dispatch<SetStateAction<Disco[]>>;

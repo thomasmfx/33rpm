@@ -1,7 +1,6 @@
-import styles from './FormCliente.module.scss';
+import styles from './Formulario.module.scss';
 import { useState } from 'react';
-import { Badge, Button, Group, Paper, Stack, Text } from '@mantine/core';
-import { IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
+import { Add } from '@carbon/icons-react';
 import type { Cartao } from '../../types/cliente';
 import {
   adicionarCartao,
@@ -61,76 +60,69 @@ export default function ListaCartoes({
   }
 
   return (
-    <Stack gap="md">
-      <Text size="xs" c="dimmed">
+    <div className={styles.campos}>
+      <p className={styles.ajuda}>
         Cartão é opcional no cadastro. Havendo cartões, um deles é sempre o
         preferencial (RF0027).
-      </Text>
+      </p>
 
-      <div className={styles.listaItens}>
-        {cartoes.map((cartao) => (
-          <Paper key={cartao.id} withBorder p="sm">
-            <Group justify="space-between" wrap="nowrap" align="flex-start">
-              <Stack gap={2}>
-                <Group gap="xs">
-                  <Text className={styles.numeroCartao}>
-                    {mascararCartao(cartao.numero)}
-                  </Text>
-                  <Badge color="dark">{cartao.bandeira}</Badge>
+      {cartoes.length > 0 && (
+        <div className={styles.lista}>
+          {cartoes.map((cartao) => (
+            <div key={cartao.id} className={styles.item}>
+              <div className={styles.itemTexto}>
+                <div className={styles.itemTopo}>
+                  <strong>
+                    {cartao.bandeira}{' '}
+                    <span className={styles.numeroCartao}>{mascararCartao(cartao.numero)}</span>
+                  </strong>
                   {cartao.isPreferencial && (
-                    <Badge color="orange">Preferencial</Badge>
+                    <span className={styles.tagSelo}>Preferencial</span>
                   )}
-                </Group>
-                <Text size="sm">{cartao.nomeImpresso}</Text>
+                </div>
+                <span>{cartao.nomeImpresso}</span>
+              </div>
+
+              <div className={styles.itemAcoes}>
                 {!cartao.isPreferencial && (
-                  <Button
+                  <button
                     type="button"
-                    variant="subtle"
-                    size="xs"
-                    px={0}
+                    className={styles.acaoTexto}
                     onClick={() => onChange(definirPreferencial(cartoes, cartao.id))}
                   >
                     Tornar preferencial
-                  </Button>
+                  </button>
                 )}
-              </Stack>
-
-              <Group gap="xs" wrap="nowrap">
-                <Button
+                <button
                   type="button"
-                  variant="subtle"
-                  color="gray"
-                  px="xs"
+                  className={styles.acaoTexto}
                   aria-label={`Editar cartão ${mascararCartao(cartao.numero)}`}
                   onClick={() => abrirForm(cartao)}
                 >
-                  <IconPencil size={18} stroke={1.5} />
-                </Button>
-                <Button
+                  Editar
+                </button>
+                <button
                   type="button"
-                  variant="subtle"
-                  color="red"
-                  px="xs"
+                  className={styles.acaoPerigo}
                   aria-label={`Remover cartão ${mascararCartao(cartao.numero)}`}
                   onClick={() => onChange(removerCartao(cartoes, cartao.id))}
                 >
-                  <IconTrash size={18} stroke={1.5} />
-                </Button>
-              </Group>
-            </Group>
-          </Paper>
-        ))}
-      </div>
+                  Remover
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
-      <Button
+      <button
         type="button"
-        variant="default"
-        leftSection={<IconPlus size={18} stroke={1.5} />}
+        className={styles.adicionar}
         data-testid="btn-adicionar-cartao"
         onClick={() => abrirForm(null)}
       >
-        Adicionar cartão
-      </Button>
-    </Stack>
+        <Add size={20} /> Adicionar cartão
+      </button>
+    </div>
   );
 }

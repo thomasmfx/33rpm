@@ -1,81 +1,241 @@
-.painelInventario {
-  width: 100%;
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 2em;
-}
+@use '../../styles/mixins' as *;
 
-.navBar {
-  width: 100%;
+// Peças próprias do inventário; o resto vem de pages/Curadoria/Painel.module.scss
+
+.contagem {
+  @include meta(11px, 0);
+
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 1em;
-}
-
-.navButton {
-  background: none;
-  border: none;
-  cursor: pointer;
-  transition: 100ms ease-in-out;
-
-  &:hover {
-    opacity: 0.7;
-  }
-
-  &:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-
-    &:hover {
-      opacity: 0.3;
-    }
-  }
-}
-
-.tabelaContainer {
-  width: 100%;
-  overflow-x: auto;
-}
-
-.actionButton {
-  background: none;
-  border: none;
-  cursor: pointer;
-  transition: 100ms ease-in-out;
-
-  &:hover > :not(.toggleIcon) {
-    opacity: 0.7;
-  }
-
-  > svg:hover {
-    filter: brightness(70%);
-  }
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--cor-selo);
+  color: #fff;
 }
 
 // RN0015: disco inativo some da loja, mas o admin precisa achá-lo na tabela
-.linhaInativa {
-  opacity: 0.55;
+.capa,
+.disco {
+  &[data-apagado] {
+    opacity: 0.45;
+  }
 }
 
-// larguras fixas: sem isso a coluna dimensiona pelo conteúdo e a tabela pula de
-// tamanho a cada troca de página, conforme o tamanho do texto de cada célula
-.tabela {
-  table-layout: fixed;
-  min-width: 1200px;
+.capa {
+  width: 48px;
 }
 
-// a altura vale para TODA linha do corpo, inclusive as de preenchimento: fixar
-// só na linha vazia deixava a última página com altura diferente das outras
-.tabela tbody tr {
-  height: 64px;
+.disco {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  strong {
+    font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
-.tabela tbody td {
+.sub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 14px;
+  color: var(--cor-auxiliar);
+  white-space: nowrap;
+}
+
+// só o artista cede espaço: formato e nota ficam sempre inteiros
+.artista {
+  min-width: 0;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.linhaVazia {
-  pointer-events: none;
+.formato {
+  font-family: var(--fonte-mono);
+  font-size: 12px;
+}
+
+.nota {
+  @include meta(10px, 0.06em);
+
+  margin-left: 2px;
+  padding: 2px 6px;
+  background: var(--cor-fundo-capa);
+  color: var(--cor-auxiliar);
+
+  &[data-tom='esgotado'] {
+    background: var(--cor-erro-fundo);
+    color: var(--cor-erro);
+  }
+
+  &[data-tom='parado'] {
+    background: var(--cor-selo-fundo);
+    color: var(--cor-selo-escuro);
+  }
+}
+
+.categorias {
+  font-size: 14px;
+  color: var(--cor-texto);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.grupo {
+  @include meta(11px, 0.04em);
+}
+
+.preco {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  justify-self: end;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.semPreco {
+  font-size: 14px;
+  color: var(--cor-auxiliar);
+}
+
+.autorizado {
+  @include meta(10px, 0.06em);
+
+  color: var(--cor-selo);
+  cursor: help;
+}
+
+.estoque {
+  justify-self: end;
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--cor-vinil);
+
+  &[data-nivel='baixo'] {
+    color: var(--cor-selo);
+  }
+
+  &[data-nivel='zerado'] {
+    color: var(--cor-erro);
+  }
+}
+
+// Modal de status
+.camposStatus {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.campo {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.rotulo {
+  margin-bottom: 6px;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.pilulas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pilula {
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--cor-borda);
+  border-radius: 18px;
+  background: var(--cor-branco);
+  color: var(--cor-vinil);
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+
+  &:hover {
+    border-color: var(--cor-vinil);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(217, 80, 31, 0.25);
+  }
+
+  &[aria-pressed='true'] {
+    background: var(--cor-vinil);
+    border-color: var(--cor-vinil);
+    color: var(--cor-papel);
+  }
+}
+
+.contador {
+  @include meta(11px, 0.04em);
+
+  font-weight: 400;
+  color: var(--cor-apagado);
+
+  &[data-ok] {
+    color: var(--cor-sucesso);
+  }
+}
+
+// Modal de inativação automática
+.elegiveis {
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+}
+
+.elegivel {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  min-height: 56px;
+  border-bottom: 1px solid var(--cor-divisoria);
+}
+
+.elegivelTexto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  strong {
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  span {
+    font-size: 12px;
+    color: var(--cor-auxiliar);
+  }
+}
+
+.dias {
+  @include meta(11px, 0.04em);
+
+  color: var(--cor-selo);
 }

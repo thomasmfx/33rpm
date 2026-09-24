@@ -1,70 +1,46 @@
 import styles from './Cupons.module.scss';
-import { Badge, Paper, Text, Title } from '@mantine/core';
+import { useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { useLoja } from '../../contexts/loja';
-import { IconTicketOff } from '@tabler/icons-react';
 import EstadoVazio from '../../components/EstadoVazio/EstadoVazio';
+import { EsqueletoPagina } from '../../components/Esqueleto/Esqueleto';
 import type { Cupom, TipoCupom } from '../../types/cupom';
 import { cuponsDisponiveis, somarCupons } from '../../utils/checkout';
 import { formatarBRL } from '../../utils/precificacao';
-
-const NOME_TIPO: Record<TipoCupom, string> = {
-  troca: 'Troca',
-  promocional: 'Promocional',
-};
-
-const COR_TIPO: Record<TipoCupom, string> = {
-  troca: 'violet',
-  promocional: 'blue',
-};
+import { Checkmark, Copy } from '@carbon/icons-react';
 
 const SECOES: { tipo: TipoCupom; titulo: string; descricao: string }[] = [
   {
     tipo: 'troca',
-    titulo: 'Cupons de troca',
-    descricao: 'Gerados quando uma troca sua sobra crédito — só valem para você.',
+    titulo: 'Troca',
+    descricao: 'Gerados quando uma troca é aceita ou quando os cupons de uma compra passam do total. Só valem para você.',
   },
   {
     tipo: 'promocional',
-    titulo: 'Cupons promocionais',
-    descricao: 'Campanhas da loja — valem para qualquer cliente, um por compra (RN0033).',
+    titulo: 'Promocionais',
+    descricao: 'Campanhas da loja. Valem para qualquer cliente, um por compra (RN0033).',
   },
 ];
 
-function cartaoCupom(cupom: Cupom) {
-  return (
-    <Paper
-      key={cupom.id}
-      withBorder
-      p="md"
-      className={cupom.isUtilizado ? styles.cartaoEsmaecido : styles.cartao}
-    >
-      <div className={styles.topo}>
-        <Text className={styles.codigo}>{cupom.codigo}</Text>
-        <Badge color={COR_TIPO[cupom.tipo]} variant="light">
-          {NOME_TIPO[cupom.tipo]}
-        </Badge>
-      </div>
-      <Text size="xl" fw={700}>{formatarBRL(cupom.valor)}</Text>
-      {cupom.isUtilizado && <Badge color="gray" variant="outline">Utilizado</Badge>}
-    </Paper>
-  );
+function origemDoCupom(cupom: Cupom): string {
+  if (cupom.isUtilizado) return 'Já utilizado em uma compra';
+  return cupom.tipo === 'troca' ? 'Crédito de troca ou sobra de cupons' : 'Campanha da loja';
 }
 
 function Cupons() {
-  const { clienteAtivo, cupons } = useLoja();
+  const { clienteAtivo, carregandoClientes, cupons } = useLoja();
+  const [copiado, setCopiado] = useState<string | null>(null);
 
-  if (!clienteAtivo) {
+  if (carregandoClientes) {
     return (
       <main className={styles.main}>
-        <EstadoVazio
-          icone={<IconTicketOff size={104} stroke={1.1} />}
-          titulo="Nenhum perfil selecionado"
-          descricao="Escolha um cliente no menu do topo para ver os cupons dele. A sessão aqui é simulada, não há login."
-          rotuloAcao="Explorar o acervo"
-          paraAcao="/acervo"
-        />
+        <EsqueletoPagina blocos={[120, 120]} />
       </main>
     );
+  }
+
+  if (!clienteAtivo) {
+    return <Navigate to="/login" state={{ depois: '/cupons' }} replace />;
   }
 
   const disponiveis = cuponsDisponiveis(cupons, clienteAtivo.id);
@@ -78,7 +54,6 @@ function Cupons() {
     return (
       <main className={styles.main}>
         <EstadoVazio
-          icone={<IconTicketOff size={104} stroke={1.1} />}
           titulo="Nenhum cupom por enquanto"
           descricao="Cupons de troca aparecem aqui quando uma devolução é aceita, e os promocionais entram nas campanhas da loja."
           rotuloAcao="Explorar o acervo"
@@ -88,41 +63,82 @@ function Cupons() {
     );
   }
 
+  async function copiar(cupom: Cupom): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(cupom.codigo);
+      setCopiado(cupom.id);
+    } catch {
+      // sem permissão de área de transferência o código continua visível no cartão
+    }
+  }
+
+  function rotuloCopiar(cupom: Cupom) {
+    if (cupom.isUtilizado) return 'Utilizado';
+    if (copiado === cupom.id) {
+      return (
+        <>
+          <Checkmark size={16} /> Copiado
+        </>
+      );
+    }
+    return (
+      <>
+        <Copy size={16} /> Copiar código
+      </>
+    );
+  }
+
+  function renderCupom(cupom: Cupom) {
+    return (
+      <div key={cupom.id} className={styles.cupom} data-usado={cupom.isUtilizado || undefined}>
+        <div className={styles.valor}>
+          <strong>{formatarBRL(cupom.valor)}</strong>
+          <span>{origemDoCupom(cupom)}</span>
+        </div>
+        <div className={styles.canhoto}>
+          <span className={styles.codigo}>{cupom.codigo}</span>
+          <button
+            type="button"
+            className={styles.copiar}
+            data-copiado={copiado === cupom.id || undefined}
+            disabled={cupom.isUtilizado}
+            onClick={() => void copiar(cupom)}
+          >
+            {rotuloCopiar(cupom)}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <main className={styles.main}>
-      <Title order={1} size="40">Meus cupons</Title>
-
-      <Text size="sm">
-        Total disponível:{' '}
-        <Text span fw={700}>{formatarBRL(somarCupons(disponiveis))}</Text>
-      </Text>
+      <div className={styles.cabecalho}>
+        <div className={styles.titulo}>
+          <h1>Meus cupons</h1>
+          <p>
+            Aplique no pagamento do checkout. Cupons de troca podem ser somados; se passarem do
+            total, a diferença volta como um novo cupom de troca.
+          </p>
+        </div>
+        <div className={styles.disponivel}>
+          <span>Disponível</span>
+          <strong>{formatarBRL(somarCupons(disponiveis))}</strong>
+        </div>
+      </div>
 
       {SECOES.map((secao) => {
-        const disponiveisDaSecao = disponiveis.filter((cupom) => cupom.tipo === secao.tipo);
-        const utilizadosDaSecao = utilizados.filter((cupom) => cupom.tipo === secao.tipo);
-
-        if (disponiveisDaSecao.length === 0 && utilizadosDaSecao.length === 0) return null;
+        const daSecao = [...disponiveis, ...utilizados].filter((cupom) => cupom.tipo === secao.tipo);
+        if (daSecao.length === 0) return null;
 
         return (
-          <div key={secao.tipo} className={styles.secao}>
-            <Title order={2} size="24">{secao.titulo}</Title>
-            <Text size="xs" c="dimmed">{secao.descricao}</Text>
-
-            {disponiveisDaSecao.length > 0 && (
-              <div className={styles.grade}>
-                {disponiveisDaSecao.map((cupom) => cartaoCupom(cupom))}
-              </div>
-            )}
-
-            {utilizadosDaSecao.length > 0 && (
-              <div className={styles.usados}>
-                <Text size="sm" c="dimmed">Já utilizados</Text>
-                <div className={styles.grade}>
-                  {utilizadosDaSecao.map((cupom) => cartaoCupom(cupom))}
-                </div>
-              </div>
-            )}
-          </div>
+          <section key={secao.tipo} className={styles.secao}>
+            <div className={styles.secaoTexto}>
+              <h2>{secao.titulo}</h2>
+              <p>{secao.descricao}</p>
+            </div>
+            <div className={styles.grade}>{daSecao.map(renderCupom)}</div>
+          </section>
         );
       })}
     </main>

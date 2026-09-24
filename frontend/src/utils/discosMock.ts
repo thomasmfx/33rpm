@@ -1543,20 +1543,3 @@ export const discosMock: Disco[] = [
     autorizacaoGerente: null,
   },
 ];
-
-// Recortes para as seções da home
-export const LIMITE_VITRINE = 15;
-
-// disco inativo saiu da loja (RF0012): a página dele responde "não encontrado",
-// então deixá-lo na vitrine seria oferecer um link morto
-const naVitrine = discosMock.filter((disco) => disco.isAtivo);
-
-export const discosEmAlta: Disco[] = naVitrine.slice(0, LIMITE_VITRINE);
-
-export const discosMaisVendidos: Disco[] = [...naVitrine]
-  .sort((a, b) => b.numForSale - a.numForSale)
-  .slice(0, LIMITE_VITRINE);
-
-export const discosNovidades: Disco[] = [...naVitrine]
-  .sort((a, b) => b.releaseYear - a.releaseYear)
-  .slice(0, LIMITE_VITRINE);

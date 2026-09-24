@@ -1,18 +1,397 @@
+@use '../../styles/mixins' as *;
+@use '../../styles/animacoes';
+
 .main {
-  margin-top: 4em;
-  margin-bottom: 8em;
-  width: 100%;
-  max-width: var(--largura-conteudo);
-  margin-inline: auto;
-  padding-inline: 1em;
-  display: flex;
-  flex-direction: column;
-  gap: 2.5em;
+  @include container;
+
+  padding-top: 48px;
+  padding-bottom: 120px;
 }
 
-.capa {
-  border-radius: 6px;
-  overflow: hidden;
-  background-color: #ededed;
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+  gap: 48px;
+  align-items: start;
+}
+
+.coluna {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+
+  h1 {
+    @include h1;
+  }
+}
+
+.etapas {
+  border-top: 1px solid var(--cor-vinil);
+}
+
+.etapa {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--cor-divisoria);
+}
+
+.etapaTopo {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+
+  h2 {
+    flex: 1;
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .etapa[data-estado='futura'] & {
+    color: var(--cor-placeholder);
+  }
+}
+
+.etapaNumero {
+  @include meta(12px);
+
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  width: 44px;
   flex-shrink: 0;
+  white-space: nowrap;
+
+  .etapa[data-estado='feita'] & {
+    color: var(--cor-sucesso);
+  }
+}
+
+.etapaResumo {
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--cor-texto);
+}
+
+.alterar {
+  @include link-sublinhado;
+}
+
+.etapaCorpo {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-left: 60px;
+}
+
+.opcoes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.opcaoTexto {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  strong {
+    font-size: 15px;
+  }
+
+  span {
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--cor-texto);
+  }
+}
+
+.opcaoTag {
+  @include meta(11px);
+
+  color: var(--cor-auxiliar);
+  white-space: nowrap;
+}
+
+.opcaoPreco {
+  @include preco;
+
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.adicionar {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  background: none;
+  border: 1px dashed var(--cor-borda);
+  border-radius: var(--raio);
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--cor-vinil);
+  }
+}
+
+.formInline {
+  padding: 24px;
+  background: var(--cor-branco);
+  border: 1px solid var(--cor-borda);
+}
+
+.avancar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: 8px;
+}
+
+.motivo {
+  font-size: 13px;
+  color: var(--cor-auxiliar);
+  max-width: 280px;
+}
+
+.ajuda {
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--cor-texto);
+}
+
+.bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  h3 {
+    @include h3;
+
+    font-size: 16px;
+  }
+}
+
+.blocoTopo {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.cupons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cupom {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  background: var(--cor-branco);
+  border: 1px dashed var(--cor-placeholder);
+  border-radius: var(--raio);
+  font-size: 14px;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--cor-vinil);
+  }
+
+  &[aria-pressed='true'] {
+    background: var(--cor-sucesso-fundo);
+    border-color: var(--cor-sucesso);
+    color: var(--cor-sucesso-texto);
+  }
+}
+
+.cupomCodigo {
+  font-family: var(--fonte-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+
+.codigo {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  max-width: 420px;
+
+  > :first-child {
+    flex: 1;
+  }
+}
+
+.cartao {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  background: var(--cor-branco);
+  border: 1px solid var(--cor-divisoria);
+
+  &[data-selecionado] {
+    border: 1.5px solid var(--cor-vinil);
+    padding: 11.5px 15.5px;
+  }
+}
+
+.bandeira {
+  @include meta(9px);
+
+  width: 44px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--cor-borda);
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.resumo {
+  position: sticky;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 28px;
+  background: var(--cor-branco);
+  border: 1px solid var(--cor-divisoria);
+}
+
+.resumoTopo {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+
+  h2 {
+    font-size: 20px;
+    font-weight: 700;
+  }
+}
+
+.meta {
+  @include meta(11px);
+
+  color: var(--cor-auxiliar);
+}
+
+.itens {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  font-size: 14px;
+
+  > :last-child {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.itemTexto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  strong {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  span {
+    font-size: 13px;
+    color: var(--cor-auxiliar);
+  }
+}
+
+.valores {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--cor-divisoria);
+}
+
+.linha {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+
+  &[data-desconto] {
+    color: var(--cor-sucesso);
+  }
+}
+
+.apagado {
+  color: var(--cor-apagado);
+}
+
+.total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: 16px;
+  border-top: 1px solid var(--cor-vinil);
+
+  strong {
+    @include preco;
+
+    font-size: 32px;
+  }
+}
+
+.ajuste {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 720px;
+
+  h1 {
+    @include h1;
+  }
+}
+
+.lista {
+  padding-left: 18px;
+  margin-top: 6px;
+}
+
+.acoes {
+  display: flex;
+  gap: 12px;
+}
+
+// linha de progresso logo abaixo do header enquanto o pagamento é processado
+.barraProgresso {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--cor-selo);
+  transform-origin: left;
+  animation: progresso linear forwards;
+  z-index: 200;
 }

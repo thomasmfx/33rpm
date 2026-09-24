@@ -1,20 +1,21 @@
 import styles from "./Header.module.scss";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { Avatar, Group, Indicator, Menu, Text, TextInput } from "@mantine/core";
-import {
-  IconLogin2,
-  IconLogout,
-  IconSearch,
-  IconShoppingCart,
-  IconUserCog,
-  IconUserPlus,
-} from "@tabler/icons-react";
+import { Menu, Skeleton } from "@mantine/core";
+import { Dashboard, Login, Logout, Search, ShoppingCart, User, UserFollow } from "@carbon/icons-react";
 import { useLoja } from "../../contexts/loja";
 
 function Header() {
-  const { itensNoCarrinho, clientes, clienteAtivo, entrarComoCliente, sairDaSessao } =
-    useLoja();
+  const {
+    itensNoCarrinho,
+    clienteAtivo,
+    administradorAtivo,
+    carregandoClientes,
+    carregandoSessao,
+    sairDaSessao,
+  } = useLoja();
+  // quem está na sessão, seja cliente ou administrador
+  const usuario = clienteAtivo ?? administradorAtivo;
   const [busca, setBusca] = useState('');
   const navegar = useNavigate();
 
@@ -24,117 +25,132 @@ function Header() {
     navegar(termo ? `/acervo?busca=${encodeURIComponent(termo)}` : '/acervo');
   }
 
-  return (
-    <header className={styles.header}>
-      <Link to="/" className={styles.headerLogo}>
-        <Text fw={700}>33rpm</Text>
-      </Link>
-      <form className={styles.headerBusca} onSubmit={handleBuscar}>
-        <TextInput
-          radius="sm"
-          w="100%"
-          placeholder="Busque um disco em nosso acervo"
-          value={busca}
-          onChange={(evento) => setBusca(evento.currentTarget.value)}
-          rightSectionPointerEvents="all"
-          rightSection={
-            <button
-              className={styles.buscaBotao}
-              type="submit"
-              aria-label="Buscar no acervo"
-            >
-              <IconSearch color="#000" />
-            </button>
-          }
-        />
-      </form>
-      <Group className={styles.headerAcoes} gap="lg">
-        <Link to="/acervo" className={styles.headerLink}> 
-          <Text fw={700}>Acervo</Text>
-        </ Link>
-        <Link to="/cupons" className={styles.headerLink}> 
-          <Text fw={700}>Cupons</Text>
-        </ Link>
-        <Link to="/pedidos" className={styles.headerLink}> 
-          <Text fw={700}>Pedidos</Text>
-        </ Link>
-        <Link to="/curadoria" className={styles.headerLink}> 
-          <Text fw={700}>Curadoria</Text>
-        </ Link>
-        <Menu shadow="md" width={260} position="bottom-end">
-          <Menu.Target>
-            <button className={styles.sessaoBotao} type="button">
-              <Group gap={8} wrap="nowrap">
-                <Avatar size={28} color={clienteAtivo ? 'orange' : 'gray'} radius="xl">
-                  {clienteAtivo ? clienteAtivo.nome.charAt(0) : <IconUserCog size={16} />}
-                </Avatar>
-                <Text size="sm" fw={700} truncate="end" maw={150}>
-                  {clienteAtivo ? clienteAtivo.nome : 'Administrador'}
-                </Text>
-              </Group>
-            </button>
-          </Menu.Target>
-          <Menu.Dropdown>
-            {clienteAtivo ? (
+  function renderSessao() {
+    if (carregandoSessao) {
+      return (
+        <span className={styles.sessaoCarregando} aria-label="Carregando sessão">
+          <Skeleton circle height={28} />
+          <Skeleton height={12} width={110} />
+        </span>
+      );
+    }
+
+    return (
+      <Menu width={240} position="bottom-end">
+        <Menu.Target>
+          <button className={styles.sessaoBotao} type="button">
+            {usuario ? (
+              <>
+                <span className={styles.avatar}>{usuario.nome.charAt(0)}</span>
+                <span className={styles.nomeSessao}>{usuario.nome}</span>
+              </>
+            ) : (
+              <>
+                <Login size={20} />
+                Entrar
+              </>
+            )}
+          </button>
+        </Menu.Target>
+        <Menu.Dropdown>
+          {administradorAtivo && (
+            <Menu.Item component={Link} to="/curadoria" leftSection={<Dashboard size={16} />}>
+              Curadoria
+            </Menu.Item>
+          )}
+          {usuario ? (
+            <>
               <Menu.Item
-                leftSection={<IconLogout size={16} />}
+                component={Link}
+                to="/perfil"
+                leftSection={<User size={16} />}
+                data-testid="menu-perfil"
+              >
+                Minha conta
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<Logout size={16} />}
                 data-testid="menu-sair"
                 onClick={sairDaSessao}
               >
                 Sair
               </Menu.Item>
-            ) : (
-              <>
-                <Menu.Item
-                  component={Link}
-                  to="/login"
-                  leftSection={<IconLogin2 size={16} />}
-                  data-testid="menu-entrar"
-                >
-                  Entrar
-                </Menu.Item>
-                <Menu.Item
-                  component={Link}
-                  to="/cadastro"
-                  leftSection={<IconUserPlus size={16} />}
-                  data-testid="menu-criar-conta"
-                >
-                  Criar conta
-                </Menu.Item>
-              </>
-            )}
-            <Menu.Divider />
-            <Menu.Label>Navegar como (curadoria)</Menu.Label>
-            <Menu.Item
-              leftSection={<IconUserCog size={16} />}
-              disabled={!clienteAtivo}
-              onClick={sairDaSessao}
-            >
-              Administrador
-            </Menu.Item>
-            {clientes
-              .filter((cliente) => cliente.isAtivo)
-              .map((cliente) => (
-                <Menu.Item
-                  key={cliente.id}
-                  onClick={() => entrarComoCliente(cliente.id)}
-                >
-                  <Text size="sm" lineClamp={1}>{cliente.nome}</Text>
-                </Menu.Item>
-              ))}
-          </Menu.Dropdown>
-        </Menu>
-        <Link to="/carrinho" className={styles.headerLink} aria-label="Carrinho">
-          <Indicator
-            label={itensNoCarrinho}
-            size={16}
-            color="orange"
-            disabled={itensNoCarrinho === 0}
-          >
-            <IconShoppingCart />
-          </Indicator>
-        </ Link>
-      </Group>
+            </>
+          ) : (
+            <>
+              <Menu.Item
+                component={Link}
+                to="/login"
+                leftSection={<Login size={16} />}
+                data-testid="menu-entrar"
+              >
+                Entrar
+              </Menu.Item>
+              <Menu.Item
+                component={Link}
+                to="/cadastro"
+                leftSection={<UserFollow size={16} />}
+                data-testid="menu-criar-conta"
+              >
+                Criar conta
+              </Menu.Item>
+            </>
+          )}
+        </Menu.Dropdown>
+      </Menu>
+    );
+  }
+
+  return (
+    <header className={styles.header}>
+      <div className={styles.lado}>
+        <Link to="/" className={styles.logo}>
+          <img src="/brand/logo-33rpm-escuro.svg" alt="33rpm" />
+        </Link>
+        <nav className={styles.nav}>
+          <NavLink to="/acervo" className={styles.link}>
+            Acervo
+          </NavLink>
+          {administradorAtivo ? (
+            <NavLink to="/curadoria" className={styles.link}>
+              Curadoria <span className={styles.etiquetaAdmin}>Admin</span>
+            </NavLink>
+          ) : (
+            <>
+              <NavLink to="/cupons" className={styles.link}>
+                Cupons
+              </NavLink>
+              <NavLink to="/pedidos" className={styles.link}>
+                Pedidos
+              </NavLink>
+            </>
+          )}
+        </nav>
+      </div>
+
+      <div className={styles.ladoDireito}>
+        <form className={styles.busca} onSubmit={handleBuscar} role="search">
+          <button className={styles.lupa} type="submit" aria-label="Buscar no acervo">
+            <Search size={16} />
+          </button>
+          <input
+            className={styles.buscaInput}
+            placeholder="Busque por artista, disco ou gravadora"
+            value={busca}
+            onChange={(evento) => setBusca(evento.currentTarget.value)}
+          />
+        </form>
+
+        <div className={styles.acoes}>
+          {renderSessao()}
+          <Link to="/carrinho" className={styles.carrinho} aria-label="Carrinho">
+            <ShoppingCart size={20} />
+            Carrinho
+            {/* o carrinho é por cliente: até a sessão chegar, o número seria o do admin */}
+            {!carregandoClientes && <span className={styles.contador}>{itensNoCarrinho}</span>}
+          </Link>
+        </div>
+      </div>
     </header>
   )
 }

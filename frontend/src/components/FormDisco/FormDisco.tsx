@@ -4,21 +4,14 @@ import {
   Alert,
   Autocomplete,
   Button,
-  Fieldset,
-  Flex,
-  Group,
-  Image,
   NumberInput,
   MultiSelect,
   Select,
   TagsInput,
-  Stack,
-  Text,
   Textarea,
   TextInput,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { IconX } from '@tabler/icons-react';
 import type { Dimensoes, Disco } from '../../types/disco';
 import type { EntradaEstoque } from '../../types/inventario';
 import {
@@ -41,6 +34,7 @@ import {
   valorVendaSugerido,
 } from '../../utils/precificacao';
 import { apenasDigitos } from '../../utils/texto';
+import Capa from '../Capa/Capa';
 
 export interface FormDiscoValues {
   title: string;
@@ -86,6 +80,14 @@ const OPCOES_EDICAO = EDICOES.map((edicao) => ({
   value: edicao.id,
   label: edicao.nome,
 }));
+
+// descrição embaixo do campo, para os inputs vizinhos na grade ficarem alinhados
+const DESCRICAO_ABAIXO: ('label' | 'input' | 'description' | 'error')[] = [
+  'label',
+  'input',
+  'description',
+  'error',
+];
 
 export default function FormDisco({
   initialValues,
@@ -270,342 +272,265 @@ export default function FormDisco({
 
   return (
     <form className={styles.form} onSubmit={form.onSubmit(handleSubmit)}>
-      <Flex
-        className={styles.formHeader}
-        justify="space-between"
-        align="center"
-        mb="md"
-      >
-        <Text fw={600} size="lg">
-          {isEdit
-            ? `Editar Disco #${initialValues?.id ?? ''}`
-            : 'Novo Disco'}
-        </Text>
-        <Button variant="subtle" color="gray" px="xs" onClick={onClose}>
-          <IconX stroke={1.5} />
-        </Button>
-      </Flex>
+      <section className={styles.secao}>
+        <h3>Identificação</h3>
 
-      <Flex direction="column" gap="md">
-        <Fieldset legend="Identificação">
-          <Flex direction="column" gap="sm">
-            <Flex gap="2em">
-              <TextInput
-                label="Título"
-                placeholder="Ex: The Dark Side of the Moon"
-                withAsterisk
-                radius="sm"
-                flex={2}
-                key={form.key('title')}
-                {...form.getInputProps('title')}
-              />
-              <TextInput
-                label="Artista"
-                placeholder="Ex: Pink Floyd"
-                withAsterisk
-                radius="sm"
-                flex={2}
-                key={form.key('artist')}
-                {...form.getInputProps('artist')}
-              />
-              <NumberInput
-                label="Ano de lançamento"
-                placeholder="1973"
-                withAsterisk
-                radius="sm"
-                min={1900}
-                max={2030}
-                decimalScale={0}
-                allowNegative={false}
-                flex={1}
-                key={form.key('releaseYear')}
-                {...form.getInputProps('releaseYear')}
-              />
-            </Flex>
+        <div className={styles.gradeTitulo}>
+          <TextInput
+            label="Título"
+            placeholder="Ex: The Dark Side of the Moon"
+            key={form.key('title')}
+            {...form.getInputProps('title')}
+          />
+          <TextInput
+            label="Artista"
+            placeholder="Ex: Pink Floyd"
+            key={form.key('artist')}
+            {...form.getInputProps('artist')}
+          />
+          <NumberInput
+            label="Ano de lançamento"
+            placeholder="1973"
+            min={1900}
+            max={2030}
+            decimalScale={0}
+            allowNegative={false}
+            key={form.key('releaseYear')}
+            {...form.getInputProps('releaseYear')}
+          />
+        </div>
 
-            <Flex gap="2em">
-              <TagsInput
-                label="Gêneros"
-                placeholder="Digite e pressione Enter"
-                description="RN0012: pelo menos um gênero"
-                data={sugestoes.generos}
-                withAsterisk
-                radius="sm"
-                flex={1}
-                key={form.key('genres')}
-                {...form.getInputProps('genres')}
-              />
-              <TagsInput
-                label="Estilos"
-                placeholder="Digite e pressione Enter"
-                data={sugestoes.estilos}
-                radius="sm"
-                flex={1}
-                key={form.key('styles')}
-                {...form.getInputProps('styles')}
-              />
-            </Flex>
+        <div className={styles.grade2}>
+          <TagsInput
+            label="Gêneros"
+            placeholder="Digite e pressione Enter"
+            description="RN0012: pelo menos um gênero"
+            inputWrapperOrder={DESCRICAO_ABAIXO}
+            data={sugestoes.generos}
+            key={form.key('genres')}
+            {...form.getInputProps('genres')}
+          />
+          <TagsInput
+            label="Estilos (opcional)"
+            placeholder="Digite e pressione Enter"
+            data={sugestoes.estilos}
+            key={form.key('styles')}
+            {...form.getInputProps('styles')}
+          />
+        </div>
 
-            <Flex gap="1em" align="flex-end">
-              <TextInput
-                label="Capa (URL ou caminho)"
-                placeholder="/covers/disco.jpg"
-                withAsterisk
-                radius="sm"
-                flex={1}
-                key={form.key('coverSrc')}
-                {...form.getInputProps('coverSrc')}
-              />
-              <Image
-                src={coverSrcAtual || null}
-                w={90}
-                h={90}
-                radius="sm"
-                alt="Pré-visualização da capa"
-              />
-            </Flex>
-          </Flex>
-        </Fieldset>
-
-        <Fieldset legend="Ficha técnica">
-          <Flex direction="column" gap="sm">
-            <Flex gap="2em">
-              <Autocomplete
-                label="Gravadora"
-                data={sugestoes.gravadoras}
-                withAsterisk
-                radius="sm"
-                flex={1}
-                key={form.key('gravadora')}
-                {...form.getInputProps('gravadora')}
-              />
-              <Stack gap={4} flex={1}>
-                <MultiSelect
-                  label="Edição"
-                  placeholder={
-                    edicoesSelecionadas.length ? undefined : 'Selecione os tipos'
-                  }
-                  withAsterisk
-                  radius="sm"
-                  data={OPCOES_EDICAO}
-                  clearable
-                  key={form.key('edicaoIds')}
-                  {...form.getInputProps('edicaoIds')}
-                />
-                {/* a explicação de cada tipo escolhido — não cabe em description
-                    agora que o campo aceita mais de um */}
-                {edicoesSelecionadas.map((id) => (
-                  <Text key={id} size="xs" c="dimmed">
-                    <Text span size="xs" fw={600}>
-                      {obterEdicao(id)?.nome}:
-                    </Text>{' '}
-                    {obterEdicao(id)?.descricao}
-                  </Text>
-                ))}
-              </Stack>
-            </Flex>
-
-            <Flex gap="2em">
-              <TextInput
-                label="Código de catálogo"
-                withAsterisk
-                disabled={isEdit}
-                radius="sm"
-                flex={1}
-                key={form.key('codigoCatalogo')}
-                {...form.getInputProps('codigoCatalogo')}
-              />
-              <TextInput
-                label="Código de barras"
-                placeholder="0000000000000"
-                withAsterisk
-                disabled={isEdit}
-                radius="sm"
-                flex={1}
-                key={form.key('codigoBarras')}
-                {...form.getInputProps('codigoBarras')}
-              />
-            </Flex>
-
-            <Flex gap="2em">
-              <NumberInput
-                label="Número de faixas"
-                withAsterisk
-                radius="sm"
-                min={1}
-                decimalScale={0}
-                allowNegative={false}
-                flex={1}
-                key={form.key('numeroFaixas')}
-                {...form.getInputProps('numeroFaixas')}
-              />
-              <TextInput
-                label="Duração total"
-                placeholder="42:15"
-                radius="sm"
-                flex={1}
-                key={form.key('duracao')}
-                {...form.getInputProps('duracao')}
-              />
-            </Flex>
-
-            <Textarea
-              label="Descrição"
-              withAsterisk
-              radius="sm"
-              autosize
-              minRows={3}
-              key={form.key('descricao')}
-              {...form.getInputProps('descricao')}
-            />
-          </Flex>
-        </Fieldset>
-
-        <Fieldset legend="Dimensões e logística">
-          <Flex direction="column" gap="sm">
-            <Select
-              label="Formato"
-              placeholder="Selecione um formato"
-              withAsterisk
-              radius="sm"
-              data={OPCOES_FORMATO}
-              allowDeselect={false}
-              key={form.key('formatoId')}
-              {...form.getInputProps('formatoId')}
-              onChange={(value) => handleTrocarFormato(value ?? '')}
-            />
-
-            <Flex gap="2em">
-              <NumberInput
-                label="Altura (cm)"
-                withAsterisk
-                radius="sm"
-                min={0}
-                step={0.1}
-                decimalScale={2}
-                allowNegative={false}
-                flex={1}
-                key={form.key('dimensoes.altura')}
-                {...form.getInputProps('dimensoes.altura')}
-              />
-              <NumberInput
-                label="Largura (cm)"
-                withAsterisk
-                radius="sm"
-                min={0}
-                step={0.1}
-                decimalScale={2}
-                allowNegative={false}
-                flex={1}
-                key={form.key('dimensoes.largura')}
-                {...form.getInputProps('dimensoes.largura')}
-              />
-              <NumberInput
-                label="Profundidade (cm)"
-                withAsterisk
-                radius="sm"
-                min={0}
-                step={0.1}
-                decimalScale={2}
-                allowNegative={false}
-                flex={1}
-                key={form.key('dimensoes.profundidade')}
-                {...form.getInputProps('dimensoes.profundidade')}
-              />
-              <NumberInput
-                label="Peso (g)"
-                withAsterisk
-                radius="sm"
-                min={0}
-                step={1}
-                decimalScale={0}
-                allowNegative={false}
-                flex={1}
-                key={form.key('dimensoes.peso')}
-                {...form.getInputProps('dimensoes.peso')}
-              />
-            </Flex>
-
-            <Text size="xs" c="dimmed">
-              As medidas vieram do formato selecionado e podem ser ajustadas.
-            </Text>
-          </Flex>
-        </Fieldset>
-
-        <Fieldset legend="Precificação">
-          <Flex direction="column" gap="sm">
-            <Select
-              label="Grupo de precificação"
-              placeholder="Selecione um grupo"
-              description="A margem do grupo sobre o maior custo em estoque define o valor de venda (RF0052 / RN0051)."
-              withAsterisk
-              radius="sm"
-              data={OPCOES_GRUPO_PRECIFICACAO}
-              allowDeselect={false}
-              key={form.key('grupoPrecificacaoId')}
-              {...form.getInputProps('grupoPrecificacaoId')}
-            />
-
-            {custoBase === null ? (
-              <Text size="xs" c="dimmed">
-                O valor de venda será calculado na primeira entrada em
-                estoque, pela margem do grupo escolhido (RF0052 / RN0013).
-              </Text>
+        <div className={styles.gradeCapa}>
+          <div className={styles.previaCapa}>
+            {coverSrcAtual ? (
+              <Capa src={coverSrcAtual} alt="Pré-visualização da capa" />
             ) : (
-              <>
-                <NumberInput
-                  label="Preço de venda"
-                  withAsterisk
-                  radius="sm"
-                  prefix="R$ "
-                  decimalScale={2}
-                  fixedDecimalScale
-                  thousandSeparator="."
-                  decimalSeparator=","
-                  min={0}
-                  allowNegative={false}
-                  key={form.key('price')}
-                  {...form.getInputProps('price')}
-                />
-
-                <Text size="xs" c="dimmed">
-                  {sugerido === null
-                    ? 'O valor de venda será calculado na primeira entrada em estoque.'
-                    : `Valor sugerido pelo grupo: ${formatarBRL(sugerido)} (maior custo ${formatarBRL(custoBase)} + ${grupoInfo?.margemLucro ?? 0}%)`}
-                </Text>
-
-                {precisaAutorizacao && (
-                  <>
-                    <Alert color="orange" title="Autorização necessária">
-                      RN0014: o preço informado está abaixo do valor sugerido
-                      pelo grupo de precificação. É preciso registrar a
-                      autorização de um gerente de vendas para manter esse
-                      valor.
-                    </Alert>
-                    <TextInput
-                      label="Autorização do gerente de vendas"
-                      placeholder="Nome de quem autorizou"
-                      withAsterisk
-                      radius="sm"
-                      key={form.key('autorizacaoGerente')}
-                      {...form.getInputProps('autorizacaoGerente')}
-                    />
-                  </>
-                )}
-              </>
+              <span>Sem capa</span>
             )}
-          </Flex>
-        </Fieldset>
-      </Flex>
+          </div>
+          <TextInput
+            label="Capa (URL ou caminho)"
+            placeholder="/covers/disco.jpg"
+            key={form.key('coverSrc')}
+            {...form.getInputProps('coverSrc')}
+          />
+        </div>
+      </section>
 
-      <Group justify="flex-end" mt="xl">
-        <Button variant="default" onClick={onClose}>
+      <section className={styles.secao}>
+        <h3>Ficha técnica</h3>
+
+        <div className={styles.grade2}>
+          <Autocomplete
+            label="Gravadora"
+            data={sugestoes.gravadoras}
+            key={form.key('gravadora')}
+            {...form.getInputProps('gravadora')}
+          />
+          <div className={styles.campoComAjuda}>
+            <MultiSelect
+              label="Edição"
+              placeholder={
+                edicoesSelecionadas.length ? undefined : 'Selecione os tipos'
+              }
+              data={OPCOES_EDICAO}
+              clearable
+              key={form.key('edicaoIds')}
+              {...form.getInputProps('edicaoIds')}
+            />
+            {/* a explicação de cada tipo escolhido — não cabe em description
+                agora que o campo aceita mais de um */}
+            {edicoesSelecionadas.map((id) => (
+              <p key={id} className={styles.ajuda}>
+                <strong>{obterEdicao(id)?.nome}:</strong> {obterEdicao(id)?.descricao}
+              </p>
+            ))}
+          </div>
+        </div>
+
+        <div className={styles.grade2}>
+          <TextInput
+            label="Código de catálogo"
+            disabled={isEdit}
+            key={form.key('codigoCatalogo')}
+            {...form.getInputProps('codigoCatalogo')}
+          />
+          <TextInput
+            label="Código de barras"
+            placeholder="0000000000000"
+            disabled={isEdit}
+            key={form.key('codigoBarras')}
+            {...form.getInputProps('codigoBarras')}
+          />
+        </div>
+
+        <div className={styles.grade2}>
+          <NumberInput
+            label="Número de faixas"
+            min={1}
+            decimalScale={0}
+            allowNegative={false}
+            key={form.key('numeroFaixas')}
+            {...form.getInputProps('numeroFaixas')}
+          />
+          <TextInput
+            label="Duração total (opcional)"
+            placeholder="42:15"
+            key={form.key('duracao')}
+            {...form.getInputProps('duracao')}
+          />
+        </div>
+
+        <Textarea
+          label="Descrição"
+          autosize
+          minRows={3}
+          key={form.key('descricao')}
+          {...form.getInputProps('descricao')}
+        />
+      </section>
+
+      <section className={styles.secao}>
+        <h3>Dimensões e logística</h3>
+
+        <Select
+          label="Formato"
+          placeholder="Selecione um formato"
+          data={OPCOES_FORMATO}
+          allowDeselect={false}
+          key={form.key('formatoId')}
+          {...form.getInputProps('formatoId')}
+          onChange={(value) => handleTrocarFormato(value ?? '')}
+        />
+
+        <div className={styles.grade4}>
+          <NumberInput
+            label="Altura (cm)"
+            min={0}
+            step={0.1}
+            decimalScale={2}
+            allowNegative={false}
+            key={form.key('dimensoes.altura')}
+            {...form.getInputProps('dimensoes.altura')}
+          />
+          <NumberInput
+            label="Largura (cm)"
+            min={0}
+            step={0.1}
+            decimalScale={2}
+            allowNegative={false}
+            key={form.key('dimensoes.largura')}
+            {...form.getInputProps('dimensoes.largura')}
+          />
+          <NumberInput
+            label="Profundidade (cm)"
+            min={0}
+            step={0.1}
+            decimalScale={2}
+            allowNegative={false}
+            key={form.key('dimensoes.profundidade')}
+            {...form.getInputProps('dimensoes.profundidade')}
+          />
+          <NumberInput
+            label="Peso (g)"
+            min={0}
+            step={1}
+            decimalScale={0}
+            allowNegative={false}
+            key={form.key('dimensoes.peso')}
+            {...form.getInputProps('dimensoes.peso')}
+          />
+        </div>
+
+        <p className={styles.ajuda}>
+          As medidas vieram do formato selecionado e podem ser ajustadas.
+        </p>
+      </section>
+
+      <section className={styles.secao}>
+        <h3>Precificação</h3>
+
+        <div className={styles.grade2}>
+          <Select
+            label="Grupo de precificação"
+            placeholder="Selecione um grupo"
+            description="A margem do grupo sobre o maior custo em estoque define o valor de venda (RF0052 / RN0051)."
+            inputWrapperOrder={DESCRICAO_ABAIXO}
+            data={OPCOES_GRUPO_PRECIFICACAO}
+            allowDeselect={false}
+            key={form.key('grupoPrecificacaoId')}
+            {...form.getInputProps('grupoPrecificacaoId')}
+          />
+
+          {custoBase === null ? (
+            <p className={styles.aviso}>
+              O valor de venda será calculado na primeira entrada em estoque,
+              pela margem do grupo escolhido (RF0052 / RN0013).
+            </p>
+          ) : (
+            <NumberInput
+              label="Preço de venda"
+              description={
+                sugerido === null
+                  ? 'O valor de venda será calculado na primeira entrada em estoque.'
+                  : `Valor sugerido pelo grupo: ${formatarBRL(sugerido)} (maior custo ${formatarBRL(custoBase)} + ${grupoInfo?.margemLucro ?? 0}%)`
+              }
+              inputWrapperOrder={DESCRICAO_ABAIXO}
+              prefix="R$ "
+              decimalScale={2}
+              fixedDecimalScale
+              thousandSeparator="."
+              decimalSeparator=","
+              min={0}
+              allowNegative={false}
+              key={form.key('price')}
+              {...form.getInputProps('price')}
+            />
+          )}
+        </div>
+
+        {custoBase !== null && precisaAutorizacao && (
+          <>
+            <Alert color="orange" title="Autorização necessária">
+              RN0014: o preço informado está abaixo do valor sugerido pelo
+              grupo de precificação. É preciso registrar a autorização de um
+              gerente de vendas para manter esse valor.
+            </Alert>
+            <TextInput
+              label="Autorização do gerente de vendas"
+              placeholder="Nome de quem autorizou"
+              key={form.key('autorizacaoGerente')}
+              {...form.getInputProps('autorizacaoGerente')}
+            />
+          </>
+        )}
+      </section>
+
+      <div className={styles.rodape}>
+        <Button type="button" variant="default" onClick={onClose}>
           Cancelar
         </Button>
-        <Button type="submit" color="dark">
-          {isEdit ? 'Salvar' : 'Cadastrar'}
-        </Button>
-      </Group>
+        <Button type="submit">{isEdit ? 'Salvar alterações' : 'Cadastrar disco'}</Button>
+      </div>
     </form>
   );
 }

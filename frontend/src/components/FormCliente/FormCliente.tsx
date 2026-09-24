@@ -1,26 +1,26 @@
-import styles from './FormCliente.module.scss';
+import styles from './Formulario.module.scss';
 import { useState } from 'react';
 import {
-  Badge,
   Button,
-  Flex,
+  Checkbox,
   Select,
-  Text,
   TextInput,
   PasswordInput,
-  Switch,
-  Group,
   Tabs,
 } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
-import { IconX } from '@tabler/icons-react';
 import type { Cartao, Cliente, Endereco, Telefone } from '../../types/cliente';
 import { GENEROS, TIPOS_TELEFONE } from '../../types/cliente';
-import { apenasDigitos } from '../../utils/texto';
+import { mascararCpf, mascararNumeroTelefone } from '../../utils/texto';
+import { comMascara } from '../../utils/formulario';
 import { tiposFaltando } from '../../utils/perfilCliente';
+import { senhaForte } from '../../utils/senha';
+import { VALIDACOES_DADOS_CLIENTE } from '../../utils/validacaoCliente';
 import ListaEnderecos from './ListaEnderecos';
 import ListaCartoes from './ListaCartoes';
+import ChecklistSenha from './ChecklistSenha';
+import { Close } from '@carbon/icons-react';
 
 export interface FormClienteValues {
   nome: string;
@@ -41,6 +41,8 @@ type CamposCliente = Omit<FormClienteValues, 'enderecos' | 'cartoes'>;
 interface FormClienteProps {
   initialValues?: Cliente;
   isEdit: boolean;
+  /** Botão salvar em espera enquanto a API responde. */
+  enviando?: boolean;
   onClose?: () => void;
   onSubmit: (valores: FormClienteValues) => void | Promise<void>;
   /** RF0028: troca de senha sem passar pelo resto do cadastro. */
@@ -52,6 +54,7 @@ interface FormClienteProps {
 export default function FormCliente({
   initialValues,
   isEdit,
+  enviando = false,
   onClose,
   onSubmit,
   onAlterarSenha,
@@ -63,11 +66,13 @@ export default function FormCliente({
   const [cartoes, setCartoes] = useState<Cartao[]>(initialValues?.cartoes ?? []);
   const [abaAtiva, setAbaAtiva] = useState<string | null>('dados');
   const [isSubFormAberto, setIsSubFormAberto] = useState(false);
+  const [senhaDigitada, setSenhaDigitada] = useState('');
 
   const faltandoEndereco = tiposFaltando(enderecos);
 
   const form = useForm<CamposCliente>({
     mode: 'uncontrolled',
+    validateInputOnBlur: true,
     initialValues: {
       nome: initialValues?.nome || '',
       email: initialValues?.email || '',
@@ -75,9 +80,9 @@ export default function FormCliente({
       telefone: {
         tipo: initialValues?.telefone?.tipo || 'Celular',
         ddd: initialValues?.telefone?.ddd || '',
-        numero: initialValues?.telefone?.numero || '',
+        numero: mascararNumeroTelefone(initialValues?.telefone?.numero || ''),
       },
-      cpf: initialValues?.cpf || '',
+      cpf: mascararCpf(initialValues?.cpf || ''),
       dataNascimento: initialValues?.dataNascimento ?? null,
       password: '',
       confirmPassword: '',
@@ -85,28 +90,13 @@ export default function FormCliente({
     },
 
     validate: {
-      nome: (value) =>
-        value.length < 3 ? 'O nome deve ter pelo menos 3 letras' : null,
-      email: (value) => (/^\S+@\S+$/.test(value) ? null : 'E-mail inválido'),
-      genero: (value) => (!value ? 'Selecione um gênero' : null),
-      telefone: {
-        ddd: (value) => (apenasDigitos(value).length !== 2 ? 'DDD inválido' : null),
-        numero: (value) => {
-          const digitos = apenasDigitos(value).length;
-          return digitos === 8 || digitos === 9 ? null : 'Número inválido';
-        },
-      },
-      cpf: (value) =>
-        apenasDigitos(value).length !== 11 ? 'CPF inválido' : null,
+      ...VALIDACOES_DADOS_CLIENTE,
 
       password: (value) => {
         if (isEdit && !value) return null;
-
-        const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{8,}$/;
-        if (!regex.test(value)) {
-          return 'A senha deve ter no mínimo 8 caracteres, letras maiúsculas, minúsculas e um caractere especial.';
-        }
-        return null;
+        return senhaForte(value)
+          ? null
+          : 'A senha deve ter no mínimo 8 caracteres, letras maiúsculas, minúsculas e um caractere especial.';
       },
 
       confirmPassword: (value, values) => {
@@ -137,30 +127,30 @@ export default function FormCliente({
     onSubmit({ ...valores, enderecos, cartoes });
   }
 
+  const cpf = form.getInputProps('cpf');
+  const numero = form.getInputProps('telefone.numero');
+  const senha = form.getInputProps('password');
+
   return (
     <form className={styles.form} onSubmit={form.onSubmit(handleSubmit)}>
-      <Flex
-        className={styles.formHeader}
-        justify="space-between"
-        align="center"
-        mb="md"
-      >
-        <Text fw={600} size="lg">
-          {isEdit
-            ? `Editar Cliente #${initialValues?.id || ''}`
-            : 'Novo Cliente'}
-        </Text>
-        <Button type="button" variant="subtle" color="gray" px="xs" onClick={onClose}>
-          <IconX stroke={1.5} />
-        </Button>
-      </Flex>
+      <div className={styles.cabecalho}>
+        <h2 className={styles.titulo}>
+          {isEdit ? initialValues?.nome : 'Cadastrar cliente'}
+        </h2>
+        {onClose && (
+          <Button
+            type="button"
+            variant="default"
+            size="xs"
+            leftSection={<Close size={16} />}
+            onClick={onClose}
+          >
+            Fechar
+          </Button>
+        )}
+      </div>
 
-      <Tabs
-        value={abaAtiva}
-        onChange={setAbaAtiva}
-        color="dark"
-        keepMounted={false}
-      >
+      <Tabs value={abaAtiva} onChange={setAbaAtiva} keepMounted={false}>
         <Tabs.List>
           <Tabs.Tab value="dados" data-testid="aba-dados">
             Dados
@@ -170,9 +160,9 @@ export default function FormCliente({
             data-testid="aba-enderecos"
             rightSection={
               faltandoEndereco.length > 0 ? (
-                <Badge size="xs" circle color="orange">
+                <span className={styles.tagSelo} aria-label="Endereço obrigatório faltando">
                   !
-                </Badge>
+                </span>
               ) : null
             }
           >
@@ -183,178 +173,155 @@ export default function FormCliente({
           </Tabs.Tab>
         </Tabs.List>
 
-        <Tabs.Panel value="dados" pt="md">
-          <Flex direction="column" gap="sm" >
-        <TextInput
-          label="Nome Completo"
-          placeholder="Ex: João da Silva"
-          withAsterisk
-          data-testid="input-nome"
-          key={form.key('nome')}
-          {...form.getInputProps('nome')}
-          radius="sm"
-          fw={300}
-        />
+        <Tabs.Panel value="dados" pt={24}>
+          <div className={styles.campos}>
+            <TextInput
+              label="Nome completo"
+              placeholder="Como está no documento"
+              data-testid="input-nome"
+              key={form.key('nome')}
+              {...form.getInputProps('nome')}
+            />
 
-        <Flex gap="2em">
-          <DateInput
-            label="Data de Nascimento"
-            placeholder="Selecione uma data"
-            valueFormat="DD/MM/YYYY"
-            clearable
-            data-testid="input-nascimento"
-            key={form.key('dataNascimento')}
-            {...form.getInputProps('dataNascimento')}
-            flex="1"
-          />
+            <div className={styles.grade3}>
+              <DateInput
+                label="Data de nascimento"
+                placeholder="dd/mm/aaaa"
+                valueFormat="DD/MM/YYYY"
+                clearable
+                data-testid="input-nascimento"
+                key={form.key('dataNascimento')}
+                {...form.getInputProps('dataNascimento')}
+              />
+              <Select
+                label="Gênero"
+                placeholder="Selecione"
+                data={GENEROS}
+                allowDeselect={false}
+                data-testid="select-genero"
+                key={form.key('genero')}
+                {...form.getInputProps('genero')}
+              />
+              <TextInput
+                label="CPF"
+                placeholder="000.000.000-00"
+                inputMode="numeric"
+                disabled={isEdit}
+                description={isEdit ? 'O CPF não pode ser alterado.' : undefined}
+                inputWrapperOrder={['label', 'input', 'description', 'error']}
+                data-testid="input-cpf"
+                key={form.key('cpf')}
+                {...cpf}
+                onChange={comMascara(mascararCpf, cpf.onChange)}
+              />
+            </div>
 
-          <Select
-            label="Gênero"
-            placeholder="Selecione um gênero"
-            withAsterisk
-            data={GENEROS}
-            allowDeselect={false}
-            data-testid="select-genero"
-            radius="sm"
-            key={form.key('genero')}
-            {...form.getInputProps('genero')}
-            flex="1"
-          />
+            <div className={styles.gradeTelefone}>
+              <Select
+                label="Tipo"
+                data={TIPOS_TELEFONE}
+                allowDeselect={false}
+                data-testid="select-tipo-telefone"
+                key={form.key('telefone.tipo')}
+                {...form.getInputProps('telefone.tipo')}
+              />
+              <TextInput
+                label="DDD"
+                placeholder="11"
+                inputMode="numeric"
+                maxLength={2}
+                data-testid="input-ddd"
+                key={form.key('telefone.ddd')}
+                {...form.getInputProps('telefone.ddd')}
+              />
+              <TextInput
+                label="Número"
+                placeholder="90000-0000"
+                inputMode="numeric"
+                data-testid="input-telefone"
+                key={form.key('telefone.numero')}
+                {...numero}
+                onChange={comMascara(mascararNumeroTelefone, numero.onChange)}
+              />
+            </div>
 
-          <TextInput
-            label="CPF"
-            placeholder="000.000.000-00"
-            disabled={isEdit}
-            data-testid="input-cpf"
-            withAsterisk
-            key={form.key('cpf')}
-            {...form.getInputProps('cpf')}
-            flex="1"
-            radius="sm"
-          />
-        </Flex>
+            <TextInput
+              label="E-mail"
+              placeholder="cliente@email.com"
+              data-testid="input-email"
+              key={form.key('email')}
+              {...form.getInputProps('email')}
+            />
 
-        <Flex gap="2em">
-          <Select
-            label="Tipo"
-            data={TIPOS_TELEFONE}
-            allowDeselect={false}
-            data-testid="select-tipo-telefone"
-            withAsterisk
-            radius="sm"
-            w={140}
-            key={form.key('telefone.tipo')}
-            {...form.getInputProps('telefone.tipo')}
-          />
+            <div className={styles.grade2}>
+              <PasswordInput
+                label={isEdit ? 'Nova senha (opcional)' : 'Senha'}
+                data-testid="input-senha"
+                key={form.key('password')}
+                {...senha}
+                onChange={(evento) => {
+                  senha.onChange(evento);
+                  setSenhaDigitada(evento.currentTarget.value);
+                }}
+              />
+              <PasswordInput
+                label="Confirmar senha"
+                data-testid="input-confirmar-senha"
+                key={form.key('confirmPassword')}
+                {...form.getInputProps('confirmPassword')}
+              />
+            </div>
 
-          <TextInput
-            label="DDD"
-            placeholder="11"
-            data-testid="input-ddd"
-            withAsterisk
-            radius="sm"
-            w={80}
-            key={form.key('telefone.ddd')}
-            {...form.getInputProps('telefone.ddd')}
-          />
+            {(!isEdit || senhaDigitada) && <ChecklistSenha senha={senhaDigitada} />}
 
-          <TextInput
-            label="Número"
-            placeholder="90000-0000"
-            data-testid="input-telefone"
-            withAsterisk
-            radius="sm"
-            flex={1}
-            key={form.key('telefone.numero')}
-            {...form.getInputProps('telefone.numero')}
-          />
-        </Flex>
+            {isEdit && onAlterarSenha && (
+              <div>
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  data-testid="btn-alterar-somente-senha"
+                  onClick={handleAlterarSenha}
+                >
+                  Salvar apenas a senha
+                </Button>
+              </div>
+            )}
 
-        <TextInput
-          label="E-mail"
-          placeholder="cliente@email.com"
-          data-testid="input-email"
-          withAsterisk
-          key={form.key('email')}
-          {...form.getInputProps('email')}
-          flex="1"
-          radius="sm"
-        />
-
-        <PasswordInput
-          label={isEdit ? 'Nova Senha (opcional)' : 'Senha'}
-          placeholder="Sua senha segura"
-          data-testid="input-senha"
-          withAsterisk={!isEdit}
-          description="Mínimo 8 caracteres, maiúsculas, minúsculas e especial."
-          key={form.key('password')}
-          {...form.getInputProps('password')}
-          radius="sm"
-        />
-
-        <PasswordInput
-          label="Confirmação de Senha"
-          placeholder="Digite a senha novamente"
-          data-testid="input-confirmar-senha"
-          withAsterisk={!isEdit}
-          key={form.key('confirmPassword')}
-          {...form.getInputProps('confirmPassword')}
-          radius="sm"
-        />
-
-        {isEdit && onAlterarSenha && (
-          <Group justify="flex-start">
-            <Button
-              type="button"
-              variant="light"
-              color="dark"
-              size="xs"
-              data-testid="btn-alterar-somente-senha"
-              onClick={handleAlterarSenha}
-            >
-              Salvar apenas a senha
-            </Button>
-          </Group>
-        )}
-
-        {isEdit && (
-          <Switch
-            label="Cliente Ativo no Sistema"
-            data-testid="switch-ativo"
-            mt="md"
-            color="green"
-            withThumbIndicator={false}
-            key={form.key('isAtivo')}
-            {...form.getInputProps('isAtivo', { type: 'checkbox' })}
-          />
-        )}
-          </Flex>
+            {isEdit && (
+              <Checkbox
+                label="Cadastro ativo no sistema"
+                data-testid="switch-ativo"
+                key={form.key('isAtivo')}
+                {...form.getInputProps('isAtivo', { type: 'checkbox' })}
+              />
+            )}
+          </div>
         </Tabs.Panel>
 
-        <Tabs.Panel value="enderecos" pt="md">
+        <Tabs.Panel value="enderecos" pt={24}>
           <ListaEnderecos
             enderecos={enderecos}
             onChange={setEnderecos}
             onFormAberto={setIsSubFormAberto}
           />
           {isEdit && onAlterarEnderecos && !isSubFormAberto && (
-            <Group justify="flex-start" mt="md">
+            <div className={styles.rodapeInline} style={{ justifyContent: 'flex-start', marginTop: 16 }}>
               <Button
                 type="button"
-                variant="light"
-                color="dark"
-                size="xs"
+                variant="default"
+                size="sm"
                 disabled={faltandoEndereco.length > 0}
                 data-testid="btn-alterar-somente-enderecos"
                 onClick={handleAlterarEnderecos}
               >
                 Salvar apenas os endereços
               </Button>
-            </Group>
+            </div>
           )}
         </Tabs.Panel>
 
-        <Tabs.Panel value="cartoes" pt="md">
+        <Tabs.Panel value="cartoes" pt={24}>
           <ListaCartoes
             cartoes={cartoes}
             onChange={setCartoes}
@@ -364,14 +331,14 @@ export default function FormCliente({
       </Tabs>
 
       {!isSubFormAberto && (
-        <Group justify="flex-end" mt="xl">
+        <div className={styles.rodape}>
           <Button type="button" variant="default" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="submit" color="dark" data-testid="btn-salvar-cliente">
-            {isEdit ? 'Salvar' : 'Cadastrar'}
+          <Button type="submit" loading={enviando} data-testid="btn-salvar-cliente">
+            {isEdit ? 'Salvar alterações' : 'Cadastrar cliente'}
           </Button>
-        </Group>
+        </div>
       )}
     </form>
   );

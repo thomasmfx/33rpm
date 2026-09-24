@@ -1,14 +1,15 @@
-import styles from './FormCliente.module.scss';
+import styles from './Formulario.module.scss';
 import { useState } from 'react';
-import { Alert, Badge, Button, Group, Paper, Stack, Text, Tooltip } from '@mantine/core';
-import { IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
+import { Add } from '@carbon/icons-react';
+import { Alert, Tooltip } from '@mantine/core';
 import type { Endereco, TipoEndereco } from '../../types/cliente';
 import {
   ROTULO_TIPO_ENDERECO,
+  linhaDoEndereco,
   motivoBloqueioRemocao,
-  resumirEndereco,
   tiposFaltando,
 } from '../../utils/perfilCliente';
+import { mascararCep } from '../../utils/texto';
 import FormEndereco, { type FormEnderecoValues } from './FormEndereco';
 
 interface ListaEnderecosProps {
@@ -77,78 +78,65 @@ export default function ListaEnderecos({
   }
 
   return (
-    <Stack gap="md">
+    <div className={styles.campos}>
       {faltando.length > 0 && (
         <Alert color="orange" title="Endereço obrigatório faltando">
           {mensagemTiposFaltando(faltando)}
         </Alert>
       )}
 
-      <div className={styles.listaItens}>
+      <div className={styles.lista}>
         {enderecos.map((endereco) => {
           const motivoBloqueio = motivoBloqueioRemocao(enderecos, endereco.id);
 
           return (
-            <Paper key={endereco.id} withBorder p="sm">
-              <Group justify="space-between" wrap="nowrap" align="flex-start">
-                <Stack gap={2}>
-                  <Group gap="xs">
-                    <Text fw={600}>{endereco.nome}</Text>
-                    <Badge color="dark">
-                      {ROTULO_TIPO_ENDERECO[endereco.tipo]}
-                    </Badge>
-                  </Group>
-                  <Text size="sm">{resumirEndereco(endereco)}</Text>
-                  <Text size="sm">CEP {endereco.cep}</Text>
-                  {endereco.observacoes && (
-                    <Text size="xs" c="dimmed">
-                      {endereco.observacoes}
-                    </Text>
-                  )}
-                </Stack>
+            <div key={endereco.id} className={styles.item}>
+              <div className={styles.itemTexto}>
+                <div className={styles.itemTopo}>
+                  <strong>{endereco.nome}</strong>
+                  <span className={styles.tag}>{ROTULO_TIPO_ENDERECO[endereco.tipo]}</span>
+                </div>
+                <span>{linhaDoEndereco(endereco)}</span>
+                <span>CEP {mascararCep(endereco.cep)}</span>
+                {endereco.observacoes && <span>{endereco.observacoes}</span>}
+              </div>
 
-                <Group gap="xs" wrap="nowrap">
-                  <Button
-                    type="button"
-                    variant="subtle"
-                    color="gray"
-                    px="xs"
-                    aria-label={`Editar ${endereco.nome}`}
-                    onClick={() => abrirForm(endereco)}
-                  >
-                    <IconPencil size={18} stroke={1.5} />
-                  </Button>
-                  <Tooltip label={motivoBloqueio} disabled={!motivoBloqueio}>
-                    <span>
-                      <Button
-                        type="button"
-                        variant="subtle"
-                        color="red"
-                        px="xs"
-                        disabled={Boolean(motivoBloqueio)}
-                        aria-label={`Remover ${endereco.nome}`}
-                        onClick={() => handleRemover(endereco.id)}
-                      >
-                        <IconTrash size={18} stroke={1.5} />
-                      </Button>
-                    </span>
-                  </Tooltip>
-                </Group>
-              </Group>
-            </Paper>
+              <div className={styles.itemAcoes}>
+                <button
+                  type="button"
+                  className={styles.acaoTexto}
+                  aria-label={`Editar ${endereco.nome}`}
+                  onClick={() => abrirForm(endereco)}
+                >
+                  Editar
+                </button>
+                <Tooltip label={motivoBloqueio} disabled={!motivoBloqueio}>
+                  <span>
+                    <button
+                      type="button"
+                      className={styles.acaoPerigo}
+                      disabled={Boolean(motivoBloqueio)}
+                      aria-label={`Remover ${endereco.nome}`}
+                      onClick={() => handleRemover(endereco.id)}
+                    >
+                      Remover
+                    </button>
+                  </span>
+                </Tooltip>
+              </div>
+            </div>
           );
         })}
       </div>
 
-      <Button
+      <button
         type="button"
-        variant="default"
-        leftSection={<IconPlus size={18} stroke={1.5} />}
+        className={styles.adicionar}
         data-testid="btn-adicionar-endereco"
         onClick={() => abrirForm(null)}
       >
-        Adicionar endereço
-      </Button>
-    </Stack>
+        <Add size={20} /> Adicionar endereço
+      </button>
+    </div>
   );
 }

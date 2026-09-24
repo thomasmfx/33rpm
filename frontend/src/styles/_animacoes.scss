@@ -1,0 +1,24 @@
+// Keyframes para os módulos. Em CSS Module o nome do @keyframes global vira um
+// nome com hash e a animação para: cada módulo que anima faz @use deste arquivo
+// e ganha a própria cópia, renomeada junto com as referências.
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes deslizar {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes progresso {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(0.92);
+  }
+}

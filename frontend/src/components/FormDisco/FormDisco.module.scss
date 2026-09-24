@@ -1,0 +1,101 @@
+@use '../../styles/mixins' as *;
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+// Cada bloco abre com filete preto e título, como as seções do guia
+.secao {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 20px;
+  border-top: 1px solid var(--cor-vinil);
+
+  h3 {
+    @include h3;
+  }
+}
+
+.grade2,
+.gradeTitulo,
+.grade4 {
+  display: grid;
+  gap: 16px;
+  align-items: start;
+}
+
+.grade2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.gradeTitulo {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 2fr) minmax(0, 1fr);
+}
+
+.grade4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+// a miniatura tem a altura de rótulo + campo, para fechar a linha com a URL
+.gradeCapa {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.previaCapa {
+  width: 74px;
+  height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-nevoa);
+
+  span {
+    @include meta(10px);
+
+    color: var(--cor-apagado);
+    text-align: center;
+  }
+}
+
+.campoComAjuda {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ajuda {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--cor-auxiliar);
+
+  strong {
+    font-weight: 700;
+    color: var(--cor-texto);
+  }
+}
+
+.aviso {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  background: var(--cor-nevoa);
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--cor-texto);
+}
+
+.rodape {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid var(--cor-divisoria);
+}

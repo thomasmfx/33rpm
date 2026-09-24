@@ -84,3 +84,36 @@ export function contarFiltrosDiscosAtivos(filtros: FiltrosDiscos): number {
 
   return criterios.filter(Boolean).length;
 }
+
+/** Busca da loja: o mesmo termo procura no título, no artista e na gravadora. */
+export function buscarNoAcervo(discos: Disco[], termo: string): Disco[] {
+  if (!termo.trim()) return discos;
+  return discos.filter(
+    (disco) =>
+      contemTexto(disco.title, termo) ||
+      contemTexto(disco.artist, termo) ||
+      contemTexto(disco.gravadora, termo),
+  );
+}
+
+/** Gêneros marcados no acervo se somam: basta o disco ter um deles. Lista vazia não filtra. */
+export function filtrarPorCategorias(discos: Disco[], categorias: string[]): Disco[] {
+  return categorias.length === 0
+    ? discos
+    : discos.filter((disco) => categorias.some((categoria) => temCategoria(disco, categoria)));
+}
+
+/** O acervo deixa marcar mais de um formato; lista vazia não filtra. */
+export function filtrarPorFormatos(discos: Disco[], formatoIds: string[]): Disco[] {
+  return formatoIds.length === 0
+    ? discos
+    : discos.filter((disco) => formatoIds.includes(disco.formatoId));
+}
+
+/** Busca da curadoria: título, artista ou código de catálogo. */
+export function buscarNoInventario(discos: Disco[], termo: string): Disco[] {
+  if (!termo.trim()) return discos;
+  return discos.filter((disco) =>
+    [disco.title, disco.artist, disco.codigoCatalogo].some((campo) => contemTexto(campo, termo)),
+  );
+}

@@ -1,0 +1,398 @@
+@use '../styles/mixins' as *;
+
+// Botões: primário (filled), secundário (outline), terciário (default) e link.
+// As alturas seguem o guia: 48 para primário e campo, 40 para secundário.
+.botao {
+  --button-height-xs: 32px;
+  --button-height-sm: 40px;
+  --button-height-md: 48px;
+  --button-height-lg: 52px;
+  --button-height-xl: 56px;
+  --button-padding-x-xs: 12px;
+  --button-padding-x-sm: 16px;
+  --button-padding-x-md: 28px;
+  --button-padding-x-lg: 32px;
+  --button-padding-x-xl: 40px;
+
+  font-weight: 700;
+  font-size: 15px;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+
+  &[data-size='xs'],
+  &[data-size='sm'] {
+    font-size: 14px;
+  }
+
+  &[data-size='xl'] {
+    font-size: 16px;
+  }
+
+  &[data-variant='outline']:hover:not(:disabled, [data-disabled], [data-loading]) {
+    background: var(--button-color);
+    color: var(--cor-papel);
+  }
+
+  &[data-variant='default'] {
+    font-weight: 400;
+    border-color: var(--cor-borda);
+    background: var(--cor-branco);
+
+    &:hover:not(:disabled, [data-disabled]) {
+      background: var(--cor-branco);
+      border-color: var(--cor-vinil);
+    }
+  }
+
+  &[data-variant='link'] {
+    --button-bg: transparent;
+    --button-hover: transparent;
+    --button-bd: none;
+    --button-color: var(--cor-vinil);
+
+    height: auto;
+    padding: 0;
+    border-radius: 0;
+    font-weight: 400;
+    font-size: 14px;
+    border-bottom: 1px solid currentColor;
+
+    &:hover:not(:disabled, [data-disabled]) {
+      color: var(--cor-selo);
+    }
+  }
+
+  &:disabled:not([data-loading]),
+  &[data-disabled]:not([data-loading]) {
+    border-color: transparent;
+  }
+}
+
+.acaoIcone {
+  &[data-variant='default'] {
+    border-color: var(--cor-borda);
+
+    &:hover:not(:disabled) {
+      background: var(--cor-branco);
+      border-color: var(--cor-vinil);
+    }
+  }
+}
+
+// Campos: rótulo sempre visível, 48px, anel de foco no Selo.
+// a borda mora no wrapper: é nele que o Mantine troca a variável quando há erro
+.campoWrapper {
+  --input-height-sm: 40px;
+  --input-height-md: 48px;
+  --input-fz: 15px;
+  --input-bd: var(--cor-borda);
+
+  &[data-error] .campoInput:focus,
+  &[data-error] .campoInput:focus-within {
+    border-color: var(--cor-erro);
+  }
+}
+
+.campoRotulo {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.campoDescricao {
+  font-size: 12px;
+  color: var(--cor-auxiliar);
+  margin-bottom: 6px;
+}
+
+.campoErro {
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.campoInput {
+  --input-bg: var(--cor-branco);
+
+  font-size: 15px;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+
+  &:focus,
+  &:focus-within {
+    border-color: var(--cor-vinil);
+    box-shadow: 0 0 0 3px rgba(217, 80, 31, 0.25);
+  }
+
+  &:disabled,
+  &[data-disabled] {
+    border-color: var(--cor-divisoria);
+    background: var(--cor-nevoa);
+    color: var(--cor-auxiliar);
+    opacity: 1;
+  }
+}
+
+.checkbox {
+  --checkbox-size-sm: 18px;
+  --checkbox-size-md: 20px;
+}
+
+.checkboxInput {
+  border: 1.5px solid var(--cor-vinil);
+  cursor: pointer;
+}
+
+.checkboxRotulo {
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.radio {
+  --radio-size-sm: 18px;
+  --radio-icon-size-sm: 8px;
+}
+
+.radioInput {
+  border: 1.5px solid var(--cor-borda);
+  cursor: pointer;
+
+  &:checked {
+    border-color: var(--cor-vinil);
+  }
+}
+
+.radioRotulo {
+  font-size: 15px;
+  cursor: pointer;
+}
+
+// Opção em cartão: borda fina quando livre, 1.5px preta quando escolhida.
+.radioCard {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px;
+  background: var(--cor-branco);
+  border: 1px solid var(--cor-divisoria);
+  text-align: left;
+  transition: border-color 120ms ease;
+
+  &:hover {
+    border-color: var(--cor-borda);
+  }
+
+  &[data-checked] {
+    border: 1.5px solid var(--cor-vinil);
+    padding: 15.5px;
+  }
+}
+
+// Controle segmentado invertido: o escolhido fica em preto.
+.segmentado {
+  background: var(--cor-branco);
+  border: 1px solid var(--cor-borda);
+  padding: 0;
+  gap: 0;
+}
+
+.segmentadoIndicador {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.segmentadoRotulo {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.segmentadoControle {
+  &:not(:first-of-type) {
+    border-left: 1px solid var(--cor-divisoria);
+  }
+
+  &::before {
+    display: none;
+  }
+}
+
+// Retângulo mono = atributo da prensagem (informativo)
+.etiqueta {
+  @include meta(11px);
+
+  height: auto;
+  min-height: 0;
+  padding: 4px 8px;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.etiquetaRotulo {
+  overflow: visible;
+}
+
+.alerta {
+  padding: 14px 16px;
+  font-size: 14px;
+}
+
+.alertaTitulo {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.alertaCorpo {
+  gap: 2px;
+}
+
+.alertaMensagem {
+  font-size: 14px;
+  color: inherit;
+}
+
+.alertaIcone {
+  display: none;
+}
+
+.alertaFechar {
+  color: inherit;
+}
+
+.modalConteudo {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+}
+
+.modalCabecalho {
+  // padding, não margem: o cabeçalho é sticky e cobre o conteúdo rolado por baixo
+  padding: 32px 32px 20px;
+  align-items: flex-start;
+}
+
+.modalTitulo {
+  @include h2(24px);
+}
+
+.modalCorpo {
+  padding: 0 32px 32px;
+
+  // sem título nem botão de fechar o Mantine não desenha o cabeçalho
+  &:first-child {
+    padding-top: 32px;
+  }
+}
+
+.drawerConteudo {
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.12);
+}
+
+.drawerCabecalho {
+  padding: 32px 32px 28px;
+  align-items: flex-start;
+}
+
+.drawerCorpo {
+  padding: 0 32px 32px;
+
+  &:first-child {
+    padding-top: 32px;
+  }
+}
+
+.tabela {
+  --table-border-color: var(--cor-divisoria);
+
+  font-size: 14px;
+}
+
+.tabelaTh {
+  @include meta(11px);
+
+  color: var(--cor-auxiliar);
+  font-weight: 400;
+  border-bottom: 1px solid var(--cor-vinil) !important;
+  padding-top: 0;
+  padding-bottom: 10px;
+  white-space: nowrap;
+}
+
+.tabelaTd {
+  height: 64px;
+}
+
+.abas {
+  --tabs-list-border-width: 1px;
+  --tabs-list-border-size: 1px;
+}
+
+.abasLista {
+  &::before {
+    border-color: var(--cor-divisoria);
+  }
+}
+
+.abasAba {
+  font-size: 15px;
+  padding: 0 4px 14px;
+  margin-right: 24px;
+  border-bottom-width: 2px;
+
+  &:hover {
+    background: none;
+    border-color: var(--cor-borda);
+  }
+
+  &[data-active] {
+    font-weight: 700;
+    border-color: var(--cor-vinil);
+  }
+}
+
+.menuDropdown,
+.popoverDropdown {
+  border: 1px solid var(--cor-divisoria);
+  box-shadow: var(--sombra-flutuante);
+}
+
+.menuItem {
+  font-size: 14px;
+  min-height: 40px;
+}
+
+.menuRotulo {
+  @include meta(10px);
+
+  color: var(--cor-apagado);
+}
+
+.dica {
+  font-size: 13px;
+  padding: 8px 10px;
+}
+
+// Esqueleto: base na divisória, brilho névoa correndo da esquerda para a direita
+.esqueleto {
+  &[data-visible]::after {
+    background: linear-gradient(
+      90deg,
+      var(--cor-divisoria) 0%,
+      var(--cor-nevoa) 50%,
+      var(--cor-divisoria) 100%
+    ) !important;
+    background-size: 200% 100% !important;
+    animation: brilhoEsqueleto 1.4s var(--curva) infinite !important;
+  }
+}
+
+@keyframes brilhoEsqueleto {
+  from {
+    background-position: 100% 0;
+  }
+
+  to {
+    background-position: -100% 0;
+  }
+}

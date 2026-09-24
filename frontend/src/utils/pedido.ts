@@ -1,19 +1,35 @@
 import type { Disco } from '../types/disco';
 import type { ItemPedido, Pedido, StatusPedido } from '../types/pedido';
 
+/** Cor do ponto de status: cinza espera, selo anda, verde fecha, vermelho barra. */
 export const CORES_STATUS: Record<StatusPedido, string> = {
-  'EM ABERTO': 'gray',
-  'EM PROCESSAMENTO': 'gray',
-  'PAGAMENTO REALIZADO': 'blue',
-  'PAGAMENTO RECUSADO': 'red',
-  'EM TRÂNSITO': 'orange',
-  ENTREGUE: 'green',
-  CANCELADO: 'red',
-  'TROCA SOLICITADA': 'violet',
-  'TROCA ACEITA': 'violet',
-  'TROCA NEGADA': 'red',
-  'ITEM ENVIADO': 'violet',
-  'ITEM RECEBIDO': 'teal',
+  'EM ABERTO': '#8F8C84',
+  'EM PROCESSAMENTO': '#8F8C84',
+  'PAGAMENTO REALIZADO': '#D9501F',
+  'PAGAMENTO RECUSADO': '#B83A2A',
+  'EM TRÂNSITO': '#D9501F',
+  ENTREGUE: '#2F7A4E',
+  CANCELADO: '#B83A2A',
+  'TROCA SOLICITADA': '#D9501F',
+  'TROCA ACEITA': '#D9501F',
+  'TROCA NEGADA': '#B83A2A',
+  'ITEM ENVIADO': '#D9501F',
+  'ITEM RECEBIDO': '#2F7A4E',
+};
+
+export const ROTULOS_STATUS: Record<StatusPedido, string> = {
+  'EM ABERTO': 'Em aberto',
+  'EM PROCESSAMENTO': 'Em processamento',
+  'PAGAMENTO REALIZADO': 'Pagamento realizado',
+  'PAGAMENTO RECUSADO': 'Pagamento recusado',
+  'EM TRÂNSITO': 'Em trânsito',
+  ENTREGUE: 'Entregue',
+  CANCELADO: 'Cancelado',
+  'TROCA SOLICITADA': 'Troca solicitada',
+  'TROCA ACEITA': 'Troca aceita',
+  'TROCA NEGADA': 'Troca negada',
+  'ITEM ENVIADO': 'Item a caminho',
+  'ITEM RECEBIDO': 'Troca concluída',
 };
 
 /**
@@ -31,6 +47,11 @@ const AVANCO_ADMIN: Partial<Record<StatusPedido, StatusPedido[]>> = {
 
 export function proximosStatusAdmin(status: StatusPedido): StatusPedido[] {
   return AVANCO_ADMIN[status] ?? [];
+}
+
+/** O pedido está parado esperando um passo da curadoria. */
+export function precisaDeAcao(pedido: Pedido): boolean {
+  return proximosStatusAdmin(pedido.status).length > 0;
 }
 
 /** Cancelar só antes de despachar: depois disso vira troca, não cancelamento. */
@@ -99,4 +120,27 @@ export function pedidosDoCliente(pedidos: Pedido[], clienteId: string): Pedido[]
   return pedidos
     .filter((pedido) => pedido.clienteId === clienteId)
     .sort((a, b) => b.data.localeCompare(a.data));
+}
+
+export const PASSOS_PEDIDO = ['Recebido', 'Pagamento aprovado', 'Em trânsito', 'Entregue'];
+
+/**
+ * Até onde a linha do tempo do cliente anda. null quando o pedido saiu do
+ * fluxo (cancelado ou recusado) e não há linha do tempo a mostrar.
+ */
+export function passoDoPedido(status: StatusPedido): number | null {
+  switch (status) {
+    case 'CANCELADO':
+    case 'PAGAMENTO RECUSADO':
+      return null;
+    case 'EM ABERTO':
+    case 'EM PROCESSAMENTO':
+      return 0;
+    case 'PAGAMENTO REALIZADO':
+      return 1;
+    case 'EM TRÂNSITO':
+      return 2;
+    default:
+      return 3;
+  }
 }

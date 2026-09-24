@@ -4,10 +4,11 @@
   bottom: 1.5em;
   width: 64px;
   height: 64px;
-  border-radius: 50%;
-  border: none;
   padding: 0;
+  border: none;
+  border-radius: 50%;
   overflow: hidden;
+  background: none;
   cursor: pointer;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
   z-index: 150;
@@ -21,41 +22,18 @@
 .disco {
   width: 100%;
   height: 100%;
-  position: relative;
-}
-
-.capaTraseira {
-  position: absolute;
-  top: 50%; left: 50%;
-  width: 32px; height: 32px;
-  margin-top: -16px; margin-left: -16px;
-  border-radius: 50%;
-  background-color: #dd2d4a;
-  z-index: 1;
-}
-
-.discoFrente {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  z-index: 2;
 }
 
 .painel {
   position: fixed;
   right: 1.5em;
   bottom: calc(1.5em + 64px + 0.8em);
-  width: 380px;
-  height: 520px;
-  border-radius: 1em;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
-  background-color: #fff;
+  width: 400px;
+  max-width: calc(100vw - 3em);
+  height: min(600px, calc(100vh - 180px));
+  background: var(--cor-papel);
+  border: 1px solid var(--cor-divisoria);
+  box-shadow: var(--sombra-flutuante);
   overflow: hidden;
   z-index: 150;
-
-  @media (max-width: 480px) {
-    width: auto;
-    left: 1em;
-    right: 1em;
-  }
 }

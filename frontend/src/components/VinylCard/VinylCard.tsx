@@ -1,56 +1,48 @@
 import styles from './VinylCard.module.scss';
-import { Card, Image, Text, Stack } from '@mantine/core';
 import { Link } from 'react-router-dom';
+import type { Disco } from '../../types/disco';
+import Capa from '../Capa/Capa';
+import { nomeFormato } from '../../utils/catalogo';
+import { formatarPrecoCurto } from '../../utils/precificacao';
+import { estoqueAcabando } from '../../utils/estoque';
 
 interface VinylCardProps {
-  thumbSrc: string;
-  diskInfo: {
-    id: number;
-    title: string;
-    artist: string;
-    releaseYear: number;
-    genre: string;
-    price: number;
-  };
+  disco: Disco;
+  /** Card grande da vitrine "Em alta", com o selo de destaque. */
+  destaque?: boolean;
+  /** No hover o disco desliza para fora da capa, ou a capa só cresce um pouco. */
+  hover?: 'deslizar' | 'escala';
 }
 
-function VinylCard({ thumbSrc, diskInfo }: Readonly<VinylCardProps>) {
+function VinylCard({ disco, destaque = false, hover = 'deslizar' }: Readonly<VinylCardProps>) {
   return (
-    <Card
-      component={Link}
-      to={`/disco/${diskInfo.id}`}
-      padding={0}
-      radius="md"
-      shadow="sm"
+    <Link
+      to={`/disco/${disco.id}`}
       className={styles.card}
+      data-destaque={destaque || undefined}
+      data-hover={hover}
     >
       <div className={styles.capa}>
-        <Image
-          src={thumbSrc}
-          w="100%"
-          h="100%"
-          fit="cover"
-          alt={diskInfo.title}
-        />
+        <Capa src={disco.coverSrc} alt={disco.title} comVinil={hover === 'deslizar'} />
+        {destaque && <span className={styles.selo}>Destaque da semana</span>}
+        {!destaque && estoqueAcabando(disco.estoque) && (
+          <span className={styles.selo}>Últimas {disco.estoque}</span>
+        )}
       </div>
 
-      <Stack className={styles.info} justify="space-between">
-        <Stack gap={0}>
-          <Text size="lg" fw={700} lineClamp={2} lh={1.3}>
-            {diskInfo.title}
-          </Text>
-          <Text size="md" fw={400} lineClamp={1}>
-            {diskInfo.artist}
-          </Text>
-        </Stack>
-
-        <Stack gap={4}>
-          <Text size="sm" fw={300}>{diskInfo.releaseYear}</Text>
-          <Text size="sm" fw={300}>{diskInfo.genre}</Text>
-          <Text size="sm" fw={300}>R${diskInfo.price}</Text>
-        </Stack>
-      </Stack>
-    </Card>
+      <div className={styles.info}>
+        <div className={styles.nomes}>
+          <span className={styles.artista}>{disco.artist}</span>
+          <strong className={styles.titulo}>{disco.title}</strong>
+        </div>
+        <div className={styles.linhaPreco}>
+          <span className={styles.preco}>{formatarPrecoCurto(disco.price)}</span>
+          <span className={styles.meta}>
+            {nomeFormato(disco.formatoId)} · {disco.releaseYear}
+          </span>
+        </div>
+      </div>
+    </Link>
   );
 }
 

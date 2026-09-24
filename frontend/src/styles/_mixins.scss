@@ -1,0 +1,98 @@
+// Metadado técnico (catálogo, faixa, formato, etapa): mono em caixa alta,
+// como o selo no centro do vinil.
+@mixin meta($tamanho: 12px, $espaco: 0.08em) {
+  font-family: var(--fonte-mono);
+  font-size: $tamanho;
+  letter-spacing: $espaco;
+  text-transform: uppercase;
+}
+
+@mixin container {
+  width: 100%;
+  max-width: calc(var(--largura-conteudo) + 2 * var(--margem-lateral));
+  margin: 0 auto;
+  padding-left: var(--margem-lateral);
+  padding-right: var(--margem-lateral);
+}
+
+@mixin display {
+  font-size: 72px;
+  line-height: 0.95;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+@mixin h1($tamanho: 44px) {
+  font-size: $tamanho;
+  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+@mixin h2($tamanho: 28px) {
+  font-size: $tamanho;
+  line-height: 1.15;
+  font-weight: 700;
+}
+
+@mixin h3 {
+  font-size: 18px;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+@mixin corpo {
+  font-size: 16px;
+  line-height: 1.55;
+  font-weight: 300;
+  color: var(--cor-texto);
+}
+
+@mixin preco {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+@mixin link-sublinhado($cor: var(--cor-vinil)) {
+  background: none;
+  border: none;
+  border-bottom: 1px solid $cor;
+  padding: 0;
+  color: $cor;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+@mixin botao-texto {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  color: var(--cor-auxiliar);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--cor-vinil);
+  }
+}
+
+// Linha chave/valor da ficha técnica, do resumo e do drawer
+@mixin linha-kv($coluna: 160px) {
+  display: grid;
+  grid-template-columns: $coluna minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  min-height: 44px;
+  border-bottom: 1px solid var(--cor-divisoria);
+  font-size: 14px;
+}
+
+@mixin cabecalho-tabela {
+  @include meta(11px);
+  color: var(--cor-auxiliar);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--cor-vinil);
+}

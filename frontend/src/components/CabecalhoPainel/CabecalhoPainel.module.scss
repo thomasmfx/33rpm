@@ -1,0 +1,31 @@
+@use '../../styles/mixins' as *;
+
+.cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.texto {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  h1 {
+    @include h1(40px);
+  }
+}
+
+.resumo {
+  @include meta(12px);
+
+  color: var(--cor-auxiliar);
+}
+
+.acoes {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}

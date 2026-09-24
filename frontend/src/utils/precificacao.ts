@@ -85,6 +85,11 @@ export function formatarBRL(valor: number): string {
   });
 }
 
+/** Preço dos cards: sem centavos quando é inteiro, para a grade escanear rápido. */
+export function formatarPrecoCurto(valor: number): string {
+  return Number.isInteger(valor) ? `R$ ${valor.toLocaleString('pt-BR')}` : formatarBRL(valor);
+}
+
 function arredondar(valor: number): number {
   return Math.round(valor * 100) / 100;
 }

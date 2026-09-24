@@ -2,15 +2,21 @@ import styles from './Chatbot.module.scss';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { ActionIcon, Group, Image, Loader, Stack, Text, TextInput } from '@mantine/core';
-import { IconSend, IconX } from '@tabler/icons-react';
 import { useLoja } from '../../contexts/loja';
 import { interpretar, recomendar } from '../../utils/recomendacao';
 import type { Intencao, Recomendacao } from '../../utils/recomendacao';
-import { formatarBRL } from '../../utils/precificacao';
+import { formatarPrecoCurto } from '../../utils/precificacao';
 import { difyConfigurado, perguntarAoDify } from '../../utils/dify';
+import { Close, Send } from '@carbon/icons-react';
 
 const LIMITE_RECOMENDACOES = 3;
+
+const SUGESTOES = [
+  'Rap psicodélico',
+  'Jazz para dias de chuva',
+  'Algo parecido com Currents',
+  'Clássicos brasileiros',
+];
 
 interface Mensagem {
   id: string;
@@ -49,6 +55,10 @@ function mensagemInicial(temClienteAtivo: boolean): Mensagem {
   };
 }
 
+function novoId(): string {
+  return crypto.randomUUID().slice(0, 8);
+}
+
 export default function Chatbot({ onFechar }: Readonly<ChatbotProps>) {
   const { discos, pedidos, clienteAtivo } = useLoja();
   const [mensagens, setMensagens] = useState<Mensagem[]>(() => [
@@ -68,25 +78,18 @@ export default function Chatbot({ onFechar }: Readonly<ChatbotProps>) {
     );
 
     return {
-      id: crypto.randomUUID().slice(0, 8),
+      id: novoId(),
       autor: 'assistente',
       texto: textoResposta(recomendacoes, intencao),
       discos: recomendacoes.length > 0 ? recomendacoes : undefined,
     };
   }
 
-  async function handleEnviarMensagem(evento: FormEvent<HTMLFormElement>): Promise<void> {
-    evento.preventDefault();
-
-    const texto = mensagemAtual.trim();
+  async function enviar(bruto: string): Promise<void> {
+    const texto = bruto.trim();
     if (!texto) return;
 
-    const mensagemCliente: Mensagem = {
-      id: crypto.randomUUID().slice(0, 8),
-      autor: 'cliente',
-      texto,
-    };
-    setMensagens((atuais) => [...atuais, mensagemCliente]);
+    setMensagens((atuais) => [...atuais, { id: novoId(), autor: 'cliente', texto }]);
     setMensagemAtual('');
 
     if (!difyConfigurado()) {
@@ -105,7 +108,7 @@ export default function Chatbot({ onFechar }: Readonly<ChatbotProps>) {
       setMensagens((atuais) => [
         ...atuais,
         {
-          id: crypto.randomUUID().slice(0, 8),
+          id: novoId(),
           autor: 'assistente',
           texto: resposta.texto,
           discos: discosSugeridos.length > 0 ? discosSugeridos : undefined,
@@ -118,101 +121,98 @@ export default function Chatbot({ onFechar }: Readonly<ChatbotProps>) {
     }
   }
 
+  function handleEnviarMensagem(evento: FormEvent<HTMLFormElement>): void {
+    evento.preventDefault();
+    void enviar(mensagemAtual);
+  }
+
+  const soSaudacao = mensagens.length === 1;
+
   return (
     <div className={styles.container}>
-      {onFechar && (
-        <div className={styles.cabecalho}>
-          <Text size="sm" fw={700}>Assistente de recomendação</Text>
-          <ActionIcon variant="subtle" color="gray" onClick={onFechar}>
-            <IconX size={18} />
-          </ActionIcon>
+      <div className={styles.cabecalho}>
+        <div className={styles.titulo}>
+          <strong>Assistente 33rpm</strong>
+          <span>{difyConfigurado() ? 'Dify.ai · Gemini' : 'Recomendações do acervo'}</span>
         </div>
-      )}
+        {onFechar && (
+          <button
+            type="button"
+            className={styles.fechar}
+            onClick={onFechar}
+            aria-label="Fechar assistente"
+          >
+            <Close size={20} />
+          </button>
+        )}
+      </div>
 
       <div className={styles.chat}>
-        {mensagens.map((mensagem) => (
-          <div
-            key={mensagem.id}
-            className={mensagem.autor === 'cliente' ? styles.linhaCliente : styles.linhaAssistente}
-          >
-            <div
-              className={
-                mensagem.autor === 'cliente' ? styles.balaoCliente : styles.balaoAssistente
-              }
-            >
-              <Text size="sm">{mensagem.texto}</Text>
-
-              {mensagem.discos && (
-                <div className={styles.cartoes}>
-                  {mensagem.discos.map((recomendacao) => (
-                    <Link
-                      key={recomendacao.disco.id}
-                      to={`/disco/${recomendacao.disco.id}`}
-                      className={styles.cartao}
-                    >
-                      <Image
-                        src={recomendacao.disco.coverSrc}
-                        alt={recomendacao.disco.title}
-                        w={56}
-                        h={56}
-                        radius="sm"
-                        fit="cover"
-                      />
-                      <Stack gap={2} flex={1}>
-                        <Text size="sm" fw={700} lineClamp={1}>
-                          {recomendacao.disco.title}
-                        </Text>
-                        <Text size="xs" c="dimmed" lineClamp={1}>
-                          {recomendacao.disco.artist}
-                        </Text>
-                        <Text size="xs" fw={600}>
-                          {formatarBRL(recomendacao.disco.price)}
-                        </Text>
-                        <Text size="xs" c="dimmed" fs="italic">
-                          {recomendacao.motivo}
-                        </Text>
-                      </Stack>
-                    </Link>
-                  ))}
-                </div>
-              )}
+        {mensagens.map((mensagem) =>
+          mensagem.autor === 'cliente' ? (
+            <p key={mensagem.id} className={styles.balaoCliente}>
+              {mensagem.texto}
+            </p>
+          ) : (
+            <div key={mensagem.id} className={styles.respostaAssistente}>
+              <p>{mensagem.texto}</p>
+              {mensagem.discos?.map((recomendacao) => (
+                <Link
+                  key={recomendacao.disco.id}
+                  to={`/disco/${recomendacao.disco.id}`}
+                  className={styles.cartao}
+                >
+                  <img src={recomendacao.disco.coverThumb ?? recomendacao.disco.coverSrc} alt="" />
+                  <span className={styles.cartaoTexto}>
+                    <strong>{recomendacao.disco.title}</strong>
+                    <span>{recomendacao.disco.artist}</span>
+                    <span className={styles.motivo}>{recomendacao.motivo}</span>
+                  </span>
+                  <span className={styles.preco}>
+                    {formatarPrecoCurto(recomendacao.disco.price)}
+                  </span>
+                </Link>
+              ))}
             </div>
+          ),
+        )}
+
+        {soSaudacao && (
+          <div className={styles.sugestoes}>
+            {SUGESTOES.map((sugestao) => (
+              <button
+                key={sugestao}
+                type="button"
+                className={styles.sugestao}
+                onClick={() => void enviar(sugestao)}
+              >
+                {sugestao}
+              </button>
+            ))}
           </div>
-        ))}
+        )}
 
         {aguardandoResposta && (
-          <div className={styles.linhaAssistente}>
-            <div className={styles.balaoAssistente}>
-              <Loader size="xs" />
-            </div>
+          <div className={styles.procurando}>
+            <img src="/images/vinil.svg" alt="" />
+            Procurando no acervo…
           </div>
         )}
       </div>
 
       <form className={styles.formulario} onSubmit={handleEnviarMensagem}>
-        <Group gap="xs" align="flex-end">
-          <TextInput
-            className={styles.campoMensagem}
-            placeholder="Me conte o que você quer ouvir..."
-            radius="sm"
-            size="md"
-            value={mensagemAtual}
-            onChange={(evento) => setMensagemAtual(evento.currentTarget.value)}
-            autoComplete="off"
-          />
-          <ActionIcon type="submit" size={42} radius="sm" variant="filled" color="black">
-            <IconSend size={20} />
-          </ActionIcon>
-        </Group>
+        <input
+          className={styles.campoMensagem}
+          placeholder="Me conte o que você quer ouvir…"
+          value={mensagemAtual}
+          onChange={(evento) => setMensagemAtual(evento.currentTarget.value)}
+          autoComplete="off"
+          aria-label="Mensagem para o assistente"
+        />
+        <button type="submit" className={styles.enviar}>
+          Enviar <Send size={16} />
+        </button>
       </form>
-
-      <Text size="xs" c="dimmed" className={styles.rodape}>
-        {difyConfigurado()
-          ? 'Esta conversa passa pelo Dify.ai para gerar as respostas e sugestões.'
-          : 'As recomendações são geradas localmente, a partir do acervo e do seu histórico de ' +
-            'compras — não há um modelo de IA rodando por trás. A integração com IA generativa ' +
-            'entra quando o projeto tiver um backend.'}
-      </Text>
     </div>
   );
 }

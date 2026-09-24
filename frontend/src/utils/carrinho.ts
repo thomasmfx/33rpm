@@ -81,3 +81,15 @@ export function deveAvisar(atualizadoEm: string | null, agora: number): boolean 
     restantes !== null && restantes > 0 && restantes <= AVISO_ANTES_MINUTOS
   );
 }
+
+/** Contagem regressiva em segundos, para o relógio MM:SS da reserva. */
+export function segundosRestantes(atualizadoEm: string | null, agora: number): number | null {
+  const limite = expiraEm(atualizadoEm);
+  if (limite === null) return null;
+  return Math.max(0, Math.floor((limite - agora) / 1000));
+}
+
+export function formatarContagem(segundos: number): string {
+  const minutos = Math.floor(segundos / 60);
+  return `${String(minutos).padStart(2, '0')}:${String(segundos % 60).padStart(2, '0')}`;
+}

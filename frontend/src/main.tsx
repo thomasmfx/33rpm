@@ -1,31 +1,22 @@
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
+import '@mantine/charts/styles.css';
 import './index.scss'
+// o tema vem antes das rotas: assim o CSS dos módulos das telas entra depois e
+// vence os overrides do tema quando a especificidade empata
+import { resolverVariaveis, tema } from './theme/theme'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { routes } from './routes.tsx'
-import { createTheme, MantineProvider } from '@mantine/core'
+import { MantineProvider } from '@mantine/core'
 
 
 const router = createBrowserRouter(routes)
 
-const theme = createTheme({
-  components: {
-    Modal: {
-      defaultProps: { transitionProps: { duration: 120 } },
-    },
-  },
-  fontFamily: '"Uxum Grotesque", sans-serif',
-  headings: {
-    fontFamily: '"Uxum Grotesque", sans-serif',
-    fontWeight: '700',
-  },
-})
-
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <MantineProvider theme={theme}>
+    <MantineProvider theme={tema} cssVariablesResolver={resolverVariaveis} defaultColorScheme="light">
       <RouterProvider router={router} />
     </MantineProvider>
   </StrictMode>,

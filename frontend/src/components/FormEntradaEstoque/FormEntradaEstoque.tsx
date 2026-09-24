@@ -1,22 +1,12 @@
+import painel from '../../pages/Curadoria/Painel.module.scss';
+import styles from './FormEntradaEstoque.module.scss';
 import { useState } from 'react';
-import {
-  Button,
-  Divider,
-  Flex,
-  Group,
-  Image,
-  NumberInput,
-  Paper,
-  Select,
-  Stack,
-  Text,
-} from '@mantine/core';
+import { Button, NumberInput, Select } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import type { Disco } from '../../types/disco';
 import type { EntradaEstoque } from '../../types/inventario';
 import { FORNECEDORES } from '../../types/inventario';
-import { IconX } from '@tabler/icons-react';
 import { precoAposEntrada, validarEntradaEstoque } from '../../utils/estoque';
 import {
   formatarBRL,
@@ -24,7 +14,6 @@ import {
   nomeGrupoPrecificacao,
   obterGrupoPrecificacao,
   TOLERANCIA_PRECO,
-  valorVendaSugerido,
 } from '../../utils/precificacao';
 
 export interface FormEntradaEstoqueValues {
@@ -91,6 +80,8 @@ export default function FormEntradaEstoque({
 
   const maiorCustoRegistrado = maiorValorCusto(entradas, disco.id);
   const grupoPrecificacao = obterGrupoPrecificacao(disco.grupoPrecificacaoId);
+  const nomeGrupo = nomeGrupoPrecificacao(disco.grupoPrecificacaoId);
+  const margem = grupoPrecificacao?.margemLucro ?? 0;
 
   // a entrada que o usuário está digitando, para a prévia rodar a mesma conta
   // que o painel vai rodar ao gravar
@@ -105,179 +96,96 @@ export default function FormEntradaEstoque({
       dataEntrada: '',
     },
   ];
-  const valorSugerido = valorVendaSugerido(disco, entradasComPrevia);
   const precoDepois = precoAposEntrada(disco, entradasComPrevia);
   const precoMuda = precoDepois > disco.price + TOLERANCIA_PRECO;
+  const maiorCustoComPrevia = maiorValorCusto(entradasComPrevia, disco.id);
+
+  function explicacaoPreco(): string {
+    if (disco.autorizacaoGerente !== null) {
+      return `O preço foi baixado da margem com autorização de ${disco.autorizacaoGerente}, então a entrada não o reajusta (RN0014).`;
+    }
+    if (precoMuda) {
+      return `Recalculado pelo grupo ${nomeGrupo}: maior custo ${formatarBRL(maiorCustoComPrevia ?? 0)} + ${margem}% (RN0051).`;
+    }
+    if (custoPrevia <= 0) {
+      return `Informe o custo para ver o preço recalculado pelo grupo ${nomeGrupo} (+${margem}%).`;
+    }
+    return `O valor só sobe quando a entrada custa mais que o maior custo já registrado${
+      maiorCustoRegistrado !== null ? `, ${formatarBRL(maiorCustoRegistrado)}` : ''
+    } (RN0051).`;
+  }
 
   return (
-    <form onSubmit={form.onSubmit(onSubmit)}>
-      <Flex justify="space-between" align="center" mb="md">
-        <Text fw={600} size="lg">
-          Nova entrada em estoque
-        </Text>
-        <Button variant="subtle" color="gray" px="xs" onClick={onClose}>
-          <IconX stroke={1.5} />
-        </Button>
-      </Flex>
+    <form className={styles.form} onSubmit={form.onSubmit(onSubmit)}>
+      <p className={painel.textoModal}>
+        {disco.title} · {disco.artist} · {disco.estoque} em estoque hoje
+      </p>
 
-      <Group gap="md" align="flex-start" mb="lg" wrap="nowrap">
-        <Image
-          src={disco.coverThumb ?? disco.coverSrc}
-          alt={disco.title}
-          w={60}
-          h={60}
-          radius="sm"
-          fit="cover"
+      <div className={styles.grade}>
+        <NumberInput
+          label="Quantidade"
+          placeholder="10"
+          min={1}
+          step={1}
+          allowDecimal={false}
+          allowNegative={false}
+          key={form.key('quantidade')}
+          {...form.getInputProps('quantidade')}
         />
-        <Stack gap={0} flex={1}>
-          <Text fw={600} size="lg" lineClamp={1}>
-            {disco.title}
-          </Text>
-          <Text size="sm" c="dimmed" lineClamp={1}>
-            {disco.artist}
-          </Text>
-        </Stack>
-        <Text size="sm" fw={500}>
-          Estoque atual: {disco.estoque}
-        </Text>
-      </Group>
 
-      <Stack gap="sm">
-        <Group grow>
-          <NumberInput
-            label="Quantidade"
-            placeholder="Ex: 10"
-            withAsterisk
-            min={1}
-            step={1}
-            allowDecimal={false}
-            allowNegative={false}
-            key={form.key('quantidade')}
-            {...form.getInputProps('quantidade')}
-          />
+        <NumberInput
+          label="Custo unitário"
+          placeholder="R$ 0,00"
+          prefix="R$ "
+          decimalScale={2}
+          fixedDecimalScale
+          decimalSeparator=","
+          thousandSeparator="."
+          min={0.01}
+          allowNegative={false}
+          key={form.key('valorCusto')}
+          {...form.getInputProps('valorCusto')}
+        />
 
-          <NumberInput
-            label="Valor de custo (unitário)"
-            placeholder="Ex: 45,00"
-            withAsterisk
-            prefix="R$ "
-            decimalScale={2}
-            fixedDecimalScale
-            decimalSeparator=","
-            thousandSeparator="."
-            min={0.01}
-            allowNegative={false}
-            key={form.key('valorCusto')}
-            {...form.getInputProps('valorCusto')}
-          />
-        </Group>
+        <Select
+          label="Fornecedor"
+          placeholder="Selecione"
+          searchable
+          data={FORNECEDORES}
+          allowDeselect={false}
+          key={form.key('fornecedor')}
+          {...form.getInputProps('fornecedor')}
+        />
 
-        <Group grow>
-          <Select
-            label="Fornecedor"
-            placeholder="Selecione o fornecedor"
-            withAsterisk
-            searchable
-            data={FORNECEDORES}
-            allowDeselect={false}
-            key={form.key('fornecedor')}
-            {...form.getInputProps('fornecedor')}
-          />
+        <DatePickerInput
+          label="Data de entrada"
+          placeholder="dd/mm/aaaa"
+          valueFormat="DD/MM/YYYY"
+          maxDate={new Date()}
+          key={form.key('dataEntrada')}
+          {...form.getInputProps('dataEntrada')}
+        />
 
-          <DatePickerInput
-            label="Data de entrada"
-            placeholder="Selecione uma data"
-            valueFormat="DD/MM/YYYY"
-            withAsterisk
-            maxDate={new Date()}
-            key={form.key('dataEntrada')}
-            {...form.getInputProps('dataEntrada')}
-          />
-        </Group>
+        <div className={styles.previa} aria-live="polite">
+          <div className={styles.previaValor}>
+            <span>{precoMuda ? 'Novo valor de venda' : 'Valor de venda sem alteração'}</span>
+            <strong>{formatarBRL(precoDepois)}</strong>
+          </div>
+          <p>
+            {explicacaoPreco()} Com a entrada, o estoque vai para{' '}
+            {disco.estoque + quantidadePrevia}.
+          </p>
+        </div>
+      </div>
 
-        <Paper withBorder p="sm">
-          <Stack gap={6}>
-            <Group justify="space-between">
-              <Text size="sm" c="dimmed">
-                Maior custo já registrado
-              </Text>
-              <Text size="sm" fw={500}>
-                {maiorCustoRegistrado !== null
-                  ? formatarBRL(maiorCustoRegistrado)
-                  : '—'}
-              </Text>
-            </Group>
-
-            <Group justify="space-between">
-              <Text size="sm" c="dimmed">
-                Custo desta entrada
-              </Text>
-              <Text size="sm" fw={500}>
-                {custoPrevia > 0 ? formatarBRL(custoPrevia) : '—'}
-              </Text>
-            </Group>
-
-            <Group justify="space-between">
-              <Text size="sm" c="dimmed">
-                Grupo de precificação
-              </Text>
-              <Text size="sm" fw={500}>
-                {nomeGrupoPrecificacao(disco.grupoPrecificacaoId)}
-                {grupoPrecificacao
-                  ? ` (+${grupoPrecificacao.margemLucro}%)`
-                  : ''}
-              </Text>
-            </Group>
-
-            <Divider my={2} />
-
-            <Group justify="space-between">
-              <Text size="sm" c="dimmed">
-                Valor sugerido pelo grupo
-              </Text>
-              <Text size="sm" fw={500}>
-                {valorSugerido !== null ? formatarBRL(valorSugerido) : '—'}
-              </Text>
-            </Group>
-
-            <Group justify="space-between">
-              <Text size="sm" fw={600}>
-                {precoMuda
-                  ? 'Novo valor de venda'
-                  : 'Valor de venda (sem alteração)'}
-              </Text>
-              <Text size="sm" fw={700}>
-                {formatarBRL(precoDepois)}
-              </Text>
-            </Group>
-            <Text size="xs" c="dimmed">
-              {disco.autorizacaoGerente !== null
-                ? `O preço deste disco foi baixado da margem com autorização de ${disco.autorizacaoGerente}, então a entrada não o reajusta — RN0014.`
-                : 'O valor de venda só sobe quando a entrada tem custo maior que o já registrado — RN0051.'}
-            </Text>
-
-            <Divider my={2} />
-
-            <Group justify="space-between">
-              <Text size="sm" c="dimmed">
-                Estoque após a entrada
-              </Text>
-              <Text size="sm" fw={500}>
-                {disco.estoque + quantidadePrevia}
-              </Text>
-            </Group>
-          </Stack>
-        </Paper>
-      </Stack>
-
-      <Group justify="flex-end" mt="xl">
-        <Button variant="default" onClick={onClose}>
+      <div className={styles.rodape}>
+        <Button type="button" variant="default" size="sm" onClick={onClose}>
           Cancelar
         </Button>
-        <Button type="submit" color="dark">
+        <Button type="submit" size="sm">
           Registrar entrada
         </Button>
-      </Group>
+      </div>
     </form>
   );
 }

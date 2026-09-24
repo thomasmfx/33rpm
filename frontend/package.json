@@ -12,15 +12,13 @@
     "e2e:open": "cypress open"
   },
   "dependencies": {
-    "@mantine/carousel": "^9.5.1",
+    "@carbon/icons-react": "^11.89.0",
     "@mantine/charts": "^9.5.1",
     "@mantine/core": "^9.5.1",
     "@mantine/dates": "^9.5.1",
     "@mantine/form": "^9.5.1",
     "@mantine/hooks": "^9.5.1",
-    "@tabler/icons-react": "^3.46.0",
     "dayjs": "^1.11.23",
-    "embla-carousel-react": "^8.6.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.2",

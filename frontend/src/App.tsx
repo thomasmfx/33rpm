@@ -11,9 +11,12 @@ function App() {
     window.scrollTo(0, 0)
   }, [pathname])
 
+  // a curadoria tem a própria barra lateral, com o caminho de volta para a loja
+  const isCuradoria = pathname.startsWith('/curadoria')
+
   return (
     <LojaProvider>
-      <Header />
+      {!isCuradoria && <Header />}
       <Outlet />
       <ChatbotBolha />
     </LojaProvider>

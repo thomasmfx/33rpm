@@ -14,6 +14,9 @@ import Pedidos from "./pages/Pedidos/Pedidos";
 import Cupons from "./pages/Cupons/Cupons";
 import Login from "./pages/Login/Login";
 import Cadastro from "./pages/Cadastro/Cadastro";
+import Perfil from "./pages/Perfil/Perfil";
+import Confirmacao from "./pages/Confirmacao/Confirmacao";
+import RotaAdmin from "./components/RotaAdmin/RotaAdmin";
 
 export const routes = [
   {
@@ -23,7 +26,11 @@ export const routes = [
       { index: true, element: <Home /> },
       {
         path: '/curadoria',
-        element: <Curadoria />,
+        element: (
+          <RotaAdmin>
+            <Curadoria />
+          </RotaAdmin>
+        ),
         children: [
           { index: true, element: <Navigate to="clientes" replace /> },
           { path: 'clientes', element: <CuradoriaClientes /> },
@@ -37,6 +44,8 @@ export const routes = [
       { path: '/carrinho', element: <Carrinho /> },
       { path: '/checkout', element: <Checkout /> },
       { path: '/pedidos', element: <Pedidos /> },
+      { path: '/pedidos/:id/confirmacao', element: <Confirmacao /> },
+      { path: '/perfil', element: <Perfil /> },
       { path: '/cupons', element: <Cupons /> },
       { path: '/login', element: <Login /> },
       { path: '/cadastro', element: <Cadastro /> }

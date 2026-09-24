@@ -1,0 +1,30 @@
+@use '../../styles/mixins' as *;
+
+.cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--cor-vinil);
+}
+
+.titulo {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+
+  h2 {
+    font-size: 40px;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+}
+
+.numero {
+  @include meta(12px);
+
+  color: var(--cor-selo);
+}

@@ -3,10 +3,13 @@ import { mkdir, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const BASE = process.env.BASE_URL ?? 'http://localhost:3300';
-const DESTINO = new URL('../../screenshots/', import.meta.url).pathname;
+// bin/ fica fora do git: as capturas são material da apresentação, não do código
+const DESTINO = new URL('../../bin/screenshots/', import.meta.url).pathname;
 const CLIENTE = '1'; // Ana Paula Ribeiro, primeiro cliente de POST /api/dev/reset
+const ADMINISTRADOR = '1'; // ADM-000001, de db/administradores.sql
 
-// telas do cliente precisam de sessão simulada; as da curadoria mostram o admin
+// telas do cliente precisam de sessão simulada; as da curadoria, da sessão do
+// admin, senão a guarda de rota mostra o 403
 const CARRINHO = {
   [CLIENTE]: [
     { discoId: 8883, quantidade: 1 },
@@ -40,10 +43,10 @@ const TELAS = [
       await page.waitForTimeout(900);
     },
   },
-  { nome: '09_curadoria-clientes', rota: '/curadoria/clientes' },
-  { nome: '10_curadoria-inventario', rota: '/curadoria/inventario' },
-  { nome: '11_curadoria-pedidos', rota: '/curadoria/pedidos' },
-  { nome: '12_curadoria-dashboard', rota: '/curadoria/dashboard' },
+  { nome: '09_curadoria-clientes', rota: '/curadoria/clientes', admin: true },
+  { nome: '10_curadoria-inventario', rota: '/curadoria/inventario', admin: true },
+  { nome: '11_curadoria-pedidos', rota: '/curadoria/pedidos', admin: true },
+  { nome: '12_curadoria-dashboard', rota: '/curadoria/dashboard', admin: true },
 ];
 
 
@@ -81,10 +84,10 @@ for (const tela of selecionadas) {
   }
 
   await page.addInitScript(
-    ({ cliente, carrinho, comSessao, comCarrinho }) => {
+    ({ sessao, carrinho, comCarrinho }) => {
       localStorage.removeItem('33rpm:sessao');
       localStorage.removeItem('33rpm:carrinhos');
-      if (comSessao) localStorage.setItem('33rpm:sessao', JSON.stringify(cliente));
+      if (sessao) localStorage.setItem('33rpm:sessao', JSON.stringify(sessao));
       if (comCarrinho) {
         localStorage.setItem('33rpm:carrinhos', JSON.stringify(carrinho));
         localStorage.setItem(
@@ -94,9 +97,10 @@ for (const tela of selecionadas) {
       }
     },
     {
-      cliente: CLIENTE,
+      sessao: tela.admin
+        ? { papel: 'administrador', id: ADMINISTRADOR }
+        : tela.sessao && { papel: 'cliente', id: CLIENTE },
       carrinho: CARRINHO,
-      comSessao: Boolean(tela.sessao),
       comCarrinho: Boolean(tela.carrinho),
     },
   );
@@ -114,4 +118,4 @@ for (const tela of selecionadas) {
 await navegador.close();
 
 const arquivos = await readdir(DESTINO);
-console.log(`\n${arquivos.length} arquivos em screenshots/`);
+console.log(`\n${arquivos.length} arquivos em bin/screenshots/`);

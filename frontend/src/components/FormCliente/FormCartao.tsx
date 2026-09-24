@@ -1,16 +1,13 @@
-import {
-  Button,
-  Group,
-  Select,
-  Stack,
-  Switch,
-  Text,
-  TextInput,
-} from '@mantine/core';
+import styles from './Formulario.module.scss';
+import { useState } from 'react';
+import type { ReactNode } from 'react';
+import { Button, Checkbox, Select, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import type { Cartao } from '../../types/cliente';
 import { BANDEIRAS } from '../../types/cliente';
-import { apenasDigitos } from '../../utils/texto';
+import { apenasDigitos, mascararNumeroCartao } from '../../utils/texto';
+import { comMascara } from '../../utils/formulario';
+import { detectarBandeira } from '../../utils/perfilCliente';
 
 export interface FormCartaoValues {
   numero: string;
@@ -22,19 +19,34 @@ export interface FormCartaoValues {
 
 interface FormCartaoProps {
   initialValues?: Cartao;
+  titulo?: string;
+  rotuloSalvar?: string;
+  /** Esconde o "preferencial" quando o formulário não mexe no perfil. */
+  comPreferencial?: boolean;
+  extra?: ReactNode;
   onCancelar: () => void;
   onSubmit: (valores: FormCartaoValues) => void;
 }
 
 export default function FormCartao({
   initialValues,
+  titulo,
+  rotuloSalvar = 'Salvar cartão',
+  comPreferencial = true,
+  extra,
   onCancelar,
   onSubmit,
 }: Readonly<FormCartaoProps>) {
+  const [bandeiraDetectada, setBandeiraDetectada] = useState(() =>
+    detectarBandeira(initialValues?.numero ?? ''),
+  );
+
+  // controlado: a bandeira detectada entra no Select sem remontar o campo
   const form = useForm<FormCartaoValues>({
-    mode: 'uncontrolled',
+    mode: 'controlled',
+    validateInputOnBlur: true,
     initialValues: {
-      numero: initialValues?.numero ?? '',
+      numero: mascararNumeroCartao(initialValues?.numero ?? ''),
       nomeImpresso: initialValues?.nomeImpresso ?? '',
       bandeira: initialValues?.bandeira ?? '',
       codigoSeguranca: initialValues?.codigoSeguranca ?? '',
@@ -58,74 +70,98 @@ export default function FormCartao({
     },
   });
 
-  return (
-    <div>
-      <Text fw={600} size="lg" mb="md">
-        {initialValues ? 'Editar cartão' : 'Novo cartão'}
-      </Text>
+  const numero = form.getInputProps('numero');
 
-      <Stack gap="sm">
+  // RN0025: a bandeira sai do número, mas só entra se o campo ainda estiver vazio
+  function handleNumero(valor: string): void {
+    const detectada = detectarBandeira(valor);
+    setBandeiraDetectada(detectada);
+    if (detectada && !form.getValues().bandeira) {
+      form.setFieldValue('bandeira', detectada);
+    }
+  }
+
+  return (
+    <div className={styles.form}>
+      <h3 className={styles.subtitulo}>
+        {titulo ?? (initialValues ? 'Editar cartão' : 'Novo cartão')}
+      </h3>
+
+      <div className={styles.campos}>
         <TextInput
           label="Número do cartão"
           placeholder="0000 0000 0000 0000"
-          withAsterisk
+          inputMode="numeric"
           data-testid="cartao-numero"
+          rightSectionWidth={140}
+          rightSection={
+            bandeiraDetectada && (
+              <span className={styles.bandeiraDetectada}>{bandeiraDetectada}</span>
+            )
+          }
           key={form.key('numero')}
-          {...form.getInputProps('numero')}
+          {...numero}
+          onChange={comMascara(mascararNumeroCartao, (evento) => {
+            numero.onChange(evento);
+            handleNumero(evento.currentTarget.value);
+          })}
         />
 
         <TextInput
           label="Nome impresso"
-          placeholder="Ex: JOAO S SILVA"
-          withAsterisk
+          placeholder="Como está no cartão"
           data-testid="cartao-nome-impresso"
+          styles={{ input: { textTransform: 'uppercase' } }}
           key={form.key('nomeImpresso')}
           {...form.getInputProps('nomeImpresso')}
         />
 
-        <Group grow>
+        <div className={styles.grade2}>
           <Select
             label="Bandeira"
             placeholder="Selecione"
             data={BANDEIRAS}
-            withAsterisk
             data-testid="cartao-bandeira"
             allowDeselect={false}
             key={form.key('bandeira')}
             {...form.getInputProps('bandeira')}
           />
-
           <TextInput
             label="Código de segurança"
-            placeholder="CVV"
-            withAsterisk
+            placeholder="3 ou 4 dígitos no verso"
+            inputMode="numeric"
+            maxLength={4}
             data-testid="cartao-cvv"
             key={form.key('codigoSeguranca')}
             {...form.getInputProps('codigoSeguranca')}
           />
-        </Group>
+        </div>
 
-        <Switch
-          label="Cartão preferencial"
-          data-testid="cartao-preferencial"
-          key={form.key('isPreferencial')}
-          {...form.getInputProps('isPreferencial', { type: 'checkbox' })}
-        />
-      </Stack>
+        {comPreferencial && (
+          <Checkbox
+            label="Usar como cartão preferencial"
+            data-testid="cartao-preferencial"
+            key={form.key('isPreferencial')}
+            {...form.getInputProps('isPreferencial', { type: 'checkbox' })}
+          />
+        )}
+      </div>
 
-      <Group justify="flex-end" mt="xl">
-        <Button type="button" variant="default" onClick={onCancelar}>
+      {extra}
+
+      <div className={styles.rodapeInline}>
+        <Button type="button" variant="default" size="sm" onClick={onCancelar}>
           Cancelar
         </Button>
         <Button
           type="button"
-          color="dark"
+          size="sm"
           data-testid="btn-salvar-cartao"
           onClick={() => form.onSubmit(onSubmit)()}
         >
-          Salvar cartão
+          {rotuloSalvar}
         </Button>
-      </Group>
+      </div>
     </div>
   );
 }

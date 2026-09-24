@@ -1,59 +1,190 @@
+@use '../../styles/mixins' as *;
+
 .header {
-  background-color: #000000;
-  color: #ffffff;
-  width: 100%;
+  height: 64px;
+  padding: 0 32px;
   display: flex;
   align-items: center;
-  padding: 0.5em;
-  padding-inline: 1em;
-  gap: 1.5em;
+  justify-content: space-between;
+  gap: 32px;
+  background: var(--cor-vinil);
+  color: var(--cor-papel);
 }
 
-.headerBusca {
-  flex: 0 1 380px;
-}
-
-.buscaBotao {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
+.lado {
   display: flex;
-}
-
-.headerAcoes {
-  margin-left: auto;
-  flex-wrap: nowrap;
-}
-
-.headerLogo {
-  text-decoration: none;
-  color: #fff;
+  align-items: center;
+  gap: 40px;
   flex-shrink: 0;
-
-   > p {
-    font-size: 2rem;
-   }
 }
 
-.headerLink{
-  text-decoration: none;
-  color: #fff;
-  transition: 100ms ease-in-out;
-  
-  &:hover {
-    opacity: 0.8;
+.logo {
+  display: flex;
+
+  img {
+    height: 32px;
+    width: auto;
   }
 }
-.sessaoBotao {
+
+.nav {
+  display: flex;
+  gap: 20px;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--cor-papel);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--cor-selo-claro);
+  }
+
+  &[aria-current='page'] {
+    text-decoration: underline;
+    text-underline-offset: 6px;
+  }
+}
+
+.etiquetaAdmin {
+  @include meta(9px);
+
+  padding: 1px 5px;
+  border: 1px solid var(--cor-selo-claro);
+  color: var(--cor-selo-claro);
+}
+
+.ladoDireito {
+  flex: 0 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.busca {
+  width: 360px;
+  flex: 0 1 360px;
+  min-width: 160px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  background: var(--cor-grafite);
+  border-radius: var(--raio);
+
+  &:focus-within {
+    box-shadow: 0 0 0 3px rgba(217, 80, 31, 0.35);
+  }
+}
+
+.lupa {
+  display: flex;
+  flex-shrink: 0;
+  padding: 0;
   background: none;
   border: none;
-  color: #fff;
+  color: var(--cor-apagado);
   cursor: pointer;
-  padding: 0;
-  transition: 100ms ease-in-out;
 
   &:hover {
-    opacity: 0.8;
+    color: var(--cor-papel);
   }
+}
+
+.buscaInput {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--cor-papel);
+  font-size: 14px;
+}
+
+.acoes {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 15px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sessaoBotao {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--cor-papel);
+  font-size: 15px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--cor-selo-claro);
+  }
+}
+
+.sessaoCarregando {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  // sobre fundo escuro o esqueleto precisa de um tom próprio
+  --cor-divisoria: #3d3b37;
+  --cor-nevoa: #5a5852;
+  --mantine-color-body: var(--cor-vinil);
+}
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-papel);
+  color: var(--cor-vinil);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.nomeSessao {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.carrinho {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--cor-papel);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--cor-selo-claro);
+  }
+}
+
+.contador {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-selo);
+  color: #fff;
+  font-family: var(--fonte-mono);
+  font-size: 12px;
 }

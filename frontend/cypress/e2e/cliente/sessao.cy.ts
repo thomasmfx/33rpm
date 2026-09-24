@@ -32,9 +32,8 @@ describe('Entrada na loja (autenticação simples)', () => {
   it('RF0021 - o próprio cliente cria a conta e já entra na loja', () => {
     cy.fixture('clientes').then((dados) => {
       cy.visit('/cadastro');
-      cy.preencherDados(dados.novo);
-      cy.adicionarEndereco(dados.endereco);
-      cy.get('[data-testid="btn-salvar-cliente"]').click();
+      cy.preencherCadastro(dados.novo, dados.endereco);
+      cy.get('[data-testid="btn-criar-conta"]').click();
 
       cy.location('pathname').should('eq', '/');
       cy.contains('Renata Bittencourt').should('be.visible');
@@ -43,5 +42,30 @@ describe('Entrada na loja (autenticação simples)', () => {
         .its('body')
         .should('have.length', 1);
     });
+  });
+
+  it('o administrador entra pelo mesmo login e cai na curadoria', () => {
+    cy.visit('/login');
+    cy.get('[data-testid="login-email"]').type('admin@33rpm.com.br');
+    cy.get('[data-testid="login-senha"]').type('Admin@123');
+    cy.get('[data-testid="btn-entrar"]').click();
+
+    cy.location('pathname').should('eq', '/curadoria/clientes');
+    cy.contains('Thomas Moisés Fernandes').should('be.visible');
+    cy.get('[data-testid="btn-novo-cliente"]').should('be.visible');
+  });
+
+  it('cliente conectado não abre a curadoria', () => {
+    cy.visit('/login');
+    cy.get('[data-testid="login-email"]').type('ana.ribeiro@email.com');
+    cy.get('[data-testid="login-senha"]').type('Senha@123');
+    cy.get('[data-testid="btn-entrar"]').click();
+    cy.location('pathname').should('eq', '/');
+
+    cy.visit('/curadoria/clientes');
+    cy.get('[data-testid="acesso-restrito"]')
+      .should('contain', 'Esta área é só para administradores')
+      .and('contain', 'conectado como cliente');
+    cy.get('[data-testid="btn-novo-cliente"]').should('not.exist');
   });
 });

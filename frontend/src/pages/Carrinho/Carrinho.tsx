@@ -1,35 +1,26 @@
 import styles from './Carrinho.module.scss';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import {
-  Alert,
-  Anchor,
-  Button,
-  Divider,
-  Group,
-  Image,
-  NumberInput,
-  Stack,
-  Text,
-  Title,
-} from '@mantine/core';
-import { IconAlertTriangle, IconTrash } from '@tabler/icons-react';
+import { Alert, Button } from '@mantine/core';
 import { useLoja } from '../../contexts/loja';
-import { IconShoppingCartOff } from '@tabler/icons-react';
 import EstadoVazio from '../../components/EstadoVazio/EstadoVazio';
-import { AVISO_ANTES_MINUTOS, PRAZO_BLOQUEIO_MINUTOS } from '../../utils/carrinho';
+import AvisoReserva from '../../components/AvisoReserva/AvisoReserva';
+import Capa from '../../components/Capa/Capa';
+import Quantidade from '../../components/Quantidade/Quantidade';
 import type { AjusteCarrinho } from '../../utils/carrinho';
 import { formatarBRL } from '../../utils/precificacao';
 import { nomeFormato } from '../../utils/catalogo';
+import { estoqueAcabando } from '../../utils/estoque';
+import { calcularSubtotal, itensDoCarrinho } from '../../utils/checkout';
 
 function Carrinho() {
   const {
     carrinho,
     discos,
+    itensNoCarrinho,
     alterarQuantidade,
     removerDoCarrinho,
     limparCarrinho,
-    minutosParaExpirar,
     itensExpirados,
     descartarItensExpirados,
     sincronizarCarrinho,
@@ -39,21 +30,15 @@ function Carrinho() {
 
   const [ajustes, setAjustes] = useState<AjusteCarrinho[]>([]);
 
-  const itens = carrinho.flatMap((item) => {
-    const disco = discos.find((candidato) => candidato.id === item.discoId);
-    return disco ? [{ ...item, disco }] : [];
-  });
-
-  const total = itens.reduce(
-    (soma, item) => soma + item.disco.price * item.quantidade,
-    0,
-  );
+  const itens = itensDoCarrinho(carrinho, discos);
+  const subtotal = calcularSubtotal(itens);
 
   function handleReadicionarExpirados(): void {
     itensExpirados.forEach((item) => adicionarAoCarrinho(item.discoId, item.quantidade));
     descartarItensExpirados();
   }
 
+  // RN0032: o estoque pode ter mudado; ajusta e avisa antes de seguir
   function handleFinalizarCompra(): void {
     const novosAjustes = sincronizarCarrinho();
     if (novosAjustes.length > 0) {
@@ -63,29 +48,30 @@ function Carrinho() {
     navegar('/checkout');
   }
 
+  // RN0045: o que caiu por expiração pode voltar com um clique
   const alertaExpirados = itensExpirados.length > 0 && (
-    <Alert color="red" title="Itens removidos por expiração" icon={<IconAlertTriangle size={18} />}>
-      <Stack gap={4}>
-        <Text size="sm">
-          O prazo de reserva caiu e estes discos saíram do seu carrinho:
-        </Text>
-        {itensExpirados.map((item) => {
-          const disco = discos.find((candidato) => candidato.id === item.discoId);
-          return (
-            <Text size="sm" key={item.discoId}>
-              {disco?.title ?? 'Disco indisponível'} — quantidade: {item.quantidade}
-            </Text>
-          );
-        })}
-        <Group mt="xs">
-          <Button size="xs" color="dark" onClick={handleReadicionarExpirados}>
+    <Alert color="red" title="Itens removidos por expiração" data-testid="alerta-expirados">
+      <div className={styles.alertaCorpo}>
+        <span>O prazo de reserva acabou e estes discos saíram do seu carrinho:</span>
+        <ul>
+          {itensExpirados.map((item) => {
+            const disco = discos.find((candidato) => candidato.id === item.discoId);
+            return (
+              <li key={item.discoId}>
+                {disco?.title ?? 'Disco indisponível'} · {item.quantidade}×
+              </li>
+            );
+          })}
+        </ul>
+        <div className={styles.alertaAcoes}>
+          <Button size="xs" onClick={handleReadicionarExpirados}>
             Adicionar novamente
           </Button>
           <Button size="xs" variant="default" onClick={descartarItensExpirados}>
             Dispensar
           </Button>
-        </Group>
-      </Stack>
+        </div>
+      </div>
     </Alert>
   );
 
@@ -94,7 +80,6 @@ function Carrinho() {
       <main className={styles.main}>
         {alertaExpirados}
         <EstadoVazio
-          icone={<IconShoppingCartOff size={104} stroke={1.1} />}
           titulo="Seu carrinho está vazio"
           descricao="Nenhum disco por aqui ainda. Vá ao acervo e comece a garimpar."
           rotuloAcao="Explorar o acervo"
@@ -104,103 +89,103 @@ function Carrinho() {
     );
   }
 
-  const isPrestesAExpirar =
-    minutosParaExpirar !== null && minutosParaExpirar <= AVISO_ANTES_MINUTOS;
-  const textoRestante =
-    minutosParaExpirar === 1
-      ? 'resta 1 minuto'
-      : `restam ${minutosParaExpirar} minutos`;
-
   return (
     <main className={styles.main}>
-      {alertaExpirados}
-
-      {minutosParaExpirar !== null && (
-        <Alert color={isPrestesAExpirar ? 'orange' : 'blue'}>
-          {isPrestesAExpirar
-            ? `Sua reserva está perto de cair: ${textoRestante}.`
-            : `Os itens ficam reservados por ${PRAZO_BLOQUEIO_MINUTOS} minutos a partir da última alteração. ${textoRestante}.`}
-        </Alert>
-      )}
-
-      {ajustes.length > 0 && (
-        <Alert color="orange" title="Carrinho ajustado ao estoque" icon={<IconAlertTriangle size={18} />}>
-          <Stack gap={4}>
-            {ajustes.map((ajuste) => (
-              <Text size="sm" key={ajuste.discoId}>
-                {ajuste.quantidadeNova > 0
-                  ? `${ajuste.titulo}: ${ajuste.quantidadeAnterior} → ${ajuste.quantidadeNova} unidade(s)`
-                  : `${ajuste.titulo}: removido, sem estoque`}
-              </Text>
-            ))}
-          </Stack>
-        </Alert>
-      )}
-
-      <Group justify="space-between" align="center">
-        <Title order={1} size="40">Seu carrinho</Title>
-        <Button variant="subtle" color="black" onClick={limparCarrinho}>
-          Esvaziar
-        </Button>
-      </Group>
-
-      <Stack gap="lg">
-        {itens.map(({ disco, quantidade }) => (
-          <div key={disco.id}>
-            <div className={styles.item}>
-              <Link to={`/disco/${disco.id}`} className={styles.capa}>
-                <Image src={disco.coverSrc} alt={disco.title} w={90} h={90} fit="cover" />
-              </Link>
-
-              <Stack gap={2}>
-                <Anchor component={Link} to={`/disco/${disco.id}`} c="black" fw={600}>
-                  {disco.title}
-                </Anchor>
-                <Text size="sm" fw={300}>{disco.artist}</Text>
-                <Text size="xs" c="dimmed">{nomeFormato(disco.formatoId)}</Text>
-              </Stack>
-
-              <NumberInput
-                w={90}
-                min={1}
-                max={disco.estoque}
-                step={1}
-                allowDecimal={false}
-                allowNegative={false}
-                clampBehavior="strict"
-                value={quantidade}
-                onChange={(valor) => alterarQuantidade(disco.id, Number(valor) || 1)}
-              />
-
-              <Text fw={600} w={110} ta="right">
-                {formatarBRL(disco.price * quantidade)}
-              </Text>
-
-              <Button
-                variant="subtle"
-                color="gray"
-                px="xs"
-                aria-label={`Remover ${disco.title}`}
-                onClick={() => removerDoCarrinho(disco.id)}
-              >
-                <IconTrash size={18} />
-              </Button>
-            </div>
-            <Divider mt="lg" />
+      <div className={styles.layout}>
+        <div className={styles.coluna}>
+          <div className={styles.topo}>
+            <h1>Carrinho</h1>
+            <button type="button" className={styles.esvaziar} onClick={limparCarrinho}>
+              Esvaziar
+            </button>
           </div>
-        ))}
-      </Stack>
 
-      <Group justify="space-between" align="center">
-        <Text size="lg" fw={300}>Total</Text>
-        <Title order={2} size="32">{formatarBRL(total)}</Title>
-      </Group>
+          {alertaExpirados}
 
-      <Group justify="flex-end">
-        <Button color="dark" size="md" onClick={handleFinalizarCompra}>
-          Finalizar compra
-        </Button>
-      </Group>
+          {ajustes.length > 0 && (
+            <Alert color="orange" title="Carrinho ajustado ao estoque">
+              {ajustes.map((ajuste) => (
+                <div key={ajuste.discoId}>
+                  {ajuste.quantidadeNova > 0
+                    ? `${ajuste.titulo}: ${ajuste.quantidadeAnterior} → ${ajuste.quantidadeNova} unidade(s)`
+                    : `${ajuste.titulo}: removido, sem estoque`}
+                </div>
+              ))}
+            </Alert>
+          )}
+
+          <ul className={styles.itens}>
+            {itens.map(({ disco, quantidade }) => (
+              <li key={disco.id} className={styles.item}>
+                <Link to={`/disco/${disco.id}`} className={styles.capa}>
+                  <Capa src={disco.coverSrc} alt={disco.title} />
+                </Link>
+
+                <div className={styles.texto}>
+                  <span className={styles.artista}>{disco.artist}</span>
+                  <Link to={`/disco/${disco.id}`} className={styles.titulo}>
+                    {disco.title}
+                  </Link>
+                  <span
+                    className={styles.meta}
+                    data-alerta={estoqueAcabando(disco.estoque) || undefined}
+                  >
+                    {nomeFormato(disco.formatoId)} ·{' '}
+                    {estoqueAcabando(disco.estoque)
+                      ? `Últimas ${disco.estoque}`
+                      : `${disco.estoque} em estoque`}
+                  </span>
+                </div>
+
+                <Quantidade
+                  tamanho="sm"
+                  valor={quantidade}
+                  maximo={disco.estoque}
+                  rotulo={`Quantidade de ${disco.title}`}
+                  onChange={(valor) => alterarQuantidade(disco.id, valor)}
+                />
+
+                <div className={styles.valor}>
+                  <strong>{formatarBRL(disco.price * quantidade)}</strong>
+                  <button
+                    type="button"
+                    className={styles.remover}
+                    aria-label={`Remover ${disco.title}`}
+                    onClick={() => removerDoCarrinho(disco.id)}
+                  >
+                    Remover
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <aside className={styles.resumo}>
+          <h2>Resumo</h2>
+          <div className={styles.linha}>
+            <span>
+              Subtotal · {itensNoCarrinho} {itensNoCarrinho === 1 ? 'disco' : 'discos'}
+            </span>
+            <span>{formatarBRL(subtotal)}</span>
+          </div>
+          <div className={styles.linha}>
+            <span>Frete</span>
+            <span className={styles.apagado}>calculado no checkout</span>
+          </div>
+          <div className={styles.total}>
+            <span>Total</span>
+            <strong>{formatarBRL(subtotal)}</strong>
+          </div>
+          <Button size="lg" fullWidth onClick={handleFinalizarCompra}>
+            Finalizar compra
+          </Button>
+          <Button variant="default" fullWidth component={Link} to="/acervo">
+            Continuar explorando
+          </Button>
+          <AvisoReserva texto="Seus discos ficam reservados até o fim do contador." />
+        </aside>
+      </div>
     </main>
   );
 }

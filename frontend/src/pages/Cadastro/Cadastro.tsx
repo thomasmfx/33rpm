@@ -1,10 +1,8 @@
-import styles from './Cadastro.module.scss';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Alert, Paper, Stack, Text, Title } from '@mantine/core';
-import FormCliente, {
-  type FormClienteValues,
-} from '../../components/FormCliente/FormCliente';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Alert } from '@mantine/core';
+import type { FormClienteValues } from '../../components/FormCliente/FormCliente';
+import FormCadastro from '../../components/FormCadastro/FormCadastro';
 import { useLoja } from '../../contexts/loja';
 import { ErroApi } from '../../services/api';
 import { cadastrarCliente } from '../../services/clientesService';
@@ -12,47 +10,40 @@ import { cadastrarCliente } from '../../services/clientesService';
 function Cadastro() {
   const { iniciarSessao } = useLoja();
   const navegar = useNavigate();
+  const { state } = useLocation();
   const [erros, setErros] = useState<string[]>([]);
+  const [enviando, setEnviando] = useState(false);
 
-  // RF0021 pelo próprio cliente: mesmo formulário da curadoria, sem o controle de status
+  // RF0021 pelo próprio cliente: quem decide as regras é o servidor
   async function handleCadastrar(valores: FormClienteValues): Promise<void> {
+    setEnviando(true);
+    setErros([]);
     try {
       const cliente = await cadastrarCliente(valores);
-      iniciarSessao(cliente);
-      navegar('/');
+      iniciarSessao({ papel: 'cliente', cliente });
+      navegar((state as { depois?: string } | null)?.depois ?? '/', { replace: true });
     } catch (erro) {
       setErros(erro instanceof ErroApi ? erro.mensagens : ['Falha ao cadastrar.']);
+    } finally {
+      setEnviando(false);
     }
   }
 
   return (
-    <main className={styles.main}>
-      <Paper className={styles.cartao} p="xl" radius="md" withBorder>
-        <Title order={2} mb={4}>
-          Criar conta
-        </Title>
-        <Text size="sm" c="dimmed" mb="lg">
-          Cadastre-se para comprar, acompanhar pedidos e receber recomendações.
-        </Text>
-
-        {erros.length > 0 && (
-          <Alert color="red" mb="md" data-testid="alerta-cadastro">
-            <Stack gap={4}>
+    <main>
+      <FormCadastro
+        enviando={enviando}
+        onSubmit={handleCadastrar}
+        alerta={
+          erros.length > 0 && (
+            <Alert color="red" title="Não deu para criar a conta" data-testid="alerta-cadastro">
               {erros.map((mensagem) => (
-                <Text key={mensagem} size="sm">
-                  {mensagem}
-                </Text>
+                <div key={mensagem}>{mensagem}</div>
               ))}
-            </Stack>
-          </Alert>
-        )}
-
-        <FormCliente isEdit={false} onSubmit={handleCadastrar} />
-
-        <Text size="sm" mt="lg">
-          Já tem conta? <Link to="/login">Entrar</Link>
-        </Text>
-      </Paper>
+            </Alert>
+          )
+        }
+      />
     </main>
   );
 }

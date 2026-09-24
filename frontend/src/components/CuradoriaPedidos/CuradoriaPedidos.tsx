@@ -1,75 +1,357 @@
+import painel from '../../pages/Curadoria/Painel.module.scss';
 import styles from './CuradoriaPedidos.module.scss';
 import { useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
-  Badge,
   Button,
-  Divider,
-  Flex,
-  Group,
-  Image,
-  Modal,
+  Drawer,
   Pagination,
   Radio,
   Select,
-  Stack,
-  Table,
-  Text,
+  Skeleton,
   TextInput,
 } from '@mantine/core';
-import { IconSearch } from '@tabler/icons-react';
 import type { Cupom } from '../../types/cupom';
-import type { Pedido, StatusPedido } from '../../types/pedido';
+import type {
+  Pedido,
+  StatusPedido,
+  ValidacaoPagamento,
+} from '../../types/pedido';
 import {
   CORES_STATUS,
   itensDaTroca,
+  podeInformarDespacho,
+  precisaDeAcao,
   proximosStatusAdmin,
+  ROTULOS_STATUS,
   valorDosItens,
 } from '../../utils/pedido';
-import { resumirEndereco } from '../../utils/perfilCliente';
+import { linhaDoEndereco } from '../../utils/perfilCliente';
 import { formatarBRL } from '../../utils/precificacao';
 import { useLoja } from '../../contexts/loja';
+import CabecalhoPainel from '../CabecalhoPainel/CabecalhoPainel';
+import StatusPonto from '../StatusPonto/StatusPonto';
+import Capa from '../Capa/Capa';
+import { EsqueletoLinhas } from '../Esqueleto/Esqueleto';
 import ConferenciaPagamento from './ConferenciaPagamento';
+import { Close, Search } from '@carbon/icons-react';
+
+const COLUNAS = '110px minmax(150px, 1.2fr) 90px 44px 100px 160px 170px';
 
 const FORMATO_DATA = new Intl.DateTimeFormat('pt-BR');
+const FORMATO_DIA = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' });
+const FORMATO_HORA = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
 // 147 pedidos em uma página só faziam cada clique re-renderizar a tabela inteira
 const POR_PAGINA = 15;
 
-const OPCOES_STATUS = [
-  { value: '', label: 'Todos' },
-  ...(Object.keys(CORES_STATUS) as StatusPedido[]).map((status) => ({
-    value: status,
-    label: status,
-  })),
+/** Vem pelo state da navegação, a partir do detalhe do cliente. */
+export interface EstadoPedidos {
+  pedidoId?: string;
+  busca?: string;
+}
+
+interface Passo {
+  status: StatusPedido;
+  rotulo: string;
+  cor: string;
+}
+
+/** Uma cor por próximo passo: a fila de trabalho escaneia pela cor do botão. */
+const PASSOS: Passo[] = [
+  { status: 'EM PROCESSAMENTO', rotulo: 'Conferir pagamento', cor: 'var(--cor-tijolo)' },
+  { status: 'PAGAMENTO REALIZADO', rotulo: 'Despachar', cor: 'var(--cor-vinil)' },
+  { status: 'EM TRÂNSITO', rotulo: 'Confirmar entrega', cor: 'var(--cor-sucesso)' },
+  { status: 'TROCA SOLICITADA', rotulo: 'Autorizar troca', cor: 'var(--cor-cobalto)' },
+  { status: 'ITEM ENVIADO', rotulo: 'Receber item', cor: 'var(--cor-violeta)' },
 ];
+
+type Filtro = 'todos' | 'acao' | 'trocas' | StatusPedido;
+
+const CHIPS: { filtro: Filtro; rotulo: string }[] = [
+  { filtro: 'todos', rotulo: 'Todos' },
+  { filtro: 'acao', rotulo: 'Precisam de ação' },
+  { filtro: 'EM PROCESSAMENTO', rotulo: 'Em processamento' },
+  { filtro: 'EM TRÂNSITO', rotulo: 'Em trânsito' },
+  { filtro: 'trocas', rotulo: 'Trocas' },
+  { filtro: 'ENTREGUE', rotulo: 'Entregues' },
+];
+
+const OPCOES_STATUS = (Object.keys(ROTULOS_STATUS) as StatusPedido[]).map(
+  (status) => ({ value: status, label: ROTULOS_STATUS[status] }),
+);
+
+function isStatus(filtro: Filtro): filtro is StatusPedido {
+  return filtro in ROTULOS_STATUS;
+}
+
+function passaNoFiltro(pedido: Pedido, filtro: Filtro): boolean {
+  if (filtro === 'todos') return true;
+  if (filtro === 'acao') return precisaDeAcao(pedido);
+  if (filtro === 'trocas') return pedido.troca !== null;
+  return pedido.status === filtro;
+}
+
+interface EventoHistorico {
+  data: string;
+  texto: string;
+}
+
+function historicoDo(pedido: Pedido): EventoHistorico[] {
+  const cartoes = pedido.cartoes
+    .map((cartao) => `${cartao.bandeira} •••• ${cartao.ultimosDigitos}`)
+    .join(' + ');
+  const eventos: EventoHistorico[] = [
+    { data: pedido.data, texto: cartoes ? `Pedido recebido · ${cartoes}` : 'Pedido recebido' },
+  ];
+
+  if (pedido.validacaoPagamento) {
+    eventos.push({
+      data: pedido.validacaoPagamento.data,
+      texto: pedido.validacaoPagamento.aprovado
+        ? 'Pagamento conferido'
+        : 'Pagamento recusado · itens voltaram ao estoque',
+    });
+  }
+  if (pedido.troca) {
+    eventos.push({ data: pedido.troca.solicitadaEm, texto: 'Troca solicitada pelo cliente' });
+  }
+
+  // só entra o que o pedido registra com data: despacho, entrega e a decisão
+  // da troca mudam o status sem guardar quando
+  return eventos.sort((a, b) => a.data.localeCompare(b.data));
+}
+
+type Retorno = 'sim' | 'nao';
+
+interface DetalhesPedidoProps {
+  pedido: Pedido;
+  nomeCliente: string;
+  cupons: Cupom[];
+  retornaAoEstoque: Retorno | null;
+  onAlterarRetorno: (valor: Retorno) => void;
+  onFechar: () => void;
+  onAvancar: (proximo: StatusPedido) => void;
+  onResolverPagamento: (validacao: ValidacaoPagamento) => void;
+  onConfirmarRecebimento: () => void;
+}
+
+function DetalhesPedido({
+  pedido,
+  nomeCliente,
+  cupons,
+  retornaAoEstoque,
+  onAlterarRetorno,
+  onFechar,
+  onAvancar,
+  onResolverPagamento,
+  onConfirmarRecebimento,
+}: Readonly<DetalhesPedidoProps>) {
+  const itensTroca = itensDaTroca(pedido);
+  const valorTroca = pedido.troca ? valorDosItens(pedido, pedido.troca.itens) : 0;
+  const pagamento: [string, string][] = [
+    ...pedido.cupons.map((cupom): [string, string] => [
+      'Cupom',
+      `${cupom.codigo} · − ${formatarBRL(cupom.valor)}`,
+    ]),
+    ...pedido.cartoes.map((cartao): [string, string] => [
+      'Cartão',
+      `${cartao.bandeira} •••• ${cartao.ultimosDigitos} · ${formatarBRL(cartao.valor)}`,
+    ]),
+    ['Entrega', linhaDoEndereco(pedido.enderecoEntrega)],
+  ];
+
+  return (
+    <div className={painel.drawer}>
+      <div className={painel.drawerTopo}>
+        <div className={painel.drawerTitulo}>
+          <span className={styles.metaPedido}>
+            #{pedido.id} · {FORMATO_DATA.format(new Date(pedido.data))}
+          </span>
+          <h2>{nomeCliente}</h2>
+          <StatusPonto cor={CORES_STATUS[pedido.status]}>
+            {ROTULOS_STATUS[pedido.status]}
+          </StatusPonto>
+        </div>
+        <Button variant="default" size="xs" leftSection={<Close size={16} />} onClick={onFechar}>
+          Fechar
+        </Button>
+      </div>
+
+      <div className={styles.itens}>
+        {pedido.itens.map((item) => (
+          <div key={item.discoId} className={styles.item}>
+            <Capa src={item.coverSrc} alt={item.titulo} />
+            <div className={styles.itemTexto}>
+              <strong>{item.titulo}</strong>
+              <span>
+                {item.artista} · {item.quantidade}×
+              </span>
+            </div>
+            <span className={painel.numero}>
+              {formatarBRL(item.precoUnitario * item.quantidade)}
+            </span>
+          </div>
+        ))}
+        <div className={styles.valores}>
+          <div className={styles.linhaValor}>
+            <span>Subtotal</span>
+            <span>{formatarBRL(pedido.subtotal)}</span>
+          </div>
+          <div className={styles.linhaValor}>
+            <span>Frete</span>
+            <span>{formatarBRL(pedido.frete)}</span>
+          </div>
+        </div>
+        <div className={styles.total}>
+          <span>Total</span>
+          <span>{formatarBRL(pedido.total)}</span>
+        </div>
+      </div>
+
+      {pedido.troca && (
+        <div className={styles.troca}>
+          <span className={styles.trocaRotulo}>
+            Troca ·{' '}
+            {itensTroca.map((item) => `${item.titulo} · ${item.quantidade}×`).join(', ')}
+          </span>
+          <span>“{pedido.troca.motivo}”</span>
+          {pedido.troca.cupomGeradoId && (
+            <span className={styles.nota}>
+              Cupom de troca gerado ·{' '}
+              {pedido.troca.retornouAoEstoque
+                ? 'itens de volta ao estoque'
+                : 'itens baixados como avaria'}
+            </span>
+          )}
+        </div>
+      )}
+
+      {pedido.status === 'EM PROCESSAMENTO' && (
+        <ConferenciaPagamento
+          pedido={pedido}
+          cupons={cupons}
+          onConfirmar={onResolverPagamento}
+        />
+      )}
+
+      {pedido.status === 'TROCA SOLICITADA' && (
+        <div className={styles.caixa}>
+          <div className={styles.caixaCabecalho}>
+            <strong>Autorizar a troca?</strong>
+            <span className={styles.nota}>
+              Autorizada, o cliente envia o item de volta para conferência.
+            </span>
+          </div>
+          <div className={styles.botoesCaixa}>
+            <Button size="sm" onClick={() => onAvancar('TROCA ACEITA')}>
+              Autorizar troca
+            </Button>
+            <Button
+              size="sm"
+              variant="default"
+              className={styles.botaoRecusa}
+              onClick={() => onAvancar('TROCA NEGADA')}
+            >
+              Negar troca
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* RF0044, RF0045 e RF0054: o recebimento decide o estoque e gera o cupom */}
+      {pedido.status === 'ITEM ENVIADO' && (
+        <div className={styles.caixa}>
+          <Radio.Group
+            label="Os itens retornam ao estoque?"
+            classNames={{ label: styles.tituloGrupo }}
+            value={retornaAoEstoque}
+            onChange={(valor) => onAlterarRetorno(valor as Retorno)}
+          >
+            <div className={styles.opcoes}>
+              <Radio.Card value="sim" className={styles.opcao}>
+                <Radio.Indicator />
+                Sim, em condição de revenda
+              </Radio.Card>
+              <Radio.Card value="nao" className={styles.opcao}>
+                <Radio.Indicator />
+                Não, item avariado
+              </Radio.Card>
+            </div>
+          </Radio.Group>
+          <span className={styles.nota}>
+            Ao confirmar, o cliente recebe um cupom de troca de {formatarBRL(valorTroca)}.
+            {retornaAoEstoque === 'sim' && ' O item volta ao estoque.'}
+            {retornaAoEstoque === 'nao' && ' O item é baixado como avaria.'}
+          </span>
+          <Button
+            size="sm"
+            className={styles.botaoSozinho}
+            disabled={!retornaAoEstoque}
+            onClick={onConfirmarRecebimento}
+          >
+            Confirmar recebimento
+          </Button>
+        </div>
+      )}
+
+      <div className={painel.secao}>
+        <span className={painel.rotuloSecao}>Pagamento e entrega</span>
+        <div className={painel.kv}>
+          {pagamento.map(([chave, valor]) => (
+            <div key={`${chave}-${valor}`} className={painel.kvLinha}>
+              <span>{chave}</span>
+              <span>{valor}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className={painel.secao}>
+        <span className={painel.rotuloSecao}>Histórico</span>
+        {historicoDo(pedido).map((evento) => {
+          const data = new Date(evento.data);
+          return (
+            <div key={evento.texto} className={styles.evento}>
+              <span>
+                {FORMATO_DIA.format(data)} {FORMATO_HORA.format(data)}
+              </span>
+              <span>{evento.texto}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 function CuradoriaPedidos() {
   const {
     pedidos,
     clientes,
+    carregandoClientes,
     cupons,
     atualizarPedido,
     receberItensDeTroca,
     resolverPagamento,
   } = useLoja();
-  const [busca, setBusca] = useState('');
-  const [statusFiltro, setStatusFiltro] = useState<string | null>('');
-  const [somenteTrocas, setSomenteTrocas] = useState(false);
-  const [pedidoDetalhe, setPedidoDetalhe] = useState<Pedido | null>(null);
-  const [pedidoParaValidar, setPedidoParaValidar] = useState<Pedido | null>(null);
+  const estado = useLocation().state as EstadoPedidos | null;
+  const [busca, setBusca] = useState(estado?.busca ?? '');
+  const [filtro, setFiltro] = useState<Filtro>('todos');
   const [pagina, setPagina] = useState(1);
-  const [pedidoParaReceber, setPedidoParaReceber] = useState<Pedido | null>(
-    null,
+  const [pedidoAbertoId, setPedidoAbertoId] = useState<string | null>(
+    estado?.pedidoId ?? null,
   );
-  const [retornaAoEstoque, setRetornaAoEstoque] = useState<
-    'sim' | 'nao' | null
-  >(null);
+  const [retornaAoEstoque, setRetornaAoEstoque] = useState<Retorno | null>(null);
+
+  const pedidoAberto =
+    pedidos.find((pedido) => pedido.id === pedidoAbertoId) ?? null;
+  const qtdPrecisamDeAcao = pedidos.filter(precisaDeAcao).length;
 
   const pedidosFiltrados = useMemo(() => {
     const termo = busca.trim().toLowerCase();
     return pedidos.filter((pedido) => {
-      if (somenteTrocas && pedido.troca === null) return false;
-      if (statusFiltro && pedido.status !== statusFiltro) return false;
+      if (!passaNoFiltro(pedido, filtro)) return false;
       if (!termo) return true;
 
       const nomeCliente =
@@ -81,14 +363,14 @@ function CuradoriaPedidos() {
         nomeCliente.toLowerCase().includes(termo)
       );
     });
-  }, [pedidos, clientes, busca, statusFiltro, somenteTrocas]);
+  }, [pedidos, clientes, busca, filtro]);
 
   const totalPaginas = Math.max(
     1,
     Math.ceil(pedidosFiltrados.length / POR_PAGINA),
   );
-  // filtrar pode encurtar a lista com a página lá na frente; clampar aqui evita
-  // um efeito só para corrigir o estado
+  // avançar um status pode tirar o pedido do filtro e encurtar a lista com a
+  // página lá na frente; clampar aqui evita um efeito só para corrigir o estado
   const paginaAtual = Math.min(pagina, totalPaginas);
 
   const pedidosDaPagina = useMemo(
@@ -104,419 +386,244 @@ function CuradoriaPedidos() {
     return clientes.find((cliente) => cliente.id === clienteId)?.nome ?? clienteId;
   }
 
+  function handleFiltrar(novo: Filtro): void {
+    setFiltro(novo);
+    setPagina(1);
+  }
+
+  function handleBuscar(termo: string): void {
+    setBusca(termo);
+    setPagina(1);
+  }
+
   function handleAbrirDetalhe(pedido: Pedido): void {
-    setPedidoDetalhe(pedido);
+    setPedidoAbertoId(pedido.id);
+    setRetornaAoEstoque(null);
   }
 
   function handleFecharDetalhe(): void {
-    setPedidoDetalhe(null);
+    setPedidoAbertoId(null);
+    setRetornaAoEstoque(null);
   }
 
   function handleAvancarStatus(pedido: Pedido, proximo: StatusPedido): void {
-    if (proximo === 'ITEM RECEBIDO') {
-      setPedidoParaReceber(pedido);
-      setRetornaAoEstoque(null);
-      return;
-    }
-
     // RN0037: a forma de pagamento é conferida antes de virar PAGAMENTO
-    // REALIZADO, e o resultado pode ser recusa (RN0038)
-    if (proximo === 'PAGAMENTO REALIZADO') {
-      setPedidoParaValidar(pedido);
+    // REALIZADO, e o resultado pode ser recusa (RN0038); o recebimento da troca
+    // pede a condição dos itens. Os dois passos acontecem no drawer
+    if (proximo === 'PAGAMENTO REALIZADO' || proximo === 'ITEM RECEBIDO') {
+      handleAbrirDetalhe(pedido);
       return;
     }
 
     atualizarPedido(pedido.id, { status: proximo });
   }
 
-  function handleFecharRecebimento(): void {
-    setPedidoParaReceber(null);
-    setRetornaAoEstoque(null);
-  }
-
-  function handleConfirmarRecebimento(): void {
-    if (!pedidoParaReceber?.troca || !retornaAoEstoque) return;
+  function handleConfirmarRecebimento(pedido: Pedido): void {
+    if (!pedido.troca || !retornaAoEstoque) return;
 
     const id = crypto.randomUUID().slice(0, 8);
     const cupom: Cupom = {
       id,
       codigo: 'TROCA-' + id.toUpperCase(),
       tipo: 'troca',
-      valor: valorDosItens(pedidoParaReceber, pedidoParaReceber.troca.itens),
-      clienteId: pedidoParaReceber.clienteId,
+      valor: valorDosItens(pedido, pedido.troca.itens),
+      clienteId: pedido.clienteId,
       isUtilizado: false,
     };
 
-    receberItensDeTroca(pedidoParaReceber.id, retornaAoEstoque === 'sim', cupom);
-    handleFecharRecebimento();
+    receberItensDeTroca(pedido.id, retornaAoEstoque === 'sim', cupom);
+    setRetornaAoEstoque(null);
   }
 
-  const itensTrocaRecebimento = pedidoParaReceber
-    ? itensDaTroca(pedidoParaReceber)
-    : [];
-  const valorTrocaRecebimento = pedidoParaReceber?.troca
-    ? valorDosItens(pedidoParaReceber, pedidoParaReceber.troca.itens)
-    : 0;
+  function renderProximoPasso(pedido: Pedido) {
+    const proximos = proximosStatusAdmin(pedido.status);
+
+    if (proximos.length === 0) {
+      return (
+        <span className={styles.semPasso}>
+          {podeInformarDespacho(pedido.status) ? 'Aguardando cliente enviar' : '—'}
+        </span>
+      );
+    }
+
+    const passo = PASSOS.find((candidato) => candidato.status === pedido.status) ?? {
+      rotulo: ROTULOS_STATUS[proximos[0]],
+      cor: 'var(--cor-vinil)',
+    };
+
+    return (
+      <button
+        type="button"
+        className={styles.botaoPasso}
+        style={{ background: passo.cor }}
+        aria-label={`${passo.rotulo} do pedido ${pedido.id}`}
+        onClick={() => handleAvancarStatus(pedido, proximos[0])}
+      >
+        {passo.rotulo}
+      </button>
+    );
+  }
+
+  function renderLinhas() {
+    if (carregandoClientes) {
+      return <EsqueletoLinhas colunas={COLUNAS} linhas={8} altura={60} />;
+    }
+
+    if (pedidosFiltrados.length === 0) {
+      return <p className={painel.vazio}>Nenhum pedido com esses filtros.</p>;
+    }
+
+    return pedidosDaPagina.map((pedido) => {
+      const quantidadeTotal = pedido.itens.reduce(
+        (soma, item) => soma + item.quantidade,
+        0,
+      );
+
+      return (
+        <div
+          key={pedido.id}
+          className={`${painel.linhaTabela} ${styles.linha}`}
+          style={{ gridTemplateColumns: COLUNAS }}
+          // RF0043: troca parada esperando a curadoria precisa saltar aos olhos
+          data-destaque={(pedido.troca !== null && precisaDeAcao(pedido)) || undefined}
+        >
+          <button
+            type="button"
+            className={styles.numeroPedido}
+            aria-label={`Ver detalhes do pedido ${pedido.id}`}
+            onClick={() => handleAbrirDetalhe(pedido)}
+          >
+            {pedido.id}
+          </button>
+          <span className={styles.cliente}>{nomeDoCliente(pedido.clienteId)}</span>
+          <span className={`${painel.numero} ${styles.data}`}>
+            {FORMATO_DATA.format(new Date(pedido.data))}
+          </span>
+          <span className={painel.numero}>{quantidadeTotal}</span>
+          <span className={`${painel.preco} ${painel.direita}`}>
+            {formatarBRL(pedido.total)}
+          </span>
+          <StatusPonto cor={CORES_STATUS[pedido.status]}>
+            {ROTULOS_STATUS[pedido.status]}
+          </StatusPonto>
+          <span className={styles.proximoPasso}>{renderProximoPasso(pedido)}</span>
+        </div>
+      );
+    });
+  }
 
   return (
-    <>
-      {pedidoParaValidar && (
-        <Modal
-          centered
-          size="lg"
-          opened={Boolean(pedidoParaValidar)}
-          onClose={() => setPedidoParaValidar(null)}
-          title={
-            <Text fw={600} size="lg">
-              Validar forma de pagamento
-            </Text>
-          }
-        >
-          <ConferenciaPagamento
-            pedido={pedidoParaValidar}
+    <div className={painel.painel}>
+      <Drawer
+        size={520}
+        opened={Boolean(pedidoAberto)}
+        onClose={handleFecharDetalhe}
+        withCloseButton={false}
+      >
+        {pedidoAberto && (
+          <DetalhesPedido
+            pedido={pedidoAberto}
+            nomeCliente={nomeDoCliente(pedidoAberto.clienteId)}
             cupons={cupons}
-            onCancelar={() => setPedidoParaValidar(null)}
-            onConfirmar={(validacao) => {
-              resolverPagamento(pedidoParaValidar.id, validacao);
-              setPedidoParaValidar(null);
-            }}
+            retornaAoEstoque={retornaAoEstoque}
+            onAlterarRetorno={setRetornaAoEstoque}
+            onFechar={handleFecharDetalhe}
+            onAvancar={(proximo) => handleAvancarStatus(pedidoAberto, proximo)}
+            onResolverPagamento={(validacao) =>
+              resolverPagamento(pedidoAberto.id, validacao)
+            }
+            onConfirmarRecebimento={() => handleConfirmarRecebimento(pedidoAberto)}
           />
-        </Modal>
-      )}
-      {pedidoDetalhe && (
-        <Modal
-          centered
-          size="lg"
-          opened={Boolean(pedidoDetalhe)}
-          onClose={handleFecharDetalhe}
-          title={
-            <Text fw={600} size="lg">
-              Pedido #{pedidoDetalhe.id}
-            </Text>
-          }
-        >
-          <Stack gap="sm">
-            {pedidoDetalhe.itens.map((item) => (
-              <div key={item.discoId} className={styles.itemDetalhe}>
-                <Image
-                  src={item.coverSrc}
-                  alt={item.titulo}
-                  w={48}
-                  h={48}
-                  radius="sm"
-                  fit="cover"
-                />
-                <Stack gap={0} flex={1}>
-                  <Text size="sm" fw={600}>
-                    {item.titulo}
-                  </Text>
-                  <Text size="sm" c="dimmed">
-                    {item.artista}
-                  </Text>
-                </Stack>
-                <Text size="sm">Qtd: {item.quantidade}</Text>
-                <Text size="sm" fw={600}>
-                  {formatarBRL(item.precoUnitario * item.quantidade)}
-                </Text>
-              </div>
-            ))}
-          </Stack>
+        )}
+      </Drawer>
 
-          <Divider my="sm" />
+      <CabecalhoPainel
+        titulo="Pedidos"
+        resumo={
+          carregandoClientes ? (
+            <Skeleton height={12} width={220} />
+          ) : (
+            `${qtdPrecisamDeAcao} ${qtdPrecisamDeAcao === 1 ? 'precisa' : 'precisam'} de ação · ${pedidos.length} no total`
+          )
+        }
+      />
 
-          <Text size="sm">
-            Entrega em {resumirEndereco(pedidoDetalhe.enderecoEntrega)}
-          </Text>
-
-          <Divider my="sm" />
-
-          <Stack gap={4}>
-            <div className={styles.linhaValor}>
-              <Text size="sm">Subtotal</Text>
-              <Text size="sm">{formatarBRL(pedidoDetalhe.subtotal)}</Text>
-            </div>
-            <div className={styles.linhaValor}>
-              <Text size="sm">Frete</Text>
-              <Text size="sm">{formatarBRL(pedidoDetalhe.frete)}</Text>
-            </div>
-            {pedidoDetalhe.cupons.map((cupom) => (
-              <div key={cupom.cupomId} className={styles.linhaValor}>
-                <Text size="sm">Cupom {cupom.codigo}</Text>
-                <Text size="sm" c="green">
-                  - {formatarBRL(cupom.valor)}
-                </Text>
-              </div>
-            ))}
-            {pedidoDetalhe.cartoes.map((cartao) => (
-              <div key={cartao.cartaoId} className={styles.linhaValor}>
-                <Text size="sm">
-                  {cartao.bandeira} •••• {cartao.ultimosDigitos}
-                </Text>
-                <Text size="sm">{formatarBRL(cartao.valor)}</Text>
-              </div>
-            ))}
-            <div className={styles.linhaValor}>
-              <Text fw={700}>Total</Text>
-              <Text fw={700} size="lg">
-                {formatarBRL(pedidoDetalhe.total)}
-              </Text>
-            </div>
-          </Stack>
-
-          {pedidoDetalhe.troca && (
-            <>
-              <Divider my="sm" />
-              <Stack gap={4}>
-                <Text fw={600} size="sm">
-                  Troca solicitada
-                </Text>
-                <Text size="xs" c="dimmed">
-                  {new Date(pedidoDetalhe.troca.solicitadaEm).toLocaleDateString(
-                    'pt-BR',
-                  )}{' '}
-                  — {pedidoDetalhe.troca.motivo}
-                </Text>
-                {itensDaTroca(pedidoDetalhe).map((item) => (
-                  <div key={item.discoId} className={styles.itemDetalhe}>
-                    <Image
-                      src={item.coverSrc}
-                      alt={item.titulo}
-                      w={40}
-                      h={40}
-                      radius="sm"
-                      fit="cover"
-                    />
-                    <Text size="sm" flex={1}>
-                      {item.titulo}
-                    </Text>
-                    <Text size="sm">Qtd: {item.quantidade}</Text>
-                  </div>
-                ))}
-              </Stack>
-            </>
-          )}
-        </Modal>
-      )}
-      {pedidoParaReceber && (
-        <Modal
-          centered
-          size="md"
-          opened={Boolean(pedidoParaReceber)}
-          onClose={handleFecharRecebimento}
-          title={
-            <Text fw={600} size="lg">
-              Confirmar recebimento dos itens de troca
-            </Text>
-          }
-        >
-          <Stack gap="sm">
-            {itensTrocaRecebimento.map((item) => (
-              <div key={item.discoId} className={styles.itemDetalhe}>
-                <Image
-                  src={item.coverSrc}
-                  alt={item.titulo}
-                  w={44}
-                  h={44}
-                  radius="sm"
-                  fit="cover"
-                />
-                <Text size="sm" flex={1}>
-                  {item.titulo}
-                </Text>
-                <Text size="sm">Qtd: {item.quantidade}</Text>
-              </div>
-            ))}
-
-            <Divider />
-
-            <div className={styles.linhaValor}>
-              <Text size="sm" fw={600}>
-                Valor a devolver em cupom
-              </Text>
-              <Text size="sm" fw={600}>
-                {formatarBRL(valorTrocaRecebimento)}
-              </Text>
-            </div>
-
-            <Radio.Group
-              label="Os itens retornam ao estoque?"
-              withAsterisk
-              value={retornaAoEstoque}
-              onChange={(valor) =>
-                setRetornaAoEstoque(valor as 'sim' | 'nao')
-              }
+      <div className={styles.filtros}>
+        <div className={styles.chips}>
+          {CHIPS.map((chip) => (
+            <button
+              key={chip.filtro}
+              type="button"
+              className={styles.chip}
+              aria-pressed={filtro === chip.filtro}
+              onClick={() => handleFiltrar(chip.filtro)}
             >
-              <Group mt="xs">
-                <Radio value="sim" label="Sim, em condição de revenda" />
-                <Radio value="nao" label="Não, item avariado" />
-              </Group>
-            </Radio.Group>
-          </Stack>
-
-          <Group justify="flex-end" mt="xl">
-            <Button variant="default" onClick={handleFecharRecebimento}>
-              Cancelar
-            </Button>
-            <Button
-              color="orange"
-              disabled={!retornaAoEstoque}
-              onClick={handleConfirmarRecebimento}
-            >
-              Confirmar recebimento
-            </Button>
-          </Group>
-        </Modal>
-      )}
-      <div className={styles.painelPedidos}>
-        <nav className={styles.navBar}>
-          <Button
-            variant={somenteTrocas ? 'filled' : 'default'}
-            color="dark"
-            size="sm"
-            onClick={() => setSomenteTrocas((atual) => !atual)}
-          >
-            Somente trocas
-          </Button>
-          <Select
-            placeholder="Status"
-            data={OPCOES_STATUS}
-            value={statusFiltro}
-            onChange={setStatusFiltro}
-            allowDeselect={false}
-            w={220}
-          />
-          <TextInput
-            placeholder="Busque pelo número do pedido ou nome do cliente"
-            radius="sm"
-            rightSection={<IconSearch />}
-            flex={0.3}
-            value={busca}
-            onChange={(event) => setBusca(event.currentTarget.value)}
-          />
-        </nav>
-        <div className={styles.tabelaContainer}>
-          <Table
-            withTableBorder
-            withColumnBorders
-            highlightOnHover
-            className={styles.tabela}
-          >
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th w={130}>Pedido</Table.Th>
-                <Table.Th w={200}>Cliente</Table.Th>
-                <Table.Th w={110}>Data</Table.Th>
-                <Table.Th w={70}>Itens</Table.Th>
-                <Table.Th w={120}>Total</Table.Th>
-                <Table.Th w={190}>Status</Table.Th>
-                <Table.Th w={300}>Ações</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {pedidosFiltrados.length === 0 && (
-                <Table.Tr>
-                  <Table.Td colSpan={7} ta="center" py="xl">
-                    <Text fw={300} size="sm" c="dimmed">
-                      Nenhum pedido encontrado
-                    </Text>
-                  </Table.Td>
-                </Table.Tr>
+              {chip.rotulo}
+              {!carregandoClientes && (
+                <span className={styles.chipContagem}>
+                  {pedidos.filter((pedido) => passaNoFiltro(pedido, chip.filtro)).length}
+                </span>
               )}
-              {pedidosDaPagina.map((pedido) => {
-                const proximos = proximosStatusAdmin(pedido.status);
-                const quantidadeTotal = pedido.itens.reduce(
-                  (soma, item) => soma + item.quantidade,
-                  0,
-                );
-                const isTrocaPendente =
-                  pedido.troca !== null && pedido.troca.cupomGeradoId === null;
+            </button>
+          ))}
+        </div>
 
-                return (
-                  <Table.Tr
-                    key={pedido.id}
-                    className={`${styles.linhaPedido} ${
-                      isTrocaPendente ? styles.linhaTrocaPendente : ''
-                    }`}
-                    tabIndex={0}
-                    aria-label={`Ver detalhes do pedido ${pedido.id}`}
-                    onClick={() => handleAbrirDetalhe(pedido)}
-                    onKeyDown={(evento) => {
-                      if (evento.key === 'Enter' || evento.key === ' ') {
-                        evento.preventDefault();
-                        handleAbrirDetalhe(pedido);
-                      }
-                    }}
-                  >
-                    <Table.Td>
-                      <Text truncate="end" size="sm">
-                        {pedido.id}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text truncate="end" size="sm">
-                        {nomeDoCliente(pedido.clienteId)}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      {FORMATO_DATA.format(new Date(pedido.data))}
-                    </Table.Td>
-                    <Table.Td>{quantidadeTotal}</Table.Td>
-                    <Table.Td>{formatarBRL(pedido.total)}</Table.Td>
-                    <Table.Td>
-                      <Badge color={CORES_STATUS[pedido.status]}>
-                        {pedido.status}
-                      </Badge>
-                    </Table.Td>
-                    {/* os botões de status não podem abrir o detalhe junto */}
-                    <Table.Td onClick={(evento) => evento.stopPropagation()}>
-                      <Flex gap="0.5em" align="center" wrap="nowrap">
-                        {proximos.length === 0 ? (
-                          <Text size="xs" c="dimmed">
-                            —
-                          </Text>
-                        ) : (
-                          proximos.map((proximo) => (
-                            <Button
-                              key={proximo}
-                              size="xs"
-                              variant="default"
-                              onClick={() =>
-                                handleAvancarStatus(pedido, proximo)
-                              }
-                            >
-                              {proximo}
-                            </Button>
-                          ))
-                        )}
-                      </Flex>
-                    </Table.Td>
-                  </Table.Tr>
-                );
-              })}
-              {pedidosDaPagina.length > 0 &&
-                Array.from(
-                  { length: POR_PAGINA - pedidosDaPagina.length },
-                  (_, indice) => (
-                    <Table.Tr key={`vazia-${indice}`} className={styles.linhaVazia}>
-                      <Table.Td colSpan={7} />
-                    </Table.Tr>
-                  ),
-                )}
-            </Table.Tbody>
-          </Table>
+        <div className={styles.legenda}>
+          {PASSOS.map((passo) => (
+            <span key={passo.status} className={styles.legendaItem}>
+              <span className={styles.legendaCor} style={{ background: passo.cor }} />
+              {passo.rotulo}
+            </span>
+          ))}
+        </div>
 
-          {totalPaginas > 1 && (
-            <Pagination
-              total={totalPaginas}
-              value={paginaAtual}
-              onChange={setPagina}
-              color="dark"
-              mt="md"
-            />
-          )}
+        <div className={painel.barra}>
+          <TextInput
+            className={styles.busca}
+            placeholder="Busque pelo número do pedido ou nome do cliente"
+            leftSection={<Search size={16} />}
+            aria-label="Buscar pedido por número ou cliente"
+            value={busca}
+            onChange={(event) => handleBuscar(event.currentTarget.value)}
+          />
+          {/* os chips cobrem a fila do dia; qualquer outro status sai daqui */}
+          <Select
+            w={220}
+            placeholder="Qualquer status"
+            aria-label="Filtrar por status"
+            data={OPCOES_STATUS}
+            value={isStatus(filtro) ? filtro : null}
+            onChange={(valor) => handleFiltrar((valor as StatusPedido | null) ?? 'todos')}
+            clearable
+          />
         </div>
       </div>
-    </>
+
+      <div className={painel.tabela}>
+        <div
+          className={`${painel.cabecalhoTabela} ${styles.grade}`}
+          style={{ gridTemplateColumns: COLUNAS }}
+        >
+          <span>Pedido</span>
+          <span>Cliente</span>
+          <span>Data</span>
+          <span>Itens</span>
+          <span className={painel.direita}>Total</span>
+          <span>Status</span>
+          <span className={painel.direita}>Próximo passo</span>
+        </div>
+        {renderLinhas()}
+      </div>
+
+      {!carregandoClientes && totalPaginas > 1 && (
+        <Pagination
+          size="sm"
+          total={totalPaginas}
+          value={paginaAtual}
+          onChange={setPagina}
+        />
+      )}
+    </div>
   );
 }
 

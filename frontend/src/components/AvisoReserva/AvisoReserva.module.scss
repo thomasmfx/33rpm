@@ -1,0 +1,21 @@
+.aviso {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  padding: 12px 14px;
+  background: var(--cor-nevoa);
+  font-size: 13px;
+  color: var(--cor-texto);
+}
+
+.tempo {
+  font-family: var(--fonte-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--cor-vinil);
+  font-variant-numeric: tabular-nums;
+
+  &[data-acabando] {
+    color: var(--cor-selo);
+  }
+}

@@ -6,10 +6,12 @@ import type { EntradaEstoque } from '../types/inventario';
 import type { ItemCarrinho } from '../types/carrinho';
 import type { Cupom } from '../types/cupom';
 import type { Pedido, ValidacaoPagamento } from '../types/pedido';
+import type { Administrador, RespostaSessao, Sessao } from '../types/sessao';
 import { gerarCupons } from '../utils/cuponsMock';
 import { gerarPedidos } from '../utils/pedidosMock';
 import { FILTROS_VAZIOS } from '../utils/filtrarClientes';
 import { listarClientes } from '../services/clientesService';
+import { buscarAdministrador } from '../services/administradoresService';
 import { discosMock } from '../utils/discosMock';
 import { entradasEstoqueMock } from '../utils/estoqueMock';
 import { darBaixaEmEstoque } from '../utils/checkout';
@@ -30,6 +32,13 @@ function ler<T>(nome: string, padrao: T): T {
   }
 }
 
+/** A sessão guardava só o id do cliente; esse formato antigo continua valendo. */
+function lerSessao(): Sessao | null {
+  const bruto = ler<Sessao | string | null>('sessao', null);
+  if (typeof bruto === 'string') return { papel: 'cliente', id: bruto };
+  return bruto?.papel && bruto.id ? bruto : null;
+}
+
 function gravar(nome: string, valor: unknown): void {
   localStorage.setItem(`33rpm:${nome}`, JSON.stringify(valor));
 }
@@ -42,9 +51,14 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
   // Clientes vêm da API; só eles saíram do mock até aqui
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [erroClientes, setErroClientes] = useState<string | null>(null);
-  const [clienteAtivoId, setClienteAtivoId] = useState<string | null>(() =>
-    ler('sessao', null),
-  );
+  // só a primeira carga: recargas depois de uma escrita não voltam ao esqueleto
+  const [carregandoClientes, setCarregandoClientes] = useState(true);
+  const [sessao, setSessao] = useState<Sessao | null>(lerSessao);
+  // quem carregou por último: id + dados, ou null quando o id não existe mais
+  const [administradorCarregado, setAdministradorCarregado] = useState<{
+    id: string;
+    dados: Administrador | null;
+  } | null>(null);
   // um carrinho por cliente, mais o do admin quando nenhum perfil está simulado
   const [carrinhos, setCarrinhos] = useState<Record<string, ItemCarrinho[]>>(() =>
     ler('carrinhos', {}),
@@ -59,9 +73,17 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
 
   // RF0023: inativar o cliente derruba a sessão dele na hora
   const clienteAtivo =
-    clientes.find(
-      (cliente) => cliente.id === clienteAtivoId && cliente.isAtivo,
-    ) ?? null;
+    sessao?.papel === 'cliente'
+      ? (clientes.find((cliente) => cliente.id === sessao.id && cliente.isAtivo) ?? null)
+      : null;
+
+  const isSessaoDeAdministrador = sessao?.papel === 'administrador';
+  const administradorAtivo =
+    isSessaoDeAdministrador && administradorCarregado?.id === sessao.id
+      ? administradorCarregado.dados
+      : null;
+  const carregandoAdministrador =
+    isSessaoDeAdministrador && administradorCarregado?.id !== sessao.id;
   const chaveCarrinho = clienteAtivo?.id ?? 'admin';
   const carrinho = useMemo(
     () => carrinhos[chaveCarrinho] ?? [],
@@ -78,18 +100,25 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
     [chaveCarrinho],
   );
 
-  // RF0023: cliente inativo perde o acesso à loja
+  // RF0023: cliente inativo perde o acesso à loja. Usado pela curadoria: o
+  // administrador deixa a própria sessão e passa a navegar como o cliente.
   const entrarComoCliente = useCallback(
     (clienteId: string) => {
       const cliente = clientes.find((candidato) => candidato.id === clienteId);
-      if (cliente?.isAtivo) setClienteAtivoId(clienteId);
+      if (cliente?.isAtivo) setSessao({ papel: 'cliente', id: clienteId });
     },
     [clientes],
   );
 
-  const sairDaSessao = useCallback(() => setClienteAtivoId(null), []);
+  const sairDaSessao = useCallback(() => setSessao(null), []);
 
-  const iniciarSessao = useCallback((cliente: Cliente) => {
+  const iniciarSessao = useCallback((resposta: RespostaSessao) => {
+    if (resposta.papel === 'administrador') {
+      setAdministradorCarregado({ id: resposta.administrador.id, dados: resposta.administrador });
+      setSessao({ papel: 'administrador', id: resposta.administrador.id });
+      return;
+    }
+    const { cliente } = resposta;
     setClientes((atuais) =>
       atuais.some((candidato) => candidato.id === cliente.id)
         ? atuais.map((candidato) =>
@@ -97,8 +126,30 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
           )
         : [...atuais, cliente],
     );
-    setClienteAtivoId(cliente.id);
+    setSessao({ papel: 'cliente', id: cliente.id });
   }, []);
+
+  const atualizarAdministrador = useCallback((administrador: Administrador) => {
+    setAdministradorCarregado({ id: administrador.id, dados: administrador });
+  }, []);
+
+  // sessão de administrador aberta em outra visita: os dados vêm da API
+  useEffect(() => {
+    if (!sessao || sessao.papel !== 'administrador' || administradorCarregado?.id === sessao.id) {
+      return;
+    }
+    let cancelado = false;
+    buscarAdministrador(sessao.id)
+      .then((dados) => {
+        if (!cancelado) setAdministradorCarregado({ id: sessao.id, dados });
+      })
+      .catch(() => {
+        if (!cancelado) setAdministradorCarregado({ id: sessao.id, dados: null });
+      });
+    return () => {
+      cancelado = true;
+    };
+  }, [sessao, administradorCarregado]);
 
   const recarregarClientes = useCallback(async () => {
     try {
@@ -108,6 +159,8 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
       setErroClientes(
         erro instanceof Error ? erro.message : 'Falha ao carregar os clientes.',
       );
+    } finally {
+      setCarregandoClientes(false);
     }
   }, []);
 
@@ -142,7 +195,7 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
   useEffect(() => gravar('discos', discos), [discos]);
   useEffect(() => gravar('entradas', entradas), [entradas]);
   useEffect(() => gravar('carrinhos', carrinhos), [carrinhos]);
-  useEffect(() => gravar('sessao', clienteAtivoId), [clienteAtivoId]);
+  useEffect(() => gravar('sessao', sessao), [sessao]);
   useEffect(() => gravar('cupons', cupons), [cupons]);
   useEffect(
     () => gravar('carrinhoAtualizadoEm', carrinhoAtualizadoEm),
@@ -364,7 +417,12 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
       clientes,
       recarregarClientes,
       erroClientes,
+      carregandoClientes,
+      carregandoSessao: carregandoClientes || carregandoAdministrador,
+      sessao,
       clienteAtivo,
+      administradorAtivo,
+      atualizarAdministrador,
       entrarComoCliente,
       iniciarSessao,
       sairDaSessao,
@@ -397,7 +455,12 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
       clientes,
       recarregarClientes,
       erroClientes,
+      carregandoClientes,
+      carregandoAdministrador,
+      sessao,
       clienteAtivo,
+      administradorAtivo,
+      atualizarAdministrador,
       entrarComoCliente,
       iniciarSessao,
       sairDaSessao,

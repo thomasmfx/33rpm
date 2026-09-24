@@ -1,0 +1,167 @@
+@use '../../styles/mixins' as *;
+
+.cadastro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  min-height: calc(100vh - 64px);
+}
+
+.painel {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  padding: 72px 64px;
+  background: var(--cor-vinil);
+  color: var(--cor-papel);
+}
+
+.rotulo {
+  @include meta(12px);
+
+  color: var(--cor-apagado);
+}
+
+.passos {
+  position: relative;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.passo {
+  border-top: 1px solid var(--cor-texto);
+
+  button {
+    width: 100%;
+    display: flex;
+    gap: 20px;
+    padding: 20px 0;
+    background: none;
+    border: none;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    &:disabled {
+      cursor: default;
+    }
+  }
+
+  &[data-estado='futuro'] {
+    opacity: 0.45;
+  }
+
+  &[data-estado='feito'] button:hover strong {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+}
+
+.passoNumero {
+  display: flex;
+  width: 28px;
+  flex-shrink: 0;
+  font-family: var(--fonte-mono);
+  font-size: 12px;
+
+  .passo[data-estado='feito'] & {
+    color: var(--cor-sucesso-sobre-escuro);
+  }
+}
+
+.passoTexto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  strong {
+    font-size: 18px;
+  }
+
+  span {
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--cor-sobre-escuro);
+  }
+}
+
+.forma {
+  position: absolute;
+  right: -18%;
+  bottom: -18%;
+  width: 58%;
+  aspect-ratio: 1;
+}
+
+.lado {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 72px 64px;
+}
+
+.conteudo {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  h1 {
+    @include h1;
+  }
+}
+
+.etapaDe {
+  @include meta(12px);
+
+  color: var(--cor-auxiliar);
+}
+
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.erro {
+  font-size: 13px;
+  color: var(--cor-erro);
+}
+
+.gradeTelefone {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.cobranca {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 20px;
+  border-top: 1px solid var(--cor-divisoria);
+}
+
+.rodape {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 24px;
+  border-top: 1px solid var(--cor-divisoria);
+}
+
+.voltar {
+  @include link-sublinhado;
+
+  font-size: 15px;
+}

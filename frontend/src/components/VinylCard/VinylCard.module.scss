@@ -1,23 +1,120 @@
+@use '../../styles/mixins' as *;
+
 .card {
-  height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: transparent;
+  gap: 14px;
+  min-width: 0;
+  color: var(--cor-vinil);
   text-decoration: none;
-  color: inherit;
+
+  &:hover {
+    color: var(--cor-vinil);
+  }
+
+  // o disco desliza para fora da capa (ver Capa.module.scss)
+  &[data-hover='deslizar']:hover {
+    --deslize: 30%;
+  }
 }
 
-// a capa acompanha a largura do card e se mantém quadrada: com tamanho fixo
-// sobrava faixa vazia sempre que o card esticava além dela
 .capa {
-  width: 100%;
-  aspect-ratio: 1;
-  background-color: #ededed;
-  overflow: hidden;
-  flex-shrink: 0;
+  position: relative;
+  transition: transform 380ms var(--curva);
+
+  .card[data-hover='escala']:hover & {
+    transform: scale(1.025);
+  }
+}
+
+.selo {
+  @include meta(10px);
+
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 3px 6px;
+  background: var(--cor-selo);
+  color: #fff;
 }
 
 .info {
-  flex: 1;
-  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nomes {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.artista {
+  font-size: 13px;
+  color: var(--cor-auxiliar);
+}
+
+.titulo {
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.linhaPreco {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.preco {
+  @include preco;
+
+  font-size: 15px;
+}
+
+.meta {
+  font-family: var(--fonte-mono);
+  font-size: 11px;
+  color: var(--cor-auxiliar);
+  white-space: nowrap;
+}
+
+.card[data-destaque] {
+  gap: 20px;
+
+  .selo {
+    @include meta(11px);
+
+    top: 16px;
+    left: 16px;
+    padding: 4px 8px;
+  }
+
+  .artista {
+    font-size: 16px;
+  }
+
+  .titulo {
+    font-size: 32px;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+  }
+
+  .info {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+  }
+
+  .linhaPreco {
+    flex-direction: column-reverse;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  .preco {
+    font-size: 20px;
+  }
 }

@@ -1,0 +1,51 @@
+@use '../../styles/mixins' as *;
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.grade {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+// Prévia da RF0052: o mesmo cálculo que a gravação vai aplicar
+.previa {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  background: var(--cor-nevoa);
+  font-size: 13px;
+  color: var(--cor-texto);
+
+  p {
+    font-weight: 300;
+  }
+}
+
+.previaValor {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--cor-vinil);
+
+  strong {
+    @include preco;
+  }
+}
+
+.rodape {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 4px;
+}

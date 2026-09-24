@@ -1,0 +1,259 @@
+@use '../../styles/mixins' as *;
+
+.main {
+  @include container;
+
+  padding-top: 56px;
+  padding-bottom: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--cor-vinil);
+
+  h1 {
+    font-size: 56px;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+}
+
+.identificacao {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.meta {
+  @include meta(12px);
+
+  color: var(--cor-auxiliar);
+}
+
+.email {
+  font-size: 16px;
+  font-weight: 300;
+  color: var(--cor-texto);
+}
+
+.sair {
+  @include link-sublinhado(var(--cor-auxiliar));
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.avisoLinha {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 720px);
+  gap: 64px;
+  align-items: start;
+}
+
+.nav {
+  position: sticky;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.navItem {
+  height: 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  background: none;
+  border: none;
+  border-left: 2px solid var(--cor-divisoria);
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+
+  span {
+    font-family: var(--fonte-mono);
+    font-size: 11px;
+    color: var(--cor-apagado);
+  }
+
+  &:hover {
+    background: var(--cor-nevoa);
+  }
+
+  &[aria-current='page'] {
+    border-left-color: var(--cor-vinil);
+    font-weight: 700;
+  }
+}
+
+.conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+
+  h2 {
+    @include h2(24px);
+  }
+}
+
+.secaoCorpo {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.kv {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--cor-divisoria);
+}
+
+.kvLinha {
+  @include linha-kv(180px);
+
+  min-height: 52px;
+  font-size: 15px;
+
+  dt {
+    color: var(--cor-auxiliar);
+  }
+}
+
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rotuloCampo {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cartaoEndereco {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  background: var(--cor-branco);
+  border: 1px solid var(--cor-divisoria);
+}
+
+.cartaoTopo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+
+  strong {
+    font-size: 16px;
+  }
+}
+
+.pilulas {
+  display: flex;
+  gap: 8px;
+}
+
+.pilula {
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 12px;
+  background: var(--cor-branco);
+  border: 1px solid var(--cor-borda);
+  border-radius: 15px;
+  font-size: 13px;
+  cursor: pointer;
+
+  &[aria-pressed='true'] {
+    background: var(--cor-vinil);
+    border-color: var(--cor-vinil);
+    color: var(--cor-papel);
+  }
+
+  &:disabled {
+    cursor: wait;
+  }
+}
+
+.leve {
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--cor-texto);
+}
+
+.acoesItem {
+  display: flex;
+  gap: 16px;
+}
+
+.linhaCartao {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  > :first-child {
+    flex: 1;
+  }
+}
+
+.cartaoTexto {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  strong {
+    font-size: 15px;
+  }
+
+  span {
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--cor-texto);
+  }
+}
+
+.tagSelo {
+  @include meta(11px);
+
+  color: var(--cor-selo);
+}
+
+.formInline {
+  padding: 24px;
+  background: var(--cor-branco);
+  border: 1px solid var(--cor-borda);
+}
+
+.senha {
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}

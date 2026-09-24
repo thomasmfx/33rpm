@@ -1,0 +1,373 @@
+@use '../../styles/mixins' as *;
+
+// Peças comuns aos painéis da curadoria: busca, filtros, tabela em grid e drawer
+
+.painel {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.barra {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.busca {
+  flex: 1 1 320px;
+  max-width: 520px;
+}
+
+.botaoFiltros {
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 18px;
+  background: var(--cor-branco);
+  border: 1px solid var(--cor-vinil);
+  border-radius: var(--raio);
+  font-size: 14px;
+  cursor: pointer;
+
+  &[data-ativo] {
+    background: var(--cor-vinil);
+    color: var(--cor-papel);
+  }
+}
+
+.filtros {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  padding: 20px;
+  background: var(--cor-nevoa);
+}
+
+.filtroLargo {
+  grid-column: span 2;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rotulo {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.filtrosRodape {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.tabela {
+  display: flex;
+  flex-direction: column;
+  overflow-x: auto;
+  transition: opacity 150ms ease;
+
+  &[data-atualizando] {
+    opacity: 0.55;
+  }
+}
+
+.cabecalhoTabela {
+  @include cabecalho-tabela;
+
+  display: grid;
+  font-size: 12px;
+  gap: 16px;
+  align-items: end;
+}
+
+.linhaTabela {
+  display: grid;
+  gap: 16px;
+  align-items: center;
+  min-height: 64px;
+  border-bottom: 1px solid var(--cor-divisoria);
+  font-size: 15px;
+
+  &[data-inativo] {
+    opacity: 0.55;
+  }
+
+  &[data-destaque] {
+    background: var(--cor-selo-fundo);
+  }
+}
+
+.direita {
+  text-align: right;
+  justify-self: end;
+}
+
+.codigo {
+  font-family: var(--fonte-mono);
+  font-size: 13px;
+}
+
+.celulaNome {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+
+  strong {
+    font-size: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &:hover strong {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+.sub {
+  font-size: 14px;
+  color: var(--cor-auxiliar);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.numero {
+  font-variant-numeric: tabular-nums;
+}
+
+.preco {
+  @include preco;
+}
+
+.acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.acao {
+  @include botao-texto;
+
+  font-size: 14px;
+  color: var(--cor-vinil);
+
+  &:disabled {
+    color: var(--cor-placeholder);
+    text-decoration: none;
+    cursor: not-allowed;
+  }
+}
+
+.acaoPerigo {
+  @include botao-texto;
+
+  font-size: 14px;
+  color: var(--cor-erro);
+
+  &:hover {
+    color: var(--cor-erro-texto);
+  }
+}
+
+.vazio {
+  padding: 40px 0;
+  font-size: 15px;
+  color: var(--cor-auxiliar);
+}
+
+.ranking {
+  display: flex;
+  gap: 3px;
+
+  span {
+    width: 12px;
+    height: 12px;
+    background: var(--cor-divisoria);
+
+    &[data-cheio] {
+      background: var(--cor-vinil);
+    }
+  }
+}
+
+// Drawer e modal
+.drawer {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  min-height: calc(100vh - 96px);
+}
+
+.drawerTopo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.drawerTitulo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  h2 {
+    @include h2;
+
+    line-height: 1.1;
+  }
+}
+
+.meta {
+  @include meta(12px);
+
+  color: var(--cor-auxiliar);
+}
+
+.kv {
+  display: flex;
+  flex-direction: column;
+}
+
+.kvLinha {
+  @include linha-kv(140px);
+
+  min-height: 40px;
+
+  > :first-child {
+    color: var(--cor-auxiliar);
+  }
+}
+
+.secao {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rotuloSecao {
+  @include meta(11px);
+
+  color: var(--cor-auxiliar);
+}
+
+.cartao {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  background: var(--cor-branco);
+  border: 1px solid var(--cor-divisoria);
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--cor-texto);
+
+  strong {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--cor-vinil);
+  }
+}
+
+.cartaoTopo {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.tag {
+  @include meta(10px);
+
+  color: var(--cor-auxiliar);
+}
+
+.tagSelo {
+  @include meta(10px);
+
+  color: var(--cor-selo);
+}
+
+.nada {
+  font-size: 13px;
+  color: var(--cor-apagado);
+}
+
+.pedidos {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--cor-divisoria);
+}
+
+.pedidoLinha {
+  display: grid;
+  grid-template-columns: 80px 80px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 8px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--cor-divisoria);
+  font-size: 13px;
+  color: var(--cor-texto);
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--cor-branco);
+
+    .pedidoNumero {
+      color: var(--cor-selo);
+    }
+  }
+}
+
+.pedidoNumero {
+  font-family: var(--fonte-mono);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.drawerRodape {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 20px;
+  border-top: 1px solid var(--cor-divisoria);
+
+  > p {
+    flex-basis: 100%;
+  }
+}
+
+.textoModal {
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--cor-texto);
+
+  strong {
+    font-weight: 700;
+    color: var(--cor-vinil);
+  }
+}
+
+.rodapeModal {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}

@@ -1,36 +1,28 @@
 import styles from './Pedidos.module.scss';
 import { useState } from 'react';
-import {
-  Alert,
-  Badge,
-  Button,
-  Checkbox,
-  Divider,
-  Group,
-  Image,
-  Modal,
-  NumberInput,
-  Paper,
-  Stack,
-  Text,
-  Textarea,
-  Title,
-} from '@mantine/core';
+import { Navigate, useLocation } from 'react-router-dom';
+import { Alert, Button, Checkbox, Textarea } from '@mantine/core';
 import { useLoja } from '../../contexts/loja';
-import { IconPackageOff } from '@tabler/icons-react';
 import EstadoVazio from '../../components/EstadoVazio/EstadoVazio';
+import StatusPonto from '../../components/StatusPonto/StatusPonto';
+import LinhaDoTempo from '../../components/LinhaDoTempo/LinhaDoTempo';
+import Quantidade from '../../components/Quantidade/Quantidade';
+import { EsqueletoPagina } from '../../components/Esqueleto/Esqueleto';
 import type { Pedido } from '../../types/pedido';
 import {
   CORES_STATUS,
   itensDaTroca,
+  passoDoPedido,
+  pedidosDoCliente,
   podeCancelar,
   podeConfirmarRecebimento,
   podeInformarDespacho,
   podeSolicitarTroca,
+  ROTULOS_STATUS,
   valorDosItens,
 } from '../../utils/pedido';
 import { formatarBRL } from '../../utils/precificacao';
-import { resumirEndereco } from '../../utils/perfilCliente';
+import { linhaDoEndereco } from '../../utils/perfilCliente';
 
 const MOTIVO_MIN_CARACTERES = 10;
 
@@ -39,85 +31,82 @@ interface ItemSelecionadoTroca {
   quantidade: number;
 }
 
+function avisoDoStatus(pedido: Pedido): string | null {
+  switch (pedido.status) {
+    case 'TROCA SOLICITADA':
+      return 'Troca em análise. Assim que a curadoria autorizar, você recebe as instruções para enviar o disco.';
+    case 'TROCA ACEITA':
+      return 'Troca autorizada. Envie o disco de volta e avise por aqui quando despachar.';
+    case 'ITEM ENVIADO':
+      return 'O disco está a caminho da loja. O crédito sai quando a curadoria confirmar o recebimento.';
+    case 'CANCELADO':
+      return 'Pedido cancelado. Os discos voltaram ao estoque e o valor é estornado no cartão.';
+    case 'ENTREGUE':
+      return 'Algo errado com o disco? Você pode pedir a troca dos itens deste pedido.';
+    default:
+      return null;
+  }
+}
+
 export default function Pedidos() {
-  const { clienteAtivo, pedidos, cupons, cancelarPedido, atualizarPedido } = useLoja();
-  const [pedidoParaCancelar, setPedidoParaCancelar] = useState<Pedido | null>(null);
-  const [pedidoParaTroca, setPedidoParaTroca] = useState<Pedido | null>(null);
+  const { clienteAtivo, carregandoClientes, pedidos, cupons, cancelarPedido, atualizarPedido } =
+    useLoja();
+  const { state } = useLocation();
+  const [pedidoAbertoId, setPedidoAbertoId] = useState<string | null>(
+    () => (state as { abrir?: string } | null)?.abrir ?? null,
+  );
+  const [isConfirmandoCancelamento, setIsConfirmandoCancelamento] = useState(false);
+  const [isTrocaAberta, setIsTrocaAberta] = useState(false);
   const [itensTroca, setItensTroca] = useState<ItemSelecionadoTroca[]>([]);
   const [motivoTroca, setMotivoTroca] = useState<string>('');
 
-  if (!clienteAtivo) {
+  if (carregandoClientes) {
     return (
       <main className={styles.main}>
-<EstadoVazio
-          icone={<IconPackageOff size={104} stroke={1.1} />}
-          titulo="Nenhum perfil selecionado"
-          descricao="Escolha um cliente no menu do topo para ver os pedidos dele. A sessão aqui é simulada, não há login."
-          rotuloAcao="Explorar o acervo"
-          paraAcao="/acervo"
-        />
+        <EsqueletoPagina blocos={[88, 88, 88]} />
       </main>
     );
   }
 
-  const pedidosDoCliente = pedidos
-    .filter((pedido) => pedido.clienteId === clienteAtivo.id)
-    .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+  if (!clienteAtivo) {
+    return <Navigate to="/login" state={{ depois: '/pedidos' }} replace />;
+  }
 
-  if (pedidosDoCliente.length === 0) {
+  const lista = pedidosDoCliente(pedidos, clienteAtivo.id);
+
+  if (lista.length === 0) {
     return (
       <main className={styles.main}>
-<EstadoVazio
-          icone={<IconPackageOff size={104} stroke={1.1} />}
+        <EstadoVazio
           titulo="Nenhum pedido ainda"
           descricao="Quando você fechar uma compra, ela aparece aqui com o status e o histórico de entrega."
           rotuloAcao="Explorar o acervo"
           paraAcao="/acervo"
+          forma="gota"
+          paleta="laranja"
         />
       </main>
     );
   }
 
-  function handleAbrirCancelamento(pedido: Pedido): void {
-    setPedidoParaCancelar(pedido);
+  function alternarPedido(pedidoId: string): void {
+    setPedidoAbertoId((atual) => (atual === pedidoId ? null : pedidoId));
+    setIsConfirmandoCancelamento(false);
+    fecharTroca();
   }
 
-  function handleFecharCancelamento(): void {
-    setPedidoParaCancelar(null);
-  }
-
-  function handleConfirmarCancelamento(): void {
-    if (!pedidoParaCancelar) return;
-    cancelarPedido(pedidoParaCancelar.id);
-    handleFecharCancelamento();
-  }
-
-  function handleConfirmarRecebimento(pedido: Pedido): void {
-    atualizarPedido(pedido.id, { status: 'ENTREGUE' });
-  }
-
-  function handleInformarDespacho(pedido: Pedido): void {
-    atualizarPedido(pedido.id, { status: 'ITEM ENVIADO' });
-  }
-
-  function handleAbrirTroca(pedido: Pedido): void {
-    setPedidoParaTroca(pedido);
-    setItensTroca([]);
-    setMotivoTroca('');
-  }
-
-  function handleFecharTroca(): void {
-    setPedidoParaTroca(null);
+  function fecharTroca(): void {
+    setIsTrocaAberta(false);
     setItensTroca([]);
     setMotivoTroca('');
   }
 
   function handleAlternarItemTroca(discoId: number, marcado: boolean): void {
-    if (marcado) {
-      setItensTroca((atuais) => [...atuais, { discoId, quantidade: 1 }]);
-    } else {
-      setItensTroca((atuais) => atuais.filter((item) => item.discoId !== discoId));
-    }
+    setItensTroca((atuais) =>
+      marcado
+        ? [...atuais, { discoId, quantidade: 1 }]
+        : atuais.filter((item) => item.discoId !== discoId),
+    );
   }
 
   function handleAlterarQuantidadeTroca(discoId: number, quantidade: number): void {
@@ -126,11 +115,11 @@ export default function Pedidos() {
     );
   }
 
-  function handleConfirmarTroca(): void {
-    if (!pedidoParaTroca) return;
+  // RF0041: a troca é pedida sobre itens específicos, com um motivo
+  function handleConfirmarTroca(pedido: Pedido): void {
     if (itensTroca.length === 0 || motivoTroca.trim().length < MOTIVO_MIN_CARACTERES) return;
 
-    atualizarPedido(pedidoParaTroca.id, {
+    atualizarPedido(pedido.id, {
       status: 'TROCA SOLICITADA',
       troca: {
         itens: itensTroca,
@@ -140,256 +129,278 @@ export default function Pedidos() {
         retornouAoEstoque: false,
       },
     });
-
-    handleFecharTroca();
+    fecharTroca();
   }
 
   const trocaHabilitada =
     itensTroca.length > 0 && motivoTroca.trim().length >= MOTIVO_MIN_CARACTERES;
 
-  return (
-    <main className={styles.main}>
-      <Title order={1} size="40">Meus pedidos</Title>
+  function renderDetalhe(pedido: Pedido) {
+    const passo = passoDoPedido(pedido.status);
+    const aviso = avisoDoStatus(pedido);
+    const cupomTroca = pedido.cupomTrocaGeradoId
+      ? cupons.find((cupom) => cupom.id === pedido.cupomTrocaGeradoId)
+      : null;
+    const cupomDaTroca = pedido.troca?.cupomGeradoId
+      ? cupons.find((cupom) => cupom.id === pedido.troca?.cupomGeradoId)
+      : null;
 
-      {pedidoParaCancelar && (
-        <Modal
-          centered
-          size="md"
-          opened={Boolean(pedidoParaCancelar)}
-          onClose={handleFecharCancelamento}
-          title={<Text fw={600} size="lg">Cancelar pedido</Text>}
-        >
-          <Text fw={300} size="sm">
-            Os itens deste pedido voltam ao estoque. Confirmar o cancelamento do
-            pedido #{pedidoParaCancelar.id}?
-          </Text>
-          <Group justify="flex-end" mt="xl">
-            <Button variant="default" onClick={handleFecharCancelamento}>
-              Voltar
-            </Button>
-            <Button color="red" onClick={handleConfirmarCancelamento}>
-              Cancelar pedido
-            </Button>
-          </Group>
-        </Modal>
-      )}
+    return (
+      <div className={styles.detalhe}>
+        {passo !== null && <LinhaDoTempo passo={passo} />}
 
-      {pedidoParaTroca && (
-        <Modal
-          centered
-          size="lg"
-          opened={Boolean(pedidoParaTroca)}
-          onClose={handleFecharTroca}
-          title={<Text fw={600} size="lg">Solicitar troca</Text>}
-        >
-          <Stack gap="sm">
-            {pedidoParaTroca.itens.map((item) => {
+        {aviso && <Alert color="gray">{aviso}</Alert>}
+
+        {pedido.status === 'PAGAMENTO RECUSADO' && pedido.validacaoPagamento && (
+          <Alert color="red" title="Pagamento recusado">
+            {pedido.validacaoPagamento.verificacoes
+              .filter((verificacao) => !verificacao.ok)
+              .map((verificacao) => (
+                <div key={verificacao.rotulo}>
+                  {verificacao.rotulo}: {verificacao.detalhe}
+                </div>
+              ))}
+            <div>Os itens voltaram ao estoque. Refaça a compra com outra forma de pagamento.</div>
+          </Alert>
+        )}
+
+        {cupomTroca && (
+          <Alert color="green" title="Sobrou crédito">
+            A diferença dos cupons virou o cupom {cupomTroca.codigo}, no valor de{' '}
+            {formatarBRL(cupomTroca.valor)} (RN0036).
+          </Alert>
+        )}
+
+        <div className={styles.colunas}>
+          <div className={styles.coluna}>
+            <span className={styles.rotulo}>Discos</span>
+            {pedido.itens.map((item) => (
+              <div key={item.discoId} className={styles.item}>
+                <img src={item.coverSrc} alt="" />
+                <span className={styles.itemTexto}>
+                  <strong>{item.titulo}</strong>
+                  <span>
+                    {item.artista} · {item.quantidade}×
+                  </span>
+                </span>
+                <span>{formatarBRL(item.precoUnitario * item.quantidade)}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className={styles.coluna}>
+            <span className={styles.rotulo}>Entrega</span>
+            <strong>{pedido.enderecoEntrega.nome}</strong>
+            <span className={styles.texto}>{linhaDoEndereco(pedido.enderecoEntrega)}</span>
+          </div>
+
+          <div className={styles.coluna}>
+            <span className={styles.rotulo}>Pagamento</span>
+            <div className={styles.valor}>
+              <span>Subtotal</span>
+              <span>{formatarBRL(pedido.subtotal)}</span>
+            </div>
+            <div className={styles.valor}>
+              <span>Frete</span>
+              <span>{formatarBRL(pedido.frete)}</span>
+            </div>
+            {pedido.cupons.map((cupom) => (
+              <div key={cupom.cupomId} className={styles.valor} data-desconto>
+                <span>Cupom {cupom.codigo}</span>
+                <span>− {formatarBRL(cupom.valor)}</span>
+              </div>
+            ))}
+            {pedido.cartoes.map((cartao) => (
+              <div key={cartao.cartaoId} className={styles.valor}>
+                <span>
+                  {cartao.bandeira} •••• {cartao.ultimosDigitos}
+                </span>
+                <span>{formatarBRL(cartao.valor)}</span>
+              </div>
+            ))}
+            <div className={styles.total}>
+              <span>Total</span>
+              <strong>{formatarBRL(pedido.total)}</strong>
+            </div>
+          </div>
+        </div>
+
+        {pedido.troca && (
+          <div className={styles.troca}>
+            <span className={styles.rotuloSelo}>
+              Troca · pedida em {new Date(pedido.troca.solicitadaEm).toLocaleDateString('pt-BR')}
+            </span>
+            {itensDaTroca(pedido).map((item) => (
+              <span key={item.discoId}>
+                {item.titulo} · {item.quantidade}×
+              </span>
+            ))}
+            <q>{pedido.troca.motivo}</q>
+            <strong>Valor: {formatarBRL(valorDosItens(pedido, pedido.troca.itens))}</strong>
+            {cupomDaTroca && (
+              <Alert color="green" title="Crédito disponível">
+                O crédito da troca já está no cupom {cupomDaTroca.codigo}, no valor de{' '}
+                {formatarBRL(cupomDaTroca.valor)} (RF0045).
+              </Alert>
+            )}
+          </div>
+        )}
+
+        {isConfirmandoCancelamento && (
+          <div className={styles.confirmacao}>
+            <p>
+              Os discos voltam ao estoque e o valor é estornado no cartão. Cancelar o pedido #
+              {pedido.id}?
+            </p>
+            <div className={styles.acoes}>
+              <Button
+                variant="outline"
+                color="red"
+                size="sm"
+                onClick={() => setIsConfirmandoCancelamento(false)}
+              >
+                Manter pedido
+              </Button>
+              <Button
+                color="red"
+                size="sm"
+                onClick={() => {
+                  cancelarPedido(pedido.id);
+                  setIsConfirmandoCancelamento(false);
+                }}
+              >
+                Cancelar pedido
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {isTrocaAberta && (
+          <div className={styles.painelTroca}>
+            <h3>Quais discos você quer trocar?</h3>
+            {pedido.itens.map((item) => {
               const selecionado = itensTroca.find((atual) => atual.discoId === item.discoId);
-
               return (
-                <Group key={item.discoId} wrap="nowrap" align="flex-start">
+                <div key={item.discoId} className={styles.itemTroca}>
                   <Checkbox
+                    label={`${item.titulo} · ${item.artista}`}
                     checked={Boolean(selecionado)}
-                    onChange={(event) =>
-                      handleAlternarItemTroca(item.discoId, event.currentTarget.checked)
+                    onChange={(evento) =>
+                      handleAlternarItemTroca(item.discoId, evento.currentTarget.checked)
                     }
                   />
-                  <Stack gap={0} style={{ flex: 1 }}>
-                    <Text size="sm" fw={600}>{item.titulo}</Text>
-                    <Text size="sm" c="dimmed">{item.artista}</Text>
-                  </Stack>
-                  <NumberInput
-                    disabled={!selecionado}
-                    value={selecionado?.quantidade ?? 1}
-                    onChange={(valor) =>
-                      handleAlterarQuantidadeTroca(item.discoId, Number(valor) || 1)
-                    }
-                    min={1}
-                    max={item.quantidade}
-                    w={90}
-                  />
-                </Group>
+                  {selecionado && item.quantidade > 1 && (
+                    <Quantidade
+                      tamanho="sm"
+                      valor={selecionado.quantidade}
+                      maximo={item.quantidade}
+                      rotulo={`Quantidade de ${item.titulo} para troca`}
+                      onChange={(valor) => handleAlterarQuantidadeTroca(item.discoId, valor)}
+                    />
+                  )}
+                </div>
               );
             })}
-
-            <Textarea
-              label="Motivo da troca"
-              placeholder="Descreva o motivo (mínimo 10 caracteres)"
-              minRows={3}
-              value={motivoTroca}
-              onChange={(event) => setMotivoTroca(event.currentTarget.value)}
-            />
-
-            <Group justify="flex-end" mt="md">
-              <Button variant="default" onClick={handleFecharTroca}>
+            <div className={styles.motivo}>
+              <Textarea
+                label="Motivo"
+                placeholder="Ex.: o disco chegou empenado no lado B"
+                minRows={3}
+                autosize
+                value={motivoTroca}
+                onChange={(evento) => setMotivoTroca(evento.currentTarget.value)}
+              />
+              <span
+                className={styles.contador}
+                data-ok={motivoTroca.trim().length >= MOTIVO_MIN_CARACTERES || undefined}
+              >
+                {motivoTroca.trim().length} / {MOTIVO_MIN_CARACTERES} mín.
+              </span>
+            </div>
+            <div className={styles.acoes}>
+              <Button variant="default" size="sm" onClick={fecharTroca}>
                 Voltar
               </Button>
-              <Button disabled={!trocaHabilitada} onClick={handleConfirmarTroca}>
-                Confirmar troca
+              <Button size="sm" disabled={!trocaHabilitada} onClick={() => handleConfirmarTroca(pedido)}>
+                Solicitar troca
               </Button>
-            </Group>
-          </Stack>
-        </Modal>
-      )}
+            </div>
+          </div>
+        )}
 
-      <Stack gap="lg">
-        {pedidosDoCliente.map((pedido) => {
-          const cupomTroca = pedido.cupomTrocaGeradoId
-            ? cupons.find((cupom) => cupom.id === pedido.cupomTrocaGeradoId)
-            : null;
-          const cupomDaTroca = pedido.troca?.cupomGeradoId
-            ? cupons.find((cupom) => cupom.id === pedido.troca?.cupomGeradoId)
-            : null;
+        {!isConfirmandoCancelamento && !isTrocaAberta && (
+          <div className={styles.acoes}>
+            {podeCancelar(pedido.status) && (
+              <Button variant="outline" color="red" onClick={() => setIsConfirmandoCancelamento(true)}>
+                Cancelar pedido
+              </Button>
+            )}
+            {podeConfirmarRecebimento(pedido.status) && (
+              <Button onClick={() => atualizarPedido(pedido.id, { status: 'ENTREGUE' })}>
+                Confirmar recebimento
+              </Button>
+            )}
+            {podeSolicitarTroca(pedido.status) && (
+              <Button variant="outline" onClick={() => setIsTrocaAberta(true)}>
+                Solicitar troca
+              </Button>
+            )}
+            {podeInformarDespacho(pedido.status) && (
+              <Button onClick={() => atualizarPedido(pedido.id, { status: 'ITEM ENVIADO' })}>
+                Informar despacho do item
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
 
+  return (
+    <main className={styles.main}>
+      <div className={styles.cabecalho}>
+        <h1>Meus pedidos</h1>
+        <span className={styles.contagem}>
+          {lista.length} {lista.length === 1 ? 'pedido' : 'pedidos'}
+        </span>
+      </div>
+
+      <ul className={styles.lista}>
+        {lista.map((pedido) => {
+          const aberto = pedido.id === pedidoAbertoId;
           return (
-            <Paper key={pedido.id} withBorder p="md">
-              <Group justify="space-between" align="flex-start" wrap="wrap">
-                <Stack gap={2}>
-                  <Text fw={600}>Pedido #{pedido.id}</Text>
-                  <Text size="sm" c="dimmed">
-                    {new Date(pedido.data).toLocaleDateString('pt-BR')}
-                  </Text>
-                </Stack>
-                <Badge color={CORES_STATUS[pedido.status]}>{pedido.status}</Badge>
-              </Group>
-
-              <Divider my="sm" />
-
-              <Stack gap="sm">
-                {pedido.itens.map((item) => (
-                  <div key={item.discoId} className={styles.item}>
-                    <div className={styles.capa}>
-                      <Image src={item.coverSrc} alt={item.titulo} w={48} h={48} fit="cover" />
-                    </div>
-                    <Stack gap={0}>
-                      <Text size="sm" fw={600}>{item.titulo}</Text>
-                      <Text size="sm" c="dimmed">{item.artista}</Text>
-                    </Stack>
-                    <Text size="sm">Qtd: {item.quantidade}</Text>
-                    <Text size="sm" fw={600} ta="right">
-                      {formatarBRL(item.precoUnitario * item.quantidade)}
-                    </Text>
-                  </div>
-                ))}
-              </Stack>
-
-              <Divider my="sm" />
-
-              <Text size="sm">
-                Entrega em {resumirEndereco(pedido.enderecoEntrega)}
-              </Text>
-
-              <Divider my="sm" />
-
-              <Stack gap={4}>
-                <div className={styles.linhaValor}>
-                  <Text size="sm">Subtotal</Text>
-                  <Text size="sm">{formatarBRL(pedido.subtotal)}</Text>
-                </div>
-                <div className={styles.linhaValor}>
-                  <Text size="sm">Frete</Text>
-                  <Text size="sm">{formatarBRL(pedido.frete)}</Text>
-                </div>
-                {pedido.cupons.map((cupom) => (
-                  <div key={cupom.cupomId} className={styles.linhaValor}>
-                    <Text size="sm">Cupom {cupom.codigo}</Text>
-                    <Text size="sm" c="green">- {formatarBRL(cupom.valor)}</Text>
-                  </div>
-                ))}
-                {pedido.cartoes.map((cartao) => (
-                  <div key={cartao.cartaoId} className={styles.linhaValor}>
-                    <Text size="sm">{cartao.bandeira} •••• {cartao.ultimosDigitos}</Text>
-                    <Text size="sm">{formatarBRL(cartao.valor)}</Text>
-                  </div>
-                ))}
-                <div className={styles.linhaValor}>
-                  <Text fw={700}>Total</Text>
-                  <Text fw={700} size="lg">{formatarBRL(pedido.total)}</Text>
-                </div>
-              </Stack>
-
-              {cupomTroca && (
-                <Alert color="green" title="Sobrou crédito" mt="sm">
-                  A diferença dos cupons virou o cupom {cupomTroca.codigo}, no valor
-                  de {formatarBRL(cupomTroca.valor)} (RN0036).
-                </Alert>
-              )}
-
-              {pedido.status === 'PAGAMENTO RECUSADO' &&
-                pedido.validacaoPagamento && (
-                  <Alert color="red" title="Pagamento recusado">
-                    <Stack gap={4}>
-                      {pedido.validacaoPagamento.verificacoes
-                        .filter((verificacao) => !verificacao.ok)
-                        .map((verificacao) => (
-                          <Text key={verificacao.rotulo} size="sm">
-                            {verificacao.rotulo}: {verificacao.detalhe}
-                          </Text>
-                        ))}
-                      <Text size="xs" c="dimmed">
-                        Os itens voltaram ao estoque. Refaça a compra com outra
-                        forma de pagamento.
-                      </Text>
-                    </Stack>
-                  </Alert>
-                )}
-              {pedido.troca && (
-                <Paper withBorder p="sm" mt="sm" bg="var(--mantine-color-gray-0)">
-                  <Text size="sm" fw={600}>Troca solicitada</Text>
-                  <Text size="sm" c="dimmed">
-                    Em {new Date(pedido.troca.solicitadaEm).toLocaleDateString('pt-BR')}
-                  </Text>
-                  <Stack gap={4} mt="xs">
-                    {itensDaTroca(pedido).map((item) => (
-                      <div key={item.discoId} className={styles.linhaValor}>
-                        <Text size="sm">{item.titulo} (Qtd: {item.quantidade})</Text>
-                      </div>
+            <li key={pedido.id} className={styles.pedido} data-aberto={aberto || undefined}>
+              <button
+                type="button"
+                className={styles.linha}
+                aria-expanded={aberto}
+                onClick={() => alternarPedido(pedido.id)}
+              >
+                <span className={styles.numero}>
+                  <span>#{pedido.id}</span>
+                  <span className={styles.data}>{new Date(pedido.data).toLocaleDateString('pt-BR')}</span>
+                </span>
+                <span className={styles.capas}>
+                  <span className={styles.pilha}>
+                    {pedido.itens.slice(0, 3).map((item) => (
+                      <img key={item.discoId} src={item.coverSrc} alt="" />
                     ))}
-                  </Stack>
-                  <Text size="sm" mt="xs">Motivo: {pedido.troca.motivo}</Text>
-                  <Text size="sm" fw={600} mt="xs">
-                    Valor: {formatarBRL(valorDosItens(pedido, pedido.troca.itens))}
-                  </Text>
-
-                  {cupomDaTroca && (
-                    <Alert color="green" title="Crédito disponível" mt="sm">
-                      O crédito da troca já está disponível no cupom {cupomDaTroca.codigo},
-                      no valor de {formatarBRL(cupomDaTroca.valor)} (RF0045).
-                    </Alert>
-                  )}
-                </Paper>
-              )}
-
-              <Group justify="flex-end" mt="sm">
-                {podeCancelar(pedido.status) && (
-                  <Button
-                    color="red"
-                    variant="subtle"
-                    onClick={() => handleAbrirCancelamento(pedido)}
-                  >
-                    Cancelar pedido
-                  </Button>
-                )}
-                {podeConfirmarRecebimento(pedido.status) && (
-                  <Button color="green" onClick={() => handleConfirmarRecebimento(pedido)}>
-                    Confirmar recebimento
-                  </Button>
-                )}
-                {podeSolicitarTroca(pedido.status) && (
-                  <Button onClick={() => handleAbrirTroca(pedido)}>
-                    Solicitar troca
-                  </Button>
-                )}
-                {podeInformarDespacho(pedido.status) && (
-                  <Button onClick={() => handleInformarDespacho(pedido)}>
-                    Informar despacho do item
-                  </Button>
-                )}
-              </Group>
-            </Paper>
+                  </span>
+                  <span className={styles.titulos}>
+                    {pedido.itens.map((item) => item.titulo).join(', ')}
+                  </span>
+                </span>
+                <span className={styles.totalLinha}>{formatarBRL(pedido.total)}</span>
+                <StatusPonto cor={CORES_STATUS[pedido.status]}>
+                  {ROTULOS_STATUS[pedido.status]}
+                </StatusPonto>
+                <span className={styles.abrir}>{aberto ? 'Fechar' : 'Detalhes'}</span>
+              </button>
+              {aberto && renderDetalhe(pedido)}
+            </li>
           );
         })}
-      </Stack>
+      </ul>
     </main>
   );
 }

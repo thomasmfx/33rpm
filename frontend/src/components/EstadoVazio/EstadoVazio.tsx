@@ -1,43 +1,41 @@
 import styles from './EstadoVazio.module.scss';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, Stack, Text, Title } from '@mantine/core';
+import { Button } from '@mantine/core';
+import Forma from '../Forma/Forma';
+import type { PaletaForma, TipoForma } from '../Forma/Forma';
 
 interface EstadoVazioProps {
-  icone: ReactNode;
   titulo: string;
-  descricao: string;
+  descricao: ReactNode;
   rotuloAcao?: string;
   paraAcao?: string;
+  forma?: TipoForma;
+  paleta?: PaletaForma;
 }
 
 export default function EstadoVazio({
-  icone,
   titulo,
   descricao,
   rotuloAcao,
   paraAcao,
+  forma = 'semis',
+  paleta = 'carvao',
 }: Readonly<EstadoVazioProps>) {
   return (
     <div className={styles.container}>
-      <div className={styles.icone} aria-hidden>
-        {icone}
+      <div className={styles.texto}>
+        <h1>{titulo}</h1>
+        <p>{descricao}</p>
+        {rotuloAcao && paraAcao && (
+          <Button component={Link} to={paraAcao}>
+            {rotuloAcao}
+          </Button>
+        )}
       </div>
-
-      <Stack gap={6} align="center" className={styles.texto}>
-        <Title order={2} size="28">
-          {titulo}
-        </Title>
-        <Text fw={300} c="dimmed">
-          {descricao}
-        </Text>
-      </Stack>
-
-      {rotuloAcao && paraAcao && (
-        <Button component={Link} to={paraAcao} color="dark" size="md" radius="xl">
-          {rotuloAcao}
-        </Button>
-      )}
+      <div className={styles.forma}>
+        <Forma tipo={forma} paleta={paleta} />
+      </div>
     </div>
   );
 }

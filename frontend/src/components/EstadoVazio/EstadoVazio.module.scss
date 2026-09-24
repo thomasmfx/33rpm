@@ -1,18 +1,33 @@
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 1.25em;
-  padding: 5em 1em 6em;
-}
+@use '../../styles/mixins' as *;
 
-.icone {
-  color: #000;
-  opacity: 0.18;
-  line-height: 0;
+.container {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 48px;
+  align-items: center;
+  padding-top: 48px;
+  border-top: 1px solid var(--cor-vinil);
 }
 
 .texto {
-  max-width: 42ch;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+
+  h1 {
+    @include h1;
+  }
+
+  p {
+    @include corpo;
+
+    font-size: 18px;
+    max-width: 44ch;
+  }
+}
+
+.forma {
+  width: 100%;
+  aspect-ratio: 1;
 }

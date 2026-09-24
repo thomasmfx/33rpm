@@ -37,7 +37,7 @@ interface CartaoApi {
   bandeira: Descritor;
 }
 
-interface ClienteApi {
+export interface ClienteApi {
   id: number;
   codigo: string;
   nome: string;
@@ -52,7 +52,7 @@ interface ClienteApi {
   cartoes: CartaoApi[];
 }
 
-function paraCliente(bruto: ClienteApi): Cliente {
+export function paraCliente(bruto: ClienteApi): Cliente {
   return {
     id: String(bruto.id),
     codigo: bruto.codigo,
@@ -226,14 +226,6 @@ export async function reativarCliente(id: string): Promise<Cliente> {
   const bruto = await requisitar<ClienteApi>(`/clientes/${id}/ativacao`, {
     method: 'PUT',
     body: JSON.stringify({ isAtivo: true }),
-  });
-  return paraCliente(bruto);
-}
-
-export async function autenticar(email: string, senha: string): Promise<Cliente> {
-  const bruto = await requisitar<ClienteApi>('/clientes/login', {
-    method: 'POST',
-    body: JSON.stringify({ email, senha }),
   });
   return paraCliente(bruto);
 }

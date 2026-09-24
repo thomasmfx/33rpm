@@ -1,39 +1,24 @@
 import styles from './Checkout.module.scss';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import {
-  Alert,
-  Anchor,
-  Button,
-  Checkbox,
-  Divider,
-  Group,
-  Image,
-  Modal,
-  NumberInput,
-  Paper,
-  Radio,
-  Stack,
-  Stepper,
-  Text,
-  Title,
-} from '@mantine/core';
-import { IconAlertTriangle } from '@tabler/icons-react';
+import type { ReactNode } from 'react';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Alert, Button, Checkbox, NumberInput, Radio, TextInput } from '@mantine/core';
 import type { Cartao, Endereco } from '../../types/cliente';
 import type { Cupom } from '../../types/cupom';
 import type { Pedido } from '../../types/pedido';
 import { useLoja } from '../../contexts/loja';
 import { alterarCartoes, alterarEnderecos } from '../../services/clientesService';
-import { AVISO_ANTES_MINUTOS } from '../../utils/carrinho';
 import {
   calcularFrete,
   calcularSubtotal,
   cuponsDisponiveis,
+  dividirIgualmente,
   itensDoCarrinho,
   itensIndisponiveis,
   montarItensPedido,
   montarPagamentoCartao,
   montarPagamentoCupons,
+  redistribuir,
   regiaoDoEstado,
   somarCupons,
   trocoDosCupons,
@@ -42,29 +27,75 @@ import {
   validarCupons,
   valorRestante,
 } from '../../utils/checkout';
-import { adicionarCartao, atendeTipo, resumirEndereco } from '../../utils/perfilCliente';
+import { adicionarCartao, atendeTipo, linhaDoEndereco } from '../../utils/perfilCliente';
 import { formatarBRL } from '../../utils/precificacao';
+import { normalizar } from '../../utils/texto';
 import FormEndereco, {
   type FormEnderecoValues,
 } from '../../components/FormCliente/FormEndereco';
 import FormCartao, {
   type FormCartaoValues,
 } from '../../components/FormCliente/FormCartao';
+import AvisoReserva from '../../components/AvisoReserva/AvisoReserva';
+import Capa from '../../components/Capa/Capa';
+import EstadoVazio from '../../components/EstadoVazio/EstadoVazio';
+import { EsqueletoPagina } from '../../components/Esqueleto/Esqueleto';
+import { Add, Checkmark, Ticket } from '@carbon/icons-react';
+
+type Etapa = 0 | 1 | 2;
+
+const TEMPO_PROCESSAMENTO_MS = 1800;
+
+interface EtapaProps {
+  numero: Etapa;
+  atual: Etapa;
+  titulo: string;
+  resumo?: string;
+  onAlterar: () => void;
+  children: ReactNode;
+}
+
+/** Etapa do acordeão: concluída mostra o resumo e volta a abrir por "Alterar". */
+function EtapaCheckout({ numero, atual, titulo, resumo, onAlterar, children }: Readonly<EtapaProps>) {
+  const estado = numero < atual ? 'feita' : numero === atual ? 'atual' : 'futura';
+
+  return (
+    <section className={styles.etapa} data-estado={estado} data-testid={`etapa-${numero + 1}`}>
+      <div className={styles.etapaTopo}>
+        <span className={styles.etapaNumero}>
+          {String(numero + 1).padStart(2, '0')}
+          {estado === 'feita' && <Checkmark size={12} />}
+        </span>
+        <h2>{titulo}</h2>
+        {estado === 'feita' && (
+          <>
+            <span className={styles.etapaResumo}>{resumo}</span>
+            <button type="button" className={styles.alterar} onClick={onAlterar}>
+              Alterar
+            </button>
+          </>
+        )}
+      </div>
+      {estado === 'atual' && <div className={styles.etapaCorpo}>{children}</div>}
+    </section>
+  );
+}
 
 function Checkout() {
   const {
     clienteAtivo,
+    carregandoClientes,
     carrinho,
     discos,
     cupons,
+    itensNoCarrinho,
     recarregarClientes,
     registrarPedido,
-    minutosParaExpirar,
     sincronizarCarrinho,
   } = useLoja();
   const navegar = useNavigate();
 
-  const [etapaAtiva, setEtapaAtiva] = useState(0);
+  const [etapa, setEtapa] = useState<Etapa>(0);
 
   const [enderecoAdHoc, setEnderecoAdHoc] = useState<Endereco | null>(null);
   const [enderecoSelecionadoId, setEnderecoSelecionadoId] = useState<string | null>(null);
@@ -72,6 +103,8 @@ function Checkout() {
   const [isFormEnderecoVisible, setIsFormEnderecoVisible] = useState(false);
 
   const [cuponsSelecionadosIds, setCuponsSelecionadosIds] = useState<string[]>([]);
+  const [codigoCupom, setCodigoCupom] = useState('');
+  const [erroCodigo, setErroCodigo] = useState<string | null>(null);
 
   const [cartoesAdHoc, setCartoesAdHoc] = useState<Cartao[]>([]);
   const [cartoesAdHocParaSalvarIds, setCartoesAdHocParaSalvarIds] = useState<string[]>([]);
@@ -79,33 +112,32 @@ function Checkout() {
   const [isFormCartaoVisible, setIsFormCartaoVisible] = useState(false);
   const [cartoesSelecionadosIds, setCartoesSelecionadosIds] = useState<string[]>([]);
   const [valoresPorCartao, setValoresPorCartao] = useState<Record<string, number>>({});
+  const [isProcessando, setIsProcessando] = useState(false);
 
   const itens = itensDoCarrinho(carrinho, discos);
   const indisponiveis = itensIndisponiveis(itens);
 
-  if (!clienteAtivo) {
+  if (carregandoClientes) {
     return (
       <main className={styles.main}>
-        <Stack gap="md" align="flex-start" mt="6em">
-          <Title order={1} size="32">Escolha um perfil para comprar</Title>
-          <Text fw={300}>
-            O 33rpm simula sessão de cliente e não tem login — escolha um perfil no menu do
-            topo antes de finalizar a compra.
-          </Text>
-          <Anchor component={Link} to="/acervo" fw={700}>Voltar para o acervo</Anchor>
-        </Stack>
+        <EsqueletoPagina comAside blocos={[72, 72, 72]} />
       </main>
     );
   }
 
-  if (itens.length === 0) {
+  if (!clienteAtivo) {
+    return <Navigate to="/login" state={{ depois: '/checkout' }} replace />;
+  }
+
+  if (itens.length === 0 && !isProcessando) {
     return (
       <main className={styles.main}>
-        <Stack gap="md" align="flex-start" mt="6em">
-          <Title order={1} size="32">Seu carrinho está vazio</Title>
-          <Text fw={300}>Adicione discos ao carrinho antes de finalizar a compra.</Text>
-          <Anchor component={Link} to="/acervo" fw={700}>Explorar o acervo</Anchor>
-        </Stack>
+        <EstadoVazio
+          titulo="Seu carrinho está vazio"
+          descricao="Adicione discos ao carrinho antes de finalizar a compra."
+          rotuloAcao="Explorar o acervo"
+          paraAcao="/acervo"
+        />
       </main>
     );
   }
@@ -113,27 +145,25 @@ function Checkout() {
   if (indisponiveis.length > 0) {
     return (
       <main className={styles.main}>
-        <Stack gap="md" mt="6em">
-          <Title order={1} size="32">Ajuste seu carrinho</Title>
-          <Alert color="red" title="Estoque insuficiente" icon={<IconAlertTriangle size={18} />}>
-            <Stack gap={4}>
-              <Text size="sm">
-                O estoque destes discos caiu abaixo da quantidade que está no seu carrinho:
-              </Text>
+        <div className={styles.ajuste}>
+          <h1>Ajuste seu carrinho</h1>
+          <Alert color="red" title="Estoque insuficiente">
+            <p>O estoque destes discos caiu abaixo da quantidade que está no seu carrinho:</p>
+            <ul className={styles.lista}>
               {indisponiveis.map(({ disco, quantidade }) => (
-                <Text size="sm" key={disco.id}>
-                  {disco.title} — no carrinho: {quantidade}, disponível: {disco.estoque}
-                </Text>
+                <li key={disco.id}>
+                  {disco.title}: no carrinho {quantidade}, disponível {disco.estoque}
+                </li>
               ))}
-              <Group mt="xs">
-                <Button size="xs" color="dark" onClick={sincronizarCarrinho}>
-                  Ajustar carrinho automaticamente
-                </Button>
-              </Group>
-            </Stack>
+            </ul>
           </Alert>
-          <Anchor component={Link} to="/carrinho" fw={700}>Ajustar carrinho</Anchor>
-        </Stack>
+          <div className={styles.acoes}>
+            <Button onClick={sincronizarCarrinho}>Ajustar carrinho automaticamente</Button>
+            <Button variant="default" component={Link} to="/carrinho">
+              Voltar ao carrinho
+            </Button>
+          </div>
+        </div>
       </main>
     );
   }
@@ -152,6 +182,10 @@ function Checkout() {
   const subtotal = calcularSubtotal(itens);
   const frete = calcularFrete(itens, enderecoEscolhido);
   const total = subtotal + frete;
+  const pesoTotal = itens.reduce(
+    (soma, item) => soma + item.disco.dimensoes.peso * item.quantidade,
+    0,
+  );
 
   const cuponsList = cuponsDisponiveis(cupons, cliente.id);
   const cuponsSelecionados = cuponsList.filter((cupom) =>
@@ -160,6 +194,7 @@ function Checkout() {
   const mensagemCupons = validarCupons(cuponsSelecionados, total);
   const restante = valorRestante(cuponsSelecionados, total);
   const troco = trocoDosCupons(cuponsSelecionados, total);
+  const descontoCupons = Math.min(somarCupons(cuponsSelecionados), total);
 
   const cartoesDisponiveis = [...cliente.cartoes, ...cartoesAdHoc];
   const cartoesSelecionados = cartoesDisponiveis.filter((cartao) =>
@@ -168,23 +203,21 @@ function Checkout() {
   const pagamentoCartoes = cartoesSelecionados.map((cartao) =>
     montarPagamentoCartao(cartao, valoresPorCartao[cartao.id] ?? 0),
   );
-
-  const somaCartoes =
-    Math.round(
-      pagamentoCartoes.reduce((soma, cartao) => soma + cartao.valor, 0) * 100,
-    ) / 100;
-  const faltaDistribuir = Math.round((restante - somaCartoes) * 100) / 100;
   const mensagemCartoes = validarCartoes(
     pagamentoCartoes,
     restante,
     cuponsSelecionados.length > 0,
   );
 
-  const haPendenciaNoPagamento = Boolean(mensagemCupons) || Boolean(mensagemCartoes);
+  const pendencia = mensagemCupons ?? mensagemCartoes;
 
-  function handleFecharFormEndereco(): void {
-    setIsFormEnderecoVisible(false);
-    setIsSalvarEndereco(false);
+  function resumoEndereco(): string {
+    return enderecoEscolhido ? `${enderecoEscolhido.nome} · ${enderecoEscolhido.cidade}` : '';
+  }
+
+  function tagDoEndereco(endereco: Endereco): string {
+    if (endereco.id === enderecoAdHoc?.id) return isSalvarEndereco ? 'Salvar no perfil' : 'Só este pedido';
+    return endereco.id === enderecosParaEntrega[0]?.id ? 'Padrão' : 'Salvo';
   }
 
   function handleSubmitEnderecoNovo(valores: FormEnderecoValues): void {
@@ -194,59 +227,68 @@ function Checkout() {
     setIsFormEnderecoVisible(false);
   }
 
-  function handleFecharFormCartao(): void {
-    setIsFormCartaoVisible(false);
-    setIsSalvarCartao(false);
-  }
-
   function handleSubmitCartaoNovo(valores: FormCartaoValues): void {
     const novoCartao: Cartao = { id: crypto.randomUUID().slice(0, 8), ...valores };
     setCartoesAdHoc((atuais) => [...atuais, novoCartao]);
-    setCartoesSelecionadosIds((atuais) => [...atuais, novoCartao.id]);
     if (isSalvarCartao) {
       setCartoesAdHocParaSalvarIds((atuais) => [...atuais, novoCartao.id]);
     }
     setIsSalvarCartao(false);
     setIsFormCartaoVisible(false);
+    selecionarCartoes([...cartoesSelecionadosIds, novoCartao.id], restante);
   }
 
-  function handleToggleCupom(cupomId: string): void {
-    setCuponsSelecionadosIds((atuais) =>
-      atuais.includes(cupomId) ? atuais.filter((id) => id !== cupomId) : [...atuais, cupomId],
-    );
+  // o valor já vem dividido: o cliente só mexe se quiser outra proporção
+  function selecionarCartoes(ids: string[], valorAPagar: number): void {
+    setCartoesSelecionadosIds(ids);
+    setValoresPorCartao(dividirIgualmente(valorAPagar, ids));
   }
 
   function handleToggleCartao(cartaoId: string): void {
-    setCartoesSelecionadosIds((atuais) =>
-      atuais.includes(cartaoId)
-        ? atuais.filter((id) => id !== cartaoId)
-        : [...atuais, cartaoId],
-    );
+    const ids = cartoesSelecionadosIds.includes(cartaoId)
+      ? cartoesSelecionadosIds.filter((id) => id !== cartaoId)
+      : [...cartoesSelecionadosIds, cartaoId];
+    selecionarCartoes(ids, restante);
   }
 
   function handleAlterarValorCartao(cartaoId: string, valor: number): void {
-    setValoresPorCartao((atuais) => ({ ...atuais, [cartaoId]: valor }));
+    setValoresPorCartao((atuais) =>
+      redistribuir(atuais, restante, cartoesSelecionadosIds, cartaoId, valor),
+    );
   }
 
-  function handleDividirIgualmente(): void {
-    if (cartoesSelecionadosIds.length === 0) return;
+  function alternarCupons(ids: string[]): void {
+    setCuponsSelecionadosIds(ids);
+    const novosSelecionados = cuponsList.filter((cupom) => ids.includes(cupom.id));
+    // cupom muda o restante, então a divisão dos cartões precisa acompanhar
+    selecionarCartoes(cartoesSelecionadosIds, valorRestante(novosSelecionados, total));
+  }
 
-    const restanteCentavos = Math.round(restante * 100);
-    const partes = cartoesSelecionadosIds.length;
-    const baseCentavos = Math.floor(restanteCentavos / partes);
-    const sobraCentavos = restanteCentavos - baseCentavos * partes;
+  function handleToggleCupom(cupomId: string): void {
+    alternarCupons(
+      cuponsSelecionadosIds.includes(cupomId)
+        ? cuponsSelecionadosIds.filter((id) => id !== cupomId)
+        : [...cuponsSelecionadosIds, cupomId],
+    );
+  }
 
-    setValoresPorCartao((atuais) => {
-      const novos = { ...atuais };
-      cartoesSelecionadosIds.forEach((id, indice) => {
-        novos[id] = (baseCentavos + (indice === 0 ? sobraCentavos : 0)) / 100;
-      });
-      return novos;
-    });
+  function handleAplicarCodigo(): void {
+    const codigo = codigoCupom.trim();
+    if (!codigo) return;
+    const cupom = cuponsList.find((candidato) => normalizar(candidato.codigo) === normalizar(codigo));
+    if (!cupom) {
+      setErroCodigo(`O cupom ${codigo.toUpperCase()} não existe ou já foi usado.`);
+      return;
+    }
+    setErroCodigo(null);
+    setCodigoCupom('');
+    if (!cuponsSelecionadosIds.includes(cupom.id)) {
+      alternarCupons([...cuponsSelecionadosIds, cupom.id]);
+    }
   }
 
   async function handleFinalizarCompra(): Promise<void> {
-    if (!enderecoEscolhido) return;
+    if (!enderecoEscolhido || pendencia || isProcessando) return;
 
     const idCupomTroca = troco > 0 ? crypto.randomUUID().slice(0, 8) : null;
     const cupomTroca: Cupom | null = idCupomTroca
@@ -278,409 +320,400 @@ function Checkout() {
       validacaoPagamento: null,
     };
 
-    registrarPedido(pedido, cupomTroca);
+    setIsProcessando(true);
+    // sem operadora de verdade, a pausa é o que mostra que o pagamento está sendo tratado
+    await new Promise((resolver) => setTimeout(resolver, TEMPO_PROCESSAMENTO_MS));
 
-    // RF0035 e RF0036: endereço e cartão do checkout viram perfil no servidor
-    if (isSalvarEndereco && enderecoAdHoc) {
-      await alterarEnderecos(cliente.id, [...cliente.enderecos, enderecoAdHoc]);
-    }
+    let perfilNaoSalvo = false;
+    try {
+      // RF0035 e RF0036: endereço e cartão do checkout viram perfil no servidor
+      if (isSalvarEndereco && enderecoAdHoc) {
+        await alterarEnderecos(cliente.id, [...cliente.enderecos, enderecoAdHoc]);
+      }
 
-    const cartoesParaSalvar = cartoesAdHoc.filter((cartao) =>
-      cartoesAdHocParaSalvarIds.includes(cartao.id),
-    );
-    if (cartoesParaSalvar.length > 0) {
-      const cartoes = cartoesParaSalvar.reduce(
-        (cartoesAtuais, cartao) => adicionarCartao(cartoesAtuais, cartao),
-        cliente.cartoes,
+      const cartoesParaSalvar = cartoesAdHoc.filter((cartao) =>
+        cartoesAdHocParaSalvarIds.includes(cartao.id),
       );
-      await alterarCartoes(cliente.id, cartoes);
+      if (cartoesParaSalvar.length > 0) {
+        const cartoes = cartoesParaSalvar.reduce(
+          (cartoesAtuais, cartao) => adicionarCartao(cartoesAtuais, cartao),
+          cliente.cartoes,
+        );
+        await alterarCartoes(cliente.id, cartoes);
+        await recarregarClientes();
+      } else if (isSalvarEndereco && enderecoAdHoc) {
+        await recarregarClientes();
+      }
+    } catch {
+      perfilNaoSalvo = true;
     }
 
-    await recarregarClientes();
-    navegar('/pedidos');
+    // registrar esvazia o carrinho: no mesmo tique da navegação, o React troca de
+    // tela direto e o checkout vazio nunca chega a aparecer
+    registrarPedido(pedido, cupomTroca);
+    navegar(`/pedidos/${pedido.id}/confirmacao`, { state: { perfilNaoSalvo } });
   }
+
+  const rotuloPagar = isProcessando
+    ? 'Processando pagamento…'
+    : restante > 0
+      ? `Pagar ${formatarBRL(restante)}`
+      : 'Confirmar pedido';
 
   return (
     <main className={styles.main}>
-      {isFormEnderecoVisible && (
-        <Modal
-          opened={isFormEnderecoVisible}
-          onClose={handleFecharFormEndereco}
-          centered
-          size="lg"
-          withCloseButton={false}
-        >
-          <Checkbox
-            label="Salvar este endereço no meu perfil"
-            checked={isSalvarEndereco}
-            onChange={(evento) => setIsSalvarEndereco(evento.currentTarget.checked)}
-            mb="md"
-          />
-          <FormEndereco onCancelar={handleFecharFormEndereco} onSubmit={handleSubmitEnderecoNovo} />
-        </Modal>
+      {isProcessando && (
+        <div
+          className={styles.barraProgresso}
+          style={{ animationDuration: `${TEMPO_PROCESSAMENTO_MS}ms` }}
+          role="progressbar"
+          aria-label="Processando pagamento"
+        />
       )}
+      <div className={styles.layout}>
+        <div className={styles.coluna}>
+          <h1>Finalizar compra</h1>
 
-      {isFormCartaoVisible && (
-        <Modal
-          opened={isFormCartaoVisible}
-          onClose={handleFecharFormCartao}
-          centered
-          size="lg"
-          withCloseButton={false}
-        >
-          <Checkbox
-            label="Salvar este cartão no meu perfil"
-            checked={isSalvarCartao}
-            onChange={(evento) => setIsSalvarCartao(evento.currentTarget.checked)}
-            mb="md"
-          />
-          <FormCartao onCancelar={handleFecharFormCartao} onSubmit={handleSubmitCartaoNovo} />
-        </Modal>
-      )}
+          <div className={styles.etapas}>
+            <EtapaCheckout
+              numero={0}
+              atual={etapa}
+              titulo="Endereço"
+              resumo={resumoEndereco()}
+              onAlterar={() => setEtapa(0)}
+            >
+              {opcoesEndereco.length > 0 && (
+                <Radio.Group
+                  value={enderecoSelecionadoId}
+                  onChange={setEnderecoSelecionadoId}
+                  aria-label="Endereço de entrega"
+                >
+                  <div className={styles.opcoes}>
+                    {opcoesEndereco.map((endereco) => (
+                      <Radio.Card key={endereco.id} value={endereco.id} data-testid="opcao-endereco">
+                        <Radio.Indicator />
+                        <span className={styles.opcaoTexto}>
+                          <strong>{endereco.nome}</strong>
+                          <span>{linhaDoEndereco(endereco)}</span>
+                        </span>
+                        <span className={styles.opcaoTag}>{tagDoEndereco(endereco)}</span>
+                      </Radio.Card>
+                    ))}
+                  </div>
+                </Radio.Group>
+              )}
 
-      <Title order={1} size="40">Finalizar compra</Title>
+              {opcoesEndereco.length === 0 && !isFormEnderecoVisible && (
+                <p className={styles.ajuda}>Você ainda não tem endereço de entrega cadastrado.</p>
+              )}
 
-      {minutosParaExpirar !== null && minutosParaExpirar <= AVISO_ANTES_MINUTOS && (
-        <Alert color="orange" mb="md">
-          Sua reserva está prestes a expirar:{' '}
-          {minutosParaExpirar === 1
-            ? 'resta 1 minuto'
-            : `restam ${minutosParaExpirar} minutos`}
-          . Vale
-          concluir a compra logo.
-        </Alert>
-      )}
+              {isFormEnderecoVisible ? (
+                <div className={styles.formInline}>
+                  <FormEndereco
+                    titulo="Entregar em outro endereço"
+                    rotuloSalvar="Usar este endereço"
+                    extra={
+                      <Checkbox
+                        label="Salvar no meu perfil"
+                        checked={isSalvarEndereco}
+                        onChange={(evento) => setIsSalvarEndereco(evento.currentTarget.checked)}
+                      />
+                    }
+                    onCancelar={() => setIsFormEnderecoVisible(false)}
+                    onSubmit={handleSubmitEnderecoNovo}
+                  />
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className={styles.adicionar}
+                  onClick={() => setIsFormEnderecoVisible(true)}
+                >
+                  <Add size={20} /> Entregar em outro endereço
+                </button>
+              )}
 
-      <Stepper
-        active={etapaAtiva}
-        onStepClick={(etapa) => {
-          if (etapa < etapaAtiva) setEtapaAtiva(etapa);
-        }}
-        allowNextStepsSelect={false}
-        color="dark"
-      >
-        <Stepper.Step label="Entrega">
-          <Stack gap="md" mt="md">
-            {opcoesEndereco.length === 0 ? (
-              <Text size="sm" fw={300}>
-                Você ainda não tem nenhum endereço de entrega cadastrado.
-              </Text>
-            ) : (
-              <Radio.Group
-                label="Endereço de entrega"
-                value={enderecoSelecionadoId ?? ''}
-                onChange={setEnderecoSelecionadoId}
-              >
-                <Stack gap="sm" mt="xs">
-                  {opcoesEndereco.map((endereco) => (
-                    <Radio
-                      key={endereco.id}
-                      value={endereco.id}
-                      label={
-                        <div>
-                          <Text size="sm" fw={600}>{endereco.nome}</Text>
-                          <Text size="xs" fw={300} c="dimmed">{resumirEndereco(endereco)}</Text>
-                        </div>
+              <div className={styles.avancar}>
+                <Button disabled={!enderecoEscolhido} onClick={() => setEtapa(1)}>
+                  Continuar para entrega
+                </Button>
+                {!enderecoEscolhido && <span className={styles.motivo}>Escolha um endereço</span>}
+              </div>
+            </EtapaCheckout>
+
+            <EtapaCheckout
+              numero={1}
+              atual={etapa}
+              titulo="Entrega"
+              resumo={`Correios · ${formatarBRL(frete)}`}
+              onAlterar={() => setEtapa(1)}
+            >
+              {enderecoEscolhido && (
+                <>
+                  <p className={styles.ajuda}>
+                    Frete para a região {regiaoDoEstado(enderecoEscolhido.estado)} ·{' '}
+                    {itensNoCarrinho} {itensNoCarrinho === 1 ? 'disco' : 'discos'},{' '}
+                    {(pesoTotal / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} kg em
+                    embalagem rígida
+                  </p>
+                  <Radio.Group value="correios" aria-label="Modalidade de entrega">
+                    <Radio.Card value="correios">
+                      <Radio.Indicator />
+                      <span className={styles.opcaoTexto}>
+                        <strong>Correios</strong>
+                        <span>Frete calculado pela região do CEP e pelo peso dos discos</span>
+                      </span>
+                      <span className={styles.opcaoPreco}>{formatarBRL(frete)}</span>
+                    </Radio.Card>
+                  </Radio.Group>
+                </>
+              )}
+              <div className={styles.avancar}>
+                <Button onClick={() => setEtapa(2)}>Continuar para pagamento</Button>
+              </div>
+            </EtapaCheckout>
+
+            <EtapaCheckout
+              numero={2}
+              atual={etapa}
+              titulo="Pagamento"
+              onAlterar={() => setEtapa(2)}
+            >
+              <div className={styles.bloco}>
+                <h3>Cupons</h3>
+                {cuponsList.length > 0 && (
+                  <div className={styles.cupons}>
+                    {cuponsList.map((cupom) => (
+                      <button
+                        key={cupom.id}
+                        type="button"
+                        className={styles.cupom}
+                        aria-pressed={cuponsSelecionadosIds.includes(cupom.id)}
+                        onClick={() => handleToggleCupom(cupom.id)}
+                      >
+                        {cuponsSelecionadosIds.includes(cupom.id) ? (
+                          <Checkmark size={16} />
+                        ) : (
+                          <Ticket size={16} />
+                        )}
+                        <span className={styles.cupomCodigo}>{cupom.codigo}</span>
+                        {formatarBRL(cupom.valor)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className={styles.codigo}>
+                  <TextInput
+                    size="sm"
+                    placeholder="Tem outro código?"
+                    aria-label="Código do cupom"
+                    value={codigoCupom}
+                    error={erroCodigo}
+                    styles={{ input: { textTransform: 'uppercase' } }}
+                    onChange={(evento) => {
+                      setCodigoCupom(evento.currentTarget.value);
+                      setErroCodigo(null);
+                    }}
+                    onKeyDown={(evento) => {
+                      if (evento.key === 'Enter') {
+                        evento.preventDefault();
+                        handleAplicarCodigo();
                       }
-                    />
-                  ))}
-                </Stack>
-              </Radio.Group>
-            )}
+                    }}
+                  />
+                  <Button size="sm" variant="outline" onClick={handleAplicarCodigo}>
+                    Aplicar
+                  </Button>
+                </div>
+                {troco > 0 && (
+                  <p className={styles.ajuda}>
+                    A diferença de {formatarBRL(troco)} volta como um novo cupom de troca.
+                  </p>
+                )}
+                {mensagemCupons && <Alert color="orange">{mensagemCupons}</Alert>}
+              </div>
 
-            <Group>
-              <Button variant="default" size="sm" onClick={() => setIsFormEnderecoVisible(true)}>
-                Usar outro endereço
-              </Button>
-            </Group>
+              <div className={styles.bloco}>
+                <div className={styles.blocoTopo}>
+                  <h3>Cartão de crédito</h3>
+                  {restante > 0 && (
+                    <span className={styles.ajuda}>Marque mais de um para dividir o valor</span>
+                  )}
+                </div>
 
-            {enderecoEscolhido && (
-              <Text size="sm">
-                Frete para a região {regiaoDoEstado(enderecoEscolhido.estado)}:{' '}
-                <Text span fw={600}>{formatarBRL(frete)}</Text>
-              </Text>
-            )}
-          </Stack>
-        </Stepper.Step>
-
-        <Stepper.Step label="Pagamento">
-          <Stack gap="lg" mt="md">
-            <Paper withBorder p="md">
-              <Stack gap={6}>
-                <Group justify="space-between">
-                  <Text size="sm" c="dimmed">Subtotal</Text>
-                  <Text size="sm">{formatarBRL(subtotal)}</Text>
-                </Group>
-                <Group justify="space-between">
-                  <Text size="sm" c="dimmed">Frete</Text>
-                  <Text size="sm">{formatarBRL(frete)}</Text>
-                </Group>
-
-                <Divider my={2} />
-
-                <Group justify="space-between">
-                  <Text fw={600}>Total do pedido</Text>
-                  <Text fw={700} size="lg">{formatarBRL(total)}</Text>
-                </Group>
-
-                {cuponsSelecionados.length > 0 && (
+                {restante === 0 ? (
+                  <Alert color="green">
+                    Os cupons cobrem o valor total. Nenhum cartão é necessário.
+                  </Alert>
+                ) : (
                   <>
-                    <Group justify="space-between">
-                      <Text size="sm" c="dimmed">Cupons aplicados</Text>
-                      <Text size="sm" c="green">
-                        − {formatarBRL(somarCupons(cuponsSelecionados))}
-                      </Text>
-                    </Group>
-                    {troco > 0 && (
-                      <Text size="xs" c="dimmed">
-                        A diferença de {formatarBRL(troco)} volta como um novo
-                        cupom de troca.
-                      </Text>
+                    {cartoesDisponiveis.length === 0 && !isFormCartaoVisible && (
+                      <p className={styles.ajuda}>
+                        Você ainda não tem cartões cadastrados. Adicione um para pagar{' '}
+                        {formatarBRL(restante)}.
+                      </p>
+                    )}
+
+                    <div className={styles.opcoes}>
+                      {cartoesDisponiveis.map((cartao, indice) => {
+                        const selecionado = cartoesSelecionadosIds.includes(cartao.id);
+                        const ultimoDeDois =
+                          cartoesSelecionadosIds.length === 2 &&
+                          cartoesSelecionadosIds[1] === cartao.id;
+                        return (
+                          <div key={cartao.id} className={styles.cartao} data-selecionado={selecionado || undefined}>
+                            <Checkbox
+                              checked={selecionado}
+                              onChange={() => handleToggleCartao(cartao.id)}
+                              aria-label={`Pagar com ${cartao.bandeira} final ${ultimosDigitos(cartao.numero)}`}
+                            />
+                            <span className={styles.bandeira}>{cartao.bandeira.slice(0, 4)}</span>
+                            <span className={styles.opcaoTexto}>
+                              <strong>
+                                {cartao.bandeira} •••• {ultimosDigitos(cartao.numero)}
+                              </strong>
+                              <span>
+                                {cartao.nomeImpresso}
+                                {cartao.isPreferencial && ' · preferencial'}
+                                {indice >= cliente.cartoes.length && ' · só este pedido'}
+                              </span>
+                            </span>
+                            {selecionado &&
+                              (ultimoDeDois ? (
+                                <span className={styles.opcaoPreco}>
+                                  {formatarBRL(valoresPorCartao[cartao.id] ?? 0)}
+                                </span>
+                              ) : (
+                                <NumberInput
+                                  size="sm"
+                                  w={140}
+                                  prefix="R$ "
+                                  decimalScale={2}
+                                  fixedDecimalScale
+                                  decimalSeparator=","
+                                  thousandSeparator="."
+                                  min={0}
+                                  hideControls
+                                  aria-label="Valor neste cartão"
+                                  value={valoresPorCartao[cartao.id] ?? 0}
+                                  onChange={(valor) =>
+                                    handleAlterarValorCartao(cartao.id, Number(valor) || 0)
+                                  }
+                                />
+                              ))}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {cartoesSelecionadosIds.length === 2 && !mensagemCartoes && (
+                      <p className={styles.ajuda}>O segundo cartão cobre o restante automaticamente.</p>
+                    )}
+
+                    {isFormCartaoVisible ? (
+                      <div className={styles.formInline}>
+                        <FormCartao
+                          titulo="Novo cartão"
+                          rotuloSalvar="Usar este cartão"
+                          comPreferencial={false}
+                          extra={
+                            <Checkbox
+                              label="Salvar no meu perfil"
+                              checked={isSalvarCartao}
+                              onChange={(evento) => setIsSalvarCartao(evento.currentTarget.checked)}
+                            />
+                          }
+                          onCancelar={() => setIsFormCartaoVisible(false)}
+                          onSubmit={handleSubmitCartaoNovo}
+                        />
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        className={styles.adicionar}
+                        onClick={() => setIsFormCartaoVisible(true)}
+                      >
+                        <Add size={20} /> Adicionar cartão
+                      </button>
+                    )}
+
+                    {mensagemCartoes && cartoesSelecionadosIds.length > 0 && (
+                      <Alert color="orange">{mensagemCartoes}</Alert>
                     )}
                   </>
                 )}
+              </div>
 
-                <Divider my={2} />
-
-                <Group justify="space-between">
-                  <Text fw={600}>A pagar no cartão</Text>
-                  <Text fw={700}>{formatarBRL(restante)}</Text>
-                </Group>
-
-                {restante > 0 && (
-                  <Group justify="space-between">
-                    <Text size="sm" c="dimmed">
-                      {faltaDistribuir === 0
-                        ? 'Distribuído nos cartões'
-                        : 'Falta distribuir'}
-                    </Text>
-                    <Text
-                      size="sm"
-                      fw={600}
-                      c={
-                        faltaDistribuir === 0
-                          ? 'green'
-                          : faltaDistribuir < 0
-                            ? 'red'
-                            : 'orange'
-                      }
-                    >
-                      {faltaDistribuir === 0
-                        ? formatarBRL(somaCartoes)
-                        : formatarBRL(Math.abs(faltaDistribuir)) +
-                          (faltaDistribuir < 0 ? ' a mais' : '')}
-                    </Text>
-                  </Group>
+              <div className={styles.avancar}>
+                <Button
+                  size="xl"
+                  disabled={Boolean(pendencia) || isProcessando}
+                  data-testid="btn-pagar"
+                  onClick={handleFinalizarCompra}
+                >
+                  {rotuloPagar}
+                </Button>
+                {pendencia && <span className={styles.motivo}>{pendencia}</span>}
+                {isProcessando && (
+                  <span className={styles.motivo}>Conferindo os dados com a operadora…</span>
                 )}
-              </Stack>
-            </Paper>
+              </div>
+            </EtapaCheckout>
+          </div>
+        </div>
 
-            <div>
-              <Text fw={600} mb="xs">Cupons</Text>
+        <aside className={styles.resumo}>
+          <div className={styles.resumoTopo}>
+            <h2>Seu pedido</h2>
+            <span className={styles.meta}>
+              {itensNoCarrinho} {itensNoCarrinho === 1 ? 'disco' : 'discos'}
+            </span>
+          </div>
 
-              {cuponsList.length === 0 ? (
-                <Text size="sm" fw={300} c="dimmed">
-                  Nenhum cupom disponível para este cliente.
-                </Text>
+          <ul className={styles.itens}>
+            {itens.map(({ disco, quantidade }) => (
+              <li key={disco.id} className={styles.item}>
+                <Capa src={disco.coverThumb ?? disco.coverSrc} alt={disco.title} />
+                <span className={styles.itemTexto}>
+                  <strong>{disco.title}</strong>
+                  <span>
+                    {disco.artist} · {quantidade}×
+                  </span>
+                </span>
+                <span>{formatarBRL(disco.price * quantidade)}</span>
+              </li>
+            ))}
+          </ul>
+
+          <div className={styles.valores}>
+            <div className={styles.linha}>
+              <span>Subtotal</span>
+              <span>{formatarBRL(subtotal)}</span>
+            </div>
+            <div className={styles.linha}>
+              <span>Frete</span>
+              {enderecoEscolhido ? (
+                <span>{formatarBRL(frete)}</span>
               ) : (
-                <Stack gap="sm">
-                  {(['promocional', 'troca'] as const).map((tipo) => {
-                    const cuponsDoTipo = cuponsList.filter((cupom) => cupom.tipo === tipo);
-                    if (cuponsDoTipo.length === 0) return null;
-
-                    return (
-                      <div key={tipo}>
-                        <Text size="xs" fw={500} c="dimmed" mb={4}>
-                          {tipo === 'promocional' ? 'Promocionais' : 'Troca'}
-                        </Text>
-                        <Stack gap={6}>
-                          {cuponsDoTipo.map((cupom) => (
-                            <Checkbox
-                              key={cupom.id}
-                              label={`${cupom.codigo} — ${formatarBRL(cupom.valor)}`}
-                              checked={cuponsSelecionadosIds.includes(cupom.id)}
-                              onChange={() => handleToggleCupom(cupom.id)}
-                            />
-                          ))}
-                        </Stack>
-                      </div>
-                    );
-                  })}
-                </Stack>
-              )}
-
-              {mensagemCupons && (
-                <Alert color="orange" mt="sm">{mensagemCupons}</Alert>
-              )}
-
-            </div>
-
-            <Divider />
-
-            <div>
-              <Text fw={600} mb="xs">Cartões</Text>
-
-              {restante === 0 ? (
-                <Text size="sm" fw={300} c="dimmed">
-                  Os cupons cobrem o valor total — nenhum cartão é necessário.
-                </Text>
-              ) : (
-                <>
-                  {cartoesDisponiveis.length === 0 && (
-                    <Text size="sm" fw={300} c="dimmed" mb="sm">
-                      Você ainda não tem cartões cadastrados. Adicione um para pagar{' '}
-                      {formatarBRL(restante)}.
-                    </Text>
-                  )}
-
-                  {cartoesDisponiveis.length > 0 && (
-                    <Stack gap="sm" mb="sm">
-                      {cartoesDisponiveis.map((cartao) => {
-                        const isSelecionado = cartoesSelecionadosIds.includes(cartao.id);
-                        return (
-                          <Group key={cartao.id} align="flex-end" wrap="nowrap">
-                            <Checkbox
-                              label={`${cartao.bandeira} •••• ${ultimosDigitos(cartao.numero)}`}
-                              checked={isSelecionado}
-                              onChange={() => handleToggleCartao(cartao.id)}
-                              flex={1}
-                            />
-                            {isSelecionado && (
-                              <NumberInput
-                                w={140}
-                                prefix="R$ "
-                                decimalScale={2}
-                                fixedDecimalScale
-                                min={0}
-                                value={valoresPorCartao[cartao.id] ?? 0}
-                                onChange={(valor) =>
-                                  handleAlterarValorCartao(cartao.id, Number(valor) || 0)
-                                }
-                              />
-                            )}
-                          </Group>
-                        );
-                      })}
-                    </Stack>
-                  )}
-
-                  <Group>
-                    <Button variant="default" size="sm" onClick={() => setIsFormCartaoVisible(true)}>
-                      Adicionar cartão
-                    </Button>
-                    {cartoesSelecionadosIds.length > 0 && (
-                      <Button variant="subtle" color="black" size="sm" onClick={handleDividirIgualmente}>
-                        Dividir igualmente
-                      </Button>
-                    )}
-                  </Group>
-
-                  {mensagemCartoes && (
-                    <Alert color="orange" mt="sm">{mensagemCartoes}</Alert>
-                  )}
-                </>
+                <span className={styles.apagado}>na etapa 01</span>
               )}
             </div>
-          </Stack>
-        </Stepper.Step>
+            {descontoCupons > 0 && (
+              <div className={styles.linha} data-desconto>
+                <span>Cupons</span>
+                <span>− {formatarBRL(descontoCupons)}</span>
+              </div>
+            )}
+          </div>
 
-        <Stepper.Step label="Revisão">
-          <Stack gap="lg" mt="md">
-            <div>
-              <Text fw={600} mb="sm">Itens</Text>
-              <Stack gap="sm">
-                {itens.map(({ disco, quantidade }) => (
-                  <Group key={disco.id} justify="space-between" wrap="nowrap">
-                    <Group wrap="nowrap" gap="sm">
-                      <div className={styles.capa}>
-                        <Image src={disco.coverSrc} alt={disco.title} w={56} h={56} fit="cover" />
-                      </div>
-                      <div>
-                        <Text size="sm" fw={600}>{disco.title}</Text>
-                        <Text size="xs" fw={300} c="dimmed">Quantidade: {quantidade}</Text>
-                      </div>
-                    </Group>
-                    <Text size="sm" fw={600}>{formatarBRL(disco.price * quantidade)}</Text>
-                  </Group>
-                ))}
-              </Stack>
-            </div>
+          <div className={styles.total}>
+            <span>Total</span>
+            <strong>{formatarBRL(restante)}</strong>
+          </div>
 
-            <Divider />
-
-            <div>
-              <Text fw={600} mb={4}>Endereço de entrega</Text>
-              {enderecoEscolhido && (
-                <Text size="sm" fw={300}>
-                  {enderecoEscolhido.nome} — {resumirEndereco(enderecoEscolhido)}
-                </Text>
-              )}
-            </div>
-
-            <div>
-              <Text fw={600} mb={4}>Pagamento</Text>
-              <Stack gap={2}>
-                {cuponsSelecionados.map((cupom) => (
-                  <Text size="sm" fw={300} key={cupom.id}>
-                    Cupom {cupom.codigo}: -{formatarBRL(cupom.valor)}
-                  </Text>
-                ))}
-                {pagamentoCartoes.map((cartaoPago) => (
-                  <Text size="sm" fw={300} key={cartaoPago.cartaoId}>
-                    {cartaoPago.bandeira} •••• {cartaoPago.ultimosDigitos}: {formatarBRL(cartaoPago.valor)}
-                  </Text>
-                ))}
-              </Stack>
-            </div>
-
-            <Divider />
-
-            <Stack gap={4}>
-              <Group justify="space-between">
-                <Text size="sm" c="dimmed">Subtotal</Text>
-                <Text size="sm">{formatarBRL(subtotal)}</Text>
-              </Group>
-              <Group justify="space-between">
-                <Text size="sm" c="dimmed">Frete</Text>
-                <Text size="sm">{formatarBRL(frete)}</Text>
-              </Group>
-              <Group justify="space-between" align="center">
-                <Text fw={600}>Total</Text>
-                <Title order={2} size="28">{formatarBRL(total)}</Title>
-              </Group>
-            </Stack>
-          </Stack>
-        </Stepper.Step>
-      </Stepper>
-
-      <Group justify="space-between">
-        <Button variant="default" disabled={etapaAtiva === 0} onClick={() => setEtapaAtiva((atual) => atual - 1)}>
-          Voltar
-        </Button>
-
-        {etapaAtiva === 0 && (
-          <Button color="dark" disabled={!enderecoEscolhido} onClick={() => setEtapaAtiva(1)}>
-            Continuar
-          </Button>
-        )}
-
-        {etapaAtiva === 1 && (
-          <Button color="dark" disabled={haPendenciaNoPagamento} onClick={() => setEtapaAtiva(2)}>
-            Continuar
-          </Button>
-        )}
-
-        {etapaAtiva === 2 && (
-          <Button
-            color="dark"
-            size="md"
-            disabled={haPendenciaNoPagamento || indisponiveis.length > 0}
-            onClick={handleFinalizarCompra}
-          >
-            Finalizar compra
-          </Button>
-        )}
-      </Group>
+          <AvisoReserva texto="Seus discos ficam reservados até o fim do contador." />
+        </aside>
+      </div>
     </main>
   );
 }

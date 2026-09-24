@@ -1,11 +1,12 @@
 import type { Cartao, Endereco, Telefone, TipoEndereco } from '../types/cliente';
+import { mascararNumeroTelefone } from './texto';
 
 export function telefoneCompleto(telefone: Telefone): string {
-  return `(${telefone.ddd}) ${telefone.numero}`;
+  return `(${telefone.ddd}) ${mascararNumeroTelefone(telefone.numero)}`;
 }
 
 export function formatarTelefone(telefone: Telefone): string {
-  return `${telefone.tipo} — (${telefone.ddd}) ${telefone.numero}`;
+  return `${telefone.tipo} — ${telefoneCompleto(telefone)}`;
 }
 
 export function atendeTipo(endereco: Endereco, tipo: TipoEndereco): boolean {
@@ -94,3 +95,26 @@ export const ROTULO_TIPO_ENDERECO: Record<TipoEndereco, string> = {
   cobranca: 'Cobrança',
   ambos: 'Entrega e cobrança',
 };
+
+/*
+ * Prefixos (BIN) das bandeiras do RN0025. Elo e Hipercard vêm antes porque
+ * parte dos BINs deles começa com 4 e 5, que casariam com Visa e Mastercard.
+ */
+const PREFIXOS_BANDEIRA: [string, RegExp][] = [
+  ['Elo', /^(4011|4312|4389|4514|4576|5041|5066|5067|509|6277|6362|6363|650|6516|6550)/],
+  ['Hipercard', /^(606282|3841)/],
+  ['American Express', /^3[47]/],
+  ['Diners Club', /^3(0[0-5]|[68])/],
+  ['Visa', /^4/],
+  ['Mastercard', /^(5[1-5]|2[2-7])/],
+];
+
+export function detectarBandeira(numero: string): string | null {
+  const digitos = numero.replace(/\D/g, '');
+  if (digitos.length < 4) return null;
+  return PREFIXOS_BANDEIRA.find(([, prefixo]) => prefixo.test(digitos))?.[0] ?? null;
+}
+
+export function linhaDoEndereco(endereco: Endereco): string {
+  return `${endereco.tipoLogradouro} ${endereco.logradouro}, ${endereco.numero} · ${endereco.bairro}, ${endereco.cidade} · ${endereco.estado}`;
+}

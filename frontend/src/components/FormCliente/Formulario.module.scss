@@ -1,0 +1,273 @@
+@use '../../styles/mixins' as *;
+
+// Grades compartilhadas pelos formulários de cliente, endereço, cartão e perfil
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.campos {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.grade2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.grade3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.gradeTelefone {
+  display: grid;
+  grid-template-columns: 160px 88px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.gradeLogradouro {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr) 120px;
+  gap: 16px;
+  align-items: start;
+}
+
+.gradeCidade {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 100px;
+  gap: 16px;
+  align-items: start;
+}
+
+.linhaCep {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+
+  > :first-child {
+    width: 200px;
+    flex-shrink: 0;
+  }
+}
+
+.statusCep {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--cor-auxiliar);
+
+  &[data-status='encontrado'] {
+    color: var(--cor-sucesso);
+  }
+
+  &[data-status='nao-encontrado'] {
+    color: var(--cor-erro);
+  }
+}
+
+.subtitulo {
+  @include h3;
+}
+
+.titulo {
+  @include h2(24px);
+}
+
+.cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.rodape {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid var(--cor-divisoria);
+}
+
+.rodapeInline {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.ajuda {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--cor-auxiliar);
+}
+
+.bandeiraDetectada {
+  @include meta(11px);
+
+  color: var(--cor-auxiliar);
+  padding-right: 12px;
+  white-space: nowrap;
+}
+
+// Caixa do checklist de senha: os requisitos são marcados enquanto digita
+.regras {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
+  padding: 16px;
+  background: var(--cor-nevoa);
+  list-style: none;
+}
+
+.regra {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--cor-auxiliar);
+
+  &[data-ok] {
+    color: var(--cor-sucesso);
+  }
+
+  &[data-falhou] {
+    color: var(--cor-erro);
+  }
+}
+
+.marcaRegra {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+
+  [data-ok] > & {
+    background: var(--cor-sucesso);
+    border-color: var(--cor-sucesso);
+    color: #fff;
+  }
+}
+
+// Itens das listas de endereço e cartão
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  background: var(--cor-branco);
+  border: 1px solid var(--cor-divisoria);
+}
+
+.itemTexto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  strong {
+    font-size: 15px;
+  }
+
+  span {
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--cor-texto);
+  }
+}
+
+.itemTopo {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  @include meta(10px);
+
+  color: var(--cor-auxiliar);
+}
+
+.tagSelo {
+  @include meta(10px);
+
+  color: var(--cor-selo);
+}
+
+.itemAcoes {
+  display: flex;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.acaoTexto {
+  @include botao-texto;
+
+  &:disabled {
+    color: var(--cor-placeholder);
+    cursor: not-allowed;
+    text-decoration: none;
+  }
+}
+
+.acaoPerigo {
+  @include botao-texto;
+
+  color: var(--cor-erro);
+
+  &:hover {
+    color: var(--cor-erro-texto);
+  }
+
+  &:disabled {
+    color: var(--cor-placeholder);
+    cursor: not-allowed;
+    text-decoration: none;
+  }
+}
+
+.numeroCartao {
+  font-family: var(--fonte-mono);
+  font-size: 14px;
+  letter-spacing: 0.04em;
+}
+
+.adicionar {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  background: none;
+  border: 1px dashed var(--cor-borda);
+  border-radius: var(--raio);
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--cor-vinil);
+  }
+}

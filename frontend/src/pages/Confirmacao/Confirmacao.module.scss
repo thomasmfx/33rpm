@@ -1,0 +1,125 @@
+@use '../../styles/mixins' as *;
+
+.main {
+  @include container;
+
+  padding-top: 56px;
+  padding-bottom: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.topo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 48px;
+  align-items: center;
+}
+
+.texto {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  h1 {
+    font-size: 64px;
+    line-height: 0.95;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+
+  p {
+    font-size: 18px;
+    font-weight: 300;
+    color: var(--cor-texto);
+    max-width: 52ch;
+  }
+}
+
+.meta {
+  @include meta(12px);
+
+  color: var(--cor-auxiliar);
+}
+
+.forma {
+  width: 220px;
+  aspect-ratio: 1;
+}
+
+.grade {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 48px;
+  padding-top: 32px;
+  border-top: 1px solid var(--cor-vinil);
+}
+
+.coluna {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.rotulo {
+  @include meta(11px);
+
+  color: var(--cor-auxiliar);
+}
+
+.leve {
+  font-weight: 300;
+  color: var(--cor-texto);
+}
+
+.linha {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.total {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid var(--cor-vinil);
+
+  strong {
+    @include preco;
+
+    font-size: 16px;
+  }
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+
+  img {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    background: var(--cor-fundo-capa);
+  }
+}
+
+.itemTexto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  span {
+    font-size: 13px;
+    color: var(--cor-auxiliar);
+  }
+}
+
+.acoes {
+  display: flex;
+  gap: 12px;
+}

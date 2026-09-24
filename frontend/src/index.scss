@@ -1,6 +1,8 @@
+@use './styles/tokens';
+
 @font-face {
   font-family: 'Uxum Grotesque';
-  src: url('/fonts/uxum-grotesque/uxumlight.otf') format('opentype');  
+  src: url('/fonts/uxum-grotesque/uxumlight.otf') format('opentype');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
@@ -8,7 +10,7 @@
 
 @font-face {
   font-family: 'Uxum Grotesque';
-  src: url('/fonts/uxum-grotesque/uxumregular.otf') format('opentype');  
+  src: url('/fonts/uxum-grotesque/uxumregular.otf') format('opentype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -16,33 +18,50 @@
 
 @font-face {
   font-family: 'Uxum Grotesque';
-  src: url('/fonts/uxum-grotesque/uxumbold.otf') format('opentype');  
+  src: url('/fonts/uxum-grotesque/uxumbold.otf') format('opentype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
-:root {
-  --largura-conteudo: 1000px;
+// IBM Plex Mono servida daqui (licença OFL na pasta): pelo Google Fonts o CSS
+// bloqueava a subida do app por segundos e a demonstração dependia de rede
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('/fonts/ibm-plex-mono/ibmplexmono-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('/fonts/ibm-plex-mono/ibmplexmono-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
 }
 
 *, *::before, *::after {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 * {
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
+  background: var(--cor-papel);
+  color: var(--cor-vinil);
+  font-family: var(--fonte-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
 img, picture, svg, video, canvas {
-    display: block;
-    max-width: 100%;
+  display: block;
+  max-width: 100%;
 }
 
 p, h1, h2, h3, h4, h5, h6 {
@@ -51,4 +70,39 @@ p, h1, h2, h3, h4, h5, h6 {
 
 input, button, textarea, select {
   font: inherit;
+  color: inherit;
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--cor-placeholder);
+}
+
+a {
+  color: var(--cor-vinil);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+
+  &:hover {
+    color: var(--cor-selo);
+  }
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes deslizar {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

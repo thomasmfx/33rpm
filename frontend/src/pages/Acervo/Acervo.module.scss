@@ -1,50 +1,140 @@
+@use '../../styles/mixins' as *;
+
 .main {
-  margin-top: 4em;
-  margin-bottom: 8em;
-  width: 100%;
-  max-width: var(--largura-conteudo);
-  margin-inline: auto;
-  padding-inline: 1em;
+  @include container;
+
+  padding-top: 56px;
+  padding-bottom: 120px;
   display: flex;
   flex-direction: column;
-  gap: 2em;
+  gap: 32px;
 }
 
-.busca {
+.cabecalho {
   display: flex;
-  justify-content: flex-start;
-  width: 100%;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
 
-  > * {
-    max-width: 480px;
+  h1 {
+    font-size: 56px;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: -0.03em;
   }
 }
 
-.filtrosContainer {
+.contagem {
+  @include meta(12px);
+
+  color: var(--cor-auxiliar);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 48px;
+  padding-top: 32px;
+  border-top: 1px solid var(--cor-vinil);
+}
+
+.aside {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 1em;
+  gap: 32px;
 }
 
-.filtros {
+.grupoFiltro {
   display: flex;
-  gap: 1em;
-  flex-wrap: wrap;
-  align-items: flex-end;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.limparFiltrosBtn {
-  background: none;
+.tituloFiltro {
+  @include meta(11px);
+
+  color: var(--cor-auxiliar);
+  margin-bottom: 4px;
+}
+
+.faixaPreco {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 6px;
+  align-items: center;
+  color: var(--cor-auxiliar);
+}
+
+.conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  min-width: 0;
+}
+
+.barra {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  min-height: 36px;
+}
+
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px 0 14px;
+  background: var(--cor-vinil);
+  color: var(--cor-papel);
   border: none;
-  font-size: 0.9rem;
-  font-weight: 700;
-  flex: 1;
+  border-radius: 16px;
+  font-size: 14px;
   cursor: pointer;
+
+  svg {
+    opacity: 0.6;
+  }
+
+  &:hover svg {
+    opacity: 1;
+  }
 }
 
 .grade {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 1.5em;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 40px 24px;
+}
+
+.vazio {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 48px 0;
+
+  strong {
+    font-size: 18px;
+  }
+}
+
+.formaVazio {
+  width: 88px;
+  height: 88px;
+  margin-bottom: 12px;
+}
+
+.limpar {
+  @include link-sublinhado;
+
+  font-size: 15px;
 }

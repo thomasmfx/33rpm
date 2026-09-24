@@ -41,10 +41,12 @@ declare global {
     interface Chainable {
       resetarBanco(): Chainable<void>;
       abrirCuradoriaClientes(): Chainable<void>;
+      entrarComoAdministrador(caminho: string): Chainable<void>;
       selecionar(testId: string, opcao: string): Chainable<void>;
       preencherDados(dados: DadosCliente): Chainable<void>;
       adicionarEndereco(endereco: DadosEndereco): Chainable<void>;
       adicionarCartao(cartao: DadosCartao): Chainable<void>;
+      preencherCadastro(dados: DadosCliente, endereco: DadosEndereco): Chainable<void>;
       linhaDoCliente(nome: string): Chainable<JQuery<HTMLElement>>;
     }
   }
@@ -54,8 +56,26 @@ Cypress.Commands.add('resetarBanco', () => {
   cy.request('POST', `${Cypress.env('apiUrl')}/dev/reset`);
 });
 
+/** Admin da carga (db/administradores.sql); o /dev/reset não mexe nele. */
+export const ADMINISTRADOR = { email: 'admin@33rpm.com.br', senha: 'Admin@123' };
+
+/**
+ * A curadoria só abre com sessão de administrador: o login real passa pela API e
+ * a sessão entra no localStorage antes de a página carregar.
+ */
+Cypress.Commands.add('entrarComoAdministrador', (caminho: string) => {
+  cy.request('POST', `${Cypress.env('apiUrl')}/sessoes`, ADMINISTRADOR).then(({ body }) => {
+    const sessao = JSON.stringify({ papel: 'administrador', id: String(body.usuario.id) });
+    cy.visit(caminho, {
+      onBeforeLoad(janela) {
+        janela.localStorage.setItem('33rpm:sessao', sessao);
+      },
+    });
+  });
+});
+
 Cypress.Commands.add('abrirCuradoriaClientes', () => {
-  cy.visit('/curadoria/clientes');
+  cy.entrarComoAdministrador('/curadoria/clientes');
   cy.get('[data-testid="btn-novo-cliente"]').should('be.visible');
 });
 
@@ -115,6 +135,38 @@ Cypress.Commands.add('adicionarCartao', (cartao: DadosCartao) => {
     cy.get('[data-testid="cartao-preferencial"]').check({ force: true });
   }
   cy.get('[data-testid="btn-salvar-cartao"]').click();
+});
+
+/** Auto-cadastro do /cadastro: Conta → Dados pessoais → Endereço, sem cartão. */
+Cypress.Commands.add('preencherCadastro', (dados: DadosCliente, endereco: DadosEndereco) => {
+  cy.get('[data-testid="input-nome"]').type(dados.nome);
+  cy.get('[data-testid="input-email"]').type(dados.email);
+  cy.get('[data-testid="input-senha"]').type(dados.senha ?? '');
+  cy.get('[data-testid="input-confirmar-senha"]').type(dados.confirmacao ?? '');
+  cy.get('[data-testid="btn-continuar"]').click();
+
+  cy.get('[data-testid="cadastro-etapa"]').should('have.attr', 'data-etapa', '2');
+  cy.get('[data-testid="input-cpf"]').type(dados.cpf);
+  cy.get('[data-testid="input-nascimento"]').type(dados.nascimento);
+  cy.get('[data-testid="cadastro-genero"]').contains(dados.genero).click();
+  cy.selecionar('select-tipo-telefone', dados.tipoTelefone ?? 'Celular');
+  cy.get('[data-testid="input-telefone"]').type(`${dados.ddd}${dados.telefone}`);
+  cy.get('[data-testid="btn-continuar"]').click();
+
+  // o CEP vem primeiro e pode preencher o resto; cada campo é limpo antes de digitar
+  cy.get('[data-testid="cadastro-etapa"]').should('have.attr', 'data-etapa', '3');
+  cy.get('[data-testid="endereco-cep"]').type(endereco.cep);
+  cy.selecionar('endereco-tipo-logradouro', endereco.tipoLogradouro);
+  cy.get('[data-testid="endereco-logradouro"]').clear().type(endereco.logradouro);
+  cy.get('[data-testid="endereco-numero"]').clear().type(endereco.numero);
+  cy.get('[data-testid="endereco-bairro"]').clear().type(endereco.bairro);
+  cy.get('[data-testid="endereco-cidade"]').clear().type(endereco.cidade);
+  cy.selecionar('endereco-estado', endereco.estado);
+  cy.get('[data-testid="endereco-nome"]').clear().type(endereco.nome);
+  cy.selecionar('endereco-tipo-residencia', endereco.tipoResidencia);
+  if (endereco.observacoes) {
+    cy.get('[data-testid="endereco-observacoes"]').clear().type(endereco.observacoes);
+  }
 });
 
 Cypress.Commands.add('linhaDoCliente', (nome: string) =>

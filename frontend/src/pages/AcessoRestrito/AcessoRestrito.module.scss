@@ -1,0 +1,79 @@
+@use '../../styles/mixins' as *;
+
+.main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.painel {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 64px;
+  background: var(--cor-vinil);
+  color: var(--cor-papel);
+}
+
+.marca {
+  position: relative;
+  align-self: flex-start;
+
+  img {
+    display: block;
+    height: 40px;
+    width: auto;
+  }
+}
+
+.forma {
+  position: absolute;
+  right: -12%;
+  top: 50%;
+  width: 60%;
+  aspect-ratio: 1;
+  transform: translateY(-50%);
+}
+
+.rotulo {
+  @include meta(12px);
+
+  position: relative;
+  color: var(--cor-apagado);
+}
+
+.lado {
+  display: flex;
+  align-items: center;
+  padding: 64px;
+}
+
+.conteudo {
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  h1 {
+    @include h1;
+  }
+
+  p {
+    @include corpo;
+  }
+}
+
+.codigo {
+  @include meta(14px);
+
+  color: var(--cor-selo);
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 8px;
+}

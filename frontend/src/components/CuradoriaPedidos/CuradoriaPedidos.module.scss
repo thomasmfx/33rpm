@@ -1,77 +1,348 @@
-.painelPedidos {
-  width: 100%;
-  min-height: 100%;
+@use '../../styles/mixins' as *;
+
+.filtros {
   display: flex;
   flex-direction: column;
-  gap: 2em;
+  gap: 14px;
 }
 
-.navBar {
-  width: 100%;
+.chips {
   display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 1em;
-}
-
-.tabelaContainer {
-  width: 100%;
-  overflow-x: auto;
-}
-
-.actionButton {
-  background: none;
-  border: none;
+  gap: 8px;
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--cor-borda);
+  border-radius: 17px;
+  background: var(--cor-branco);
+  color: var(--cor-vinil);
+  font-size: 14px;
+  white-space: nowrap;
   cursor: pointer;
-  transition: 100ms ease-in-out;
+  transition: border-color 120ms ease;
 
   &:hover {
-    opacity: 0.7;
+    border-color: var(--cor-vinil);
+  }
+
+  &[aria-pressed='true'] {
+    background: var(--cor-vinil);
+    border-color: var(--cor-vinil);
+    color: var(--cor-papel);
   }
 }
 
-.linhaPedido {
-  cursor: pointer;
-
-  &:focus-visible {
-    outline: 2px solid var(--mantine-color-dark-4);
-    outline-offset: -2px;
-  }
+.chipContagem {
+  font-family: var(--fonte-mono);
+  font-size: 11px;
+  opacity: 0.7;
 }
 
-// RF0043: troca ainda sem cupom gerado precisa saltar aos olhos do admin
-.linhaTrocaPendente {
-  background-color: var(--mantine-color-yellow-0);
+.legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  font-size: 12px;
+  color: var(--cor-texto);
 }
 
-.itemDetalhe {
+.legendaItem {
   display: flex;
   align-items: center;
-  gap: 0.75em;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.legendaCor {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--raio);
+  flex-shrink: 0;
+}
+
+.busca {
+  flex: 1 1 320px;
+}
+
+// a tabela rola na horizontal em vez de espremer as colunas fixas
+.grade {
+  min-width: 900px;
+}
+
+.linha {
+  min-width: 900px;
+  min-height: 60px;
+}
+
+.numeroPedido {
+  justify-self: start;
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: var(--fonte-mono);
+  font-size: 13px;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--cor-selo);
+  }
+}
+
+.cliente {
+  min-width: 0;
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.data {
+  color: var(--cor-texto);
+}
+
+.proximoPasso {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.botaoPasso {
+  width: 164px;
+  height: 34px;
+  padding: 0 10px;
+  border: none;
+  border-radius: var(--raio);
+  color: var(--cor-branco);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: opacity 120ms ease;
+
+  &:hover {
+    opacity: 0.86;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--cor-vinil);
+    outline-offset: 2px;
+  }
+}
+
+.semPasso {
+  font-size: 14px;
+  color: var(--cor-apagado);
+  white-space: nowrap;
+}
+
+// Drawer
+.metaPedido {
+  font-family: var(--fonte-mono);
+  font-size: 12px;
+  color: var(--cor-auxiliar);
+}
+
+.itens {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  font-size: 14px;
+}
+
+.itemTexto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  strong {
+    font-size: 14px;
+  }
+
+  span {
+    font-size: 13px;
+    color: var(--cor-auxiliar);
+  }
+}
+
+.valores {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 4px;
 }
 
 .linhaValor {
   display: flex;
   justify-content: space-between;
+  font-size: 13px;
+  color: var(--cor-auxiliar);
+  font-variant-numeric: tabular-nums;
 }
 
-// larguras fixas: sem isso a coluna dimensiona pelo conteúdo e a tabela pula de
-// tamanho a cada troca de página, conforme o tamanho do texto de cada célula
-.tabela {
-  table-layout: fixed;
-  min-width: 1120px;
+.total {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid var(--cor-vinil);
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
-// a altura vale para TODA linha do corpo, inclusive as de preenchimento: fixar
-// só na linha vazia deixava a última página com altura diferente das outras
-.tabela tbody tr {
-  height: 52px;
+.troca {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  background: var(--cor-nevoa);
+  font-size: 14px;
 }
 
-.tabela tbody td {
-  overflow: hidden;
+.trocaRotulo {
+  @include meta(11px);
+
+  color: var(--cor-selo);
 }
 
-.linhaVazia {
-  pointer-events: none;
+// Caixa de decisão: conferência de pagamento, troca e recebimento. O CSS do
+// tema entra depois dos módulos das telas e vence no empate de especificidade,
+// por isso as sobreposições de componente Mantine vão aninhadas
+.caixa {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  background: var(--cor-branco);
+  border: 1px solid var(--cor-borda);
+
+  .tituloGrupo {
+    font-size: 16px;
+    margin-bottom: 14px;
+  }
+
+  .opcao {
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    font-size: 14px;
+
+    &[data-checked] {
+      padding: 11.5px 13.5px;
+    }
+  }
+}
+
+.caixaCabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  strong {
+    font-size: 16px;
+  }
+}
+
+.nota {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--cor-auxiliar);
+}
+
+.verificacao {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--cor-sucesso);
+  color: var(--cor-branco);
+  font-size: 11px;
+  line-height: 1;
+
+  &[data-falhou] {
+    background: var(--cor-erro);
+  }
+}
+
+.verificacaoTexto {
+  display: flex;
+  flex-direction: column;
+
+  strong {
+    font-size: 14px;
+  }
+
+  span {
+    font-size: 13px;
+    color: var(--cor-auxiliar);
+  }
+}
+
+.botoesCaixa {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 6px;
+
+  .botaoRecusa[data-variant='default'] {
+    color: var(--cor-erro);
+    border-color: var(--cor-erro-borda);
+    font-weight: 400;
+
+    &:hover:not(:disabled, [data-disabled]) {
+      color: var(--cor-erro-texto);
+      border-color: var(--cor-erro);
+    }
+
+    &:disabled,
+    &[data-disabled] {
+      color: var(--mantine-color-disabled-color);
+    }
+  }
+}
+
+.botaoSozinho {
+  align-self: flex-start;
+}
+
+.opcoes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.evento {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr);
+  gap: 12px;
+  font-size: 13px;
+
+  > :first-child {
+    font-family: var(--fonte-mono);
+    color: var(--cor-auxiliar);
+  }
 }

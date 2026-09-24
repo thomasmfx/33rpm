@@ -1,91 +1,205 @@
+@use '../../styles/mixins' as *;
+@use '../../styles/animacoes';
+
 .container {
+  height: 100%;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  min-height: 0;
 }
 
 .cabecalho {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 0.8em 1em;
-  border-bottom: 1px solid #ededed;
-  flex-shrink: 0;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--cor-vinil);
+}
+
+.titulo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  strong {
+    font-size: 16px;
+  }
+
+  span {
+    @include meta(10px);
+
+    color: var(--cor-auxiliar);
+  }
+}
+
+.fechar {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--cor-vinil);
+  }
 }
 
 .chat {
   flex: 1;
-  min-height: 0;
   overflow-y: auto;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 1em;
-  padding: 1em;
-}
-
-.linhaCliente {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.linhaAssistente {
-  display: flex;
-  justify-content: flex-start;
+  gap: 18px;
 }
 
 .balaoCliente {
-  max-width: 80%;
-  background-color: #1a1a1a;
-  color: #fff;
-  border-radius: 1em 1em 0.2em 1em;
-  padding: 0.7em 1em;
+  align-self: flex-end;
+  max-width: 85%;
+  padding: 10px 14px;
+  background: var(--cor-vinil);
+  color: var(--cor-papel);
+  font-size: 14px;
 }
 
-.balaoAssistente {
-  max-width: 80%;
-  background-color: #ededed;
-  color: inherit;
-  border-radius: 1em 1em 1em 0.2em;
-  padding: 0.7em 1em;
+.respostaAssistente {
   display: flex;
   flex-direction: column;
-  gap: 0.7em;
-}
+  gap: 8px;
 
-.cartoes {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6em;
+  p {
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--cor-texto);
+  }
 }
 
 .cartao {
-  display: flex;
-  gap: 0.7em;
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  gap: 12px;
   align-items: center;
-  background-color: #fff;
-  border-radius: 0.5em;
-  padding: 0.5em;
+  padding: 8px;
+  background: var(--cor-branco);
+  border: 1px solid var(--cor-divisoria);
+  color: var(--cor-vinil);
   text-decoration: none;
-  color: inherit;
-  transition: 100ms ease-in-out;
 
   &:hover {
-    opacity: 0.8;
+    border-color: var(--cor-vinil);
+    color: var(--cor-vinil);
+  }
+
+  img {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    background: var(--cor-fundo-capa);
+  }
+}
+
+.cartaoTexto {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  font-size: 13px;
+
+  strong {
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  span {
+    color: var(--cor-auxiliar);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.motivo {
+  font-family: var(--fonte-mono);
+  font-size: 10px !important;
+  letter-spacing: 0.04em;
+}
+
+.preco {
+  @include preco;
+
+  font-size: 14px;
+}
+
+.sugestoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sugestao {
+  height: 32px;
+  padding: 0 14px;
+  background: var(--cor-branco);
+  border: 1px solid var(--cor-borda);
+  border-radius: 16px;
+  font-size: 13px;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--cor-vinil);
+  }
+}
+
+.procurando {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--cor-auxiliar);
+
+  img {
+    width: 24px;
+    height: 24px;
+    animation: girar 1.8s linear infinite;
   }
 }
 
 .formulario {
-  flex-shrink: 0;
-  padding: 0.8em 1em;
-  border-top: 1px solid #ededed;
+  display: flex;
+  height: 52px;
+  border-top: 1px solid var(--cor-vinil);
 }
 
 .campoMensagem {
   flex: 1;
+  min-width: 0;
+  padding: 0 16px;
+  background: var(--cor-branco);
+  border: none;
+  outline: none;
+  font-size: 14px;
 }
 
-.rodape {
-  flex-shrink: 0;
-  padding: 0 1em 0.8em;
+.enviar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 20px;
+  background: var(--cor-vinil);
+  color: var(--cor-papel);
+  border: none;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--cor-vinil-hover);
+  }
 }

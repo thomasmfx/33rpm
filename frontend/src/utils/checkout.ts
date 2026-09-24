@@ -204,3 +204,35 @@ export function itensIndisponiveis(
 function arredondar(valor: number): number {
   return Math.round(valor * 100) / 100;
 }
+
+/** Divide o restante entre os cartões; os centavos que sobram ficam no primeiro. */
+export function dividirIgualmente(restante: number, cartaoIds: string[]): Record<string, number> {
+  if (cartaoIds.length === 0) return {};
+
+  const restanteCentavos = Math.round(restante * 100);
+  const baseCentavos = Math.floor(restanteCentavos / cartaoIds.length);
+  const sobraCentavos = restanteCentavos - baseCentavos * cartaoIds.length;
+
+  return Object.fromEntries(
+    cartaoIds.map((id, indice) => [id, (baseCentavos + (indice === 0 ? sobraCentavos : 0)) / 100]),
+  );
+}
+
+/**
+ * Com dois cartões, editar um recalcula o outro para fechar o restante. Com
+ * três ou mais não há um "outro" óbvio, então só o editado muda.
+ */
+export function redistribuir(
+  valores: Record<string, number>,
+  restante: number,
+  cartaoIds: string[],
+  editadoId: string,
+  valor: number,
+): Record<string, number> {
+  const novos = { ...valores, [editadoId]: valor };
+  if (cartaoIds.length === 2) {
+    const outroId = cartaoIds.find((id) => id !== editadoId);
+    if (outroId) novos[outroId] = arredondar(Math.max(0, restante - valor));
+  }
+  return novos;
+}

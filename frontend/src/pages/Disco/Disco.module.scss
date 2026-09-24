@@ -1,40 +1,331 @@
+@use '../../styles/mixins' as *;
+
 .main {
-  margin-top: 4em;
-  margin-bottom: 8em;
-  width: 100%;
-  max-width: var(--largura-conteudo);
-  margin-inline: auto;
-  padding-inline: 1em;
+  @include container;
+
+  padding-top: 32px;
+  padding-bottom: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.trilha {
+  @include meta(11px);
+
+  display: flex;
+  gap: 8px;
+  color: var(--cor-auxiliar);
+
+  a {
+    color: var(--cor-auxiliar);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--cor-vinil);
+    }
+  }
+}
+
+.trilhaAtual {
+  color: var(--cor-vinil);
 }
 
 .conteudo {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3em;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 72px;
   align-items: start;
 }
 
+.capaArea {
+  position: relative;
+  padding-right: 14%;
+}
+
+.vinil {
+  position: absolute;
+  top: 4%;
+  right: 0;
+  width: 82%;
+  aspect-ratio: 1;
+}
+
 .capa {
-  position: sticky;
-  top: 2em;
-  border-radius: 8px;
-  overflow: hidden;
-  background-color: #ededed;
+  position: relative;
+  aspect-ratio: 1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: var(--cor-fundo-capa);
+  }
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding-top: 8px;
+}
+
+.nomes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  h1 {
+    font-size: 60px;
+    line-height: 0.95;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+}
+
+.artista {
+  font-size: 20px;
+  font-weight: 300;
+}
+
+.pilulas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pilula {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border: 1px solid var(--cor-borda);
+  border-radius: 15px;
+  font-size: 13px;
+  color: var(--cor-vinil);
+  text-decoration: none;
+
+  &:hover {
+    border-color: var(--cor-vinil);
+    color: var(--cor-vinil);
+  }
+}
+
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.etiqueta {
+  @include meta(11px);
+
+  padding: 4px 8px;
+  border: 1px solid var(--cor-vinil);
+  cursor: default;
+}
+
+.compra {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 28px 0;
+  border-top: 1px solid var(--cor-vinil);
+  border-bottom: 1px solid var(--cor-divisoria);
+}
+
+.linhaPreco {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.preco {
+  @include preco;
+
+  font-size: 40px;
+  line-height: 1;
+}
+
+.estoque {
+  font-size: 14px;
+  color: var(--cor-auxiliar);
+
+  &[data-alerta] {
+    color: var(--cor-selo);
+    font-weight: 700;
+  }
+
+  &[data-esgotado] {
+    color: var(--cor-erro);
+  }
+}
+
+.linhaCompra {
+  display: flex;
+  gap: 12px;
+}
+
+.adicionado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--cor-sucesso-fundo);
+  color: var(--cor-sucesso-texto);
+  font-size: 14px;
+
+  span,
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  a {
+    color: var(--cor-sucesso-texto);
+    font-weight: 700;
+    text-decoration: none;
+    border-bottom: 1px solid var(--cor-sucesso-texto);
+  }
+}
+
+.nota {
+  font-size: 13px;
+  color: var(--cor-auxiliar);
+}
+
+.descricao {
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 1.6;
+  color: var(--cor-texto);
+}
+
+.detalhes {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 72px;
+  padding-top: 40px;
+  border-top: 1px solid var(--cor-divisoria);
+}
+
+.bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.blocoTopo {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+
+  h2 {
+    @include h2(24px);
+  }
+}
+
+.resumo {
+  @include meta(11px);
+
+  color: var(--cor-auxiliar);
+}
+
+.semFaixas {
+  font-size: 15px;
+  font-weight: 300;
+  color: var(--cor-auxiliar);
+}
+
+.faixas {
+  list-style: none;
+}
+
+.faixa {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 56px;
+  align-items: center;
+  min-height: 44px;
+  border-bottom: 1px solid var(--cor-divisoria);
+  font-size: 15px;
+  font-weight: 300;
+}
+
+.posicao {
+  font-family: var(--fonte-mono);
+  font-size: 12px;
+  color: var(--cor-apagado);
+}
+
+.duracao {
+  font-family: var(--fonte-mono);
+  font-size: 12px;
+  text-align: right;
+}
+
+.ficha {
+  display: flex;
+  flex-direction: column;
+}
+
+.fichaLinha {
+  @include linha-kv(160px);
+
+  font-size: 15px;
+
+  dt {
+    color: var(--cor-auxiliar);
+  }
+
+  dd {
+    font-weight: 300;
+  }
 }
 
 .relacionados {
-  margin-top: 6em;
   display: flex;
   flex-direction: column;
-  gap: 2em;
+  gap: 32px;
+  padding-top: 40px;
+
+  h2 {
+    @include h2;
+  }
 }
 
-@media (max-width: 800px) {
-  .conteudo {
-    grid-template-columns: 1fr;
+.gradeRelacionados {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.naoEncontrado {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 64px;
+
+  h1 {
+    @include h1;
   }
 
-  .capa {
-    position: static;
+  p {
+    @include corpo;
   }
+}
+
+.linkForte {
+  @include link-sublinhado;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  align-self: flex-start;
+  font-size: 15px;
 }

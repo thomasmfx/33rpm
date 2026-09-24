@@ -1,15 +1,140 @@
+@use '../../styles/mixins' as *;
+
 .main {
-  margin-top: 4em;
-  margin-bottom: 8em;
-  width: 100%;
-  max-width: var(--largura-conteudo);
-  margin-inline: auto;
-  padding-inline: 1em;
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  min-height: calc(100vh - 64px);
 }
 
-.cartao {
+.painel {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 64px;
+  background: var(--cor-vinil);
+  color: var(--cor-papel);
+}
+
+.rotulo {
+  @include meta(12px, 0.12em);
+
+  position: relative;
+  color: var(--cor-apagado);
+}
+
+.formaArco {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 46%;
+  aspect-ratio: 1;
+}
+
+.formaCruz {
+  position: absolute;
+  right: 64px;
+  top: 56px;
+  width: 88px;
+  height: 88px;
+}
+
+.frase {
+  position: relative;
+  max-width: 330px;
+  font-size: 40px;
+  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.lado {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 48px;
+}
+
+.conteudo {
   width: 100%;
-  max-width: 420px;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.titulo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  h1 {
+    @include h1;
+  }
+
+  p {
+    @include corpo;
+  }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mostrar {
+  font-size: 13px;
+  color: var(--cor-auxiliar);
+}
+
+// o botão de mostrar senha do Mantine é quadrado, feito para ícone
+.alternarSenha {
+  width: auto !important;
+  min-width: 64px;
+  padding: 0 12px;
+}
+
+.divisor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--cor-apagado);
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--cor-divisoria);
+  }
+}
+
+.demonstracoes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+
+  > span {
+    @include meta(10px);
+
+    color: var(--cor-placeholder);
+  }
+}
+
+.demonstracao {
+  @include meta(11px);
+
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--cor-apagado);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--cor-vinil);
+  }
 }

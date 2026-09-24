@@ -1,0 +1,49 @@
+@use '../../styles/mixins' as *;
+
+.linha {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-bottom: 1px solid var(--cor-divisoria);
+}
+
+.passo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 14px;
+  margin-bottom: -1px;
+  color: var(--cor-apagado);
+
+  strong {
+    font-size: 15px;
+    font-weight: 400;
+  }
+
+  &[data-feito] {
+    color: var(--cor-vinil);
+    border-bottom: 2px solid var(--cor-vinil);
+  }
+
+  &[aria-current='step'] strong {
+    font-weight: 700;
+  }
+}
+
+.numero {
+  @include meta(11px);
+
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  .passo[data-feito]:not([aria-current='step']) & {
+    color: var(--cor-sucesso);
+  }
+}
+
+.detalhe {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--cor-auxiliar);
+}

@@ -1,37 +1,18 @@
+import painel from '../../pages/Curadoria/Painel.module.scss';
 import styles from './CuradoriaInventario.module.scss';
 import { useMemo, useState } from 'react';
 import {
-  Badge,
   Button,
-  Flex,
-  Group,
-  Image,
-  Indicator,
   Modal,
-  Pagination,
   NumberInput,
-  Popover,
-  Select,
+  Pagination,
   SegmentedControl,
-  Stack,
-  Table,
-  Text,
+  Select,
   Textarea,
   TextInput,
   Tooltip,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import {
-  IconAlertTriangle,
-  IconFilter2,
-  IconPackageImport,
-  IconPencil,
-  IconPlus,
-  IconSearch,
-  IconToggleLeftFilled,
-  IconToggleRightFilled,
-  IconWand,
-} from '@tabler/icons-react';
 import type { Disco, MotivoStatus } from '../../types/disco';
 import type {
   EntradaEstoque,
@@ -46,6 +27,7 @@ import {
   GRUPOS_PRECIFICACAO,
 } from '../../types/inventario';
 import {
+  buscarNoInventario,
   contarFiltrosDiscosAtivos,
   filtrarDiscos,
   FILTROS_DISCOS_VAZIOS,
@@ -54,20 +36,42 @@ import {
   aplicarEntradaEstoque,
   diasDesde,
   elegivelParaInativacaoAutomatica,
+  estaParado,
+  estoqueAcabando,
+  JUSTIFICATIVA_MINIMA_STATUS,
   motivoInativacaoAutomatica,
   paraIso,
   PARAMETRO_INATIVACAO_AUTOMATICA,
 } from '../../utils/estoque';
-import { nomeFormato, nomesEdicoes } from '../../utils/catalogo';
+import { nomeFormato } from '../../utils/catalogo';
 import { formatarBRL, nomeGrupoPrecificacao } from '../../utils/precificacao';
 import { useLoja } from '../../contexts/loja';
+import CabecalhoPainel from '../CabecalhoPainel/CabecalhoPainel';
+import Capa from '../Capa/Capa';
 import FormDisco, { type FormDiscoValues } from '../FormDisco/FormDisco';
 import FormEntradaEstoque, {
   type FormEntradaEstoqueValues,
 } from '../FormEntradaEstoque/FormEntradaEstoque';
+import { Add, Filter, Search, Time } from '@carbon/icons-react';
 
 // tabela cheia re-renderizava inteira a cada clique, inclusive para abrir modal
 const POR_PAGINA = 12;
+
+const COLUNAS = '48px minmax(180px, 1.6fr) 48px minmax(120px, 1fr) 90px 90px 80px 200px';
+const GRADE = { gridTemplateColumns: COLUNAS, minWidth: 960 };
+const GRADE_LINHA = { ...GRADE, minHeight: 68 };
+
+// título e subtítulo formam um bloco só; o respiro de 20px vem depois do subtítulo
+const CABECALHO_COM_SUBTITULO = { header: { marginBottom: 0, paddingBottom: 6 } };
+
+type Recorte = StatusFiltroDisco | 'baixo';
+
+const OPCOES_RECORTE: { label: string; value: Recorte }[] = [
+  { label: 'Todos', value: 'todos' },
+  { label: 'Ativos', value: 'ativos' },
+  { label: 'Inativos', value: 'inativos' },
+  { label: 'Estoque baixo', value: 'baixo' },
+];
 
 const OPCOES_GRUPO_FILTRO = [
   { value: '', label: 'Todos' },
@@ -85,9 +89,40 @@ const OPCOES_FORMATO_FILTRO = [
   })),
 ];
 
+function comEstoqueBaixo(disco: Disco): boolean {
+  return disco.isAtivo && estoqueAcabando(disco.estoque);
+}
+
+type TomNota = 'inativo' | 'esgotado' | 'parado';
+
+function notaDoDisco(disco: Disco, hoje: Date): { texto: string; tom: TomNota } | null {
+  if (!disco.isAtivo) return { texto: 'Inativo', tom: 'inativo' };
+  if (disco.estoque === 0) return { texto: 'Esgotado', tom: 'esgotado' };
+  if (!estaParado(disco, hoje)) return null;
+
+  const dias = diasDesde(disco.ultimaVendaEm, hoje);
+  return { texto: dias === null ? 'Nunca vendido' : `Parado há ${dias} dias`, tom: 'parado' };
+}
+
+function nivelEstoque(estoque: number): 'zerado' | 'baixo' | undefined {
+  if (estoque === 0) return 'zerado';
+  return estoqueAcabando(estoque) ? 'baixo' : undefined;
+}
+
+// as categorias são constantes em caixa alta; na pílula leem como frase
+function rotuloCategoria(categoria: string): string {
+  return categoria.charAt(0) + categoria.slice(1).toLowerCase();
+}
+
+function plural(quantidade: number, singular: string, varios: string): string {
+  return `${quantidade} ${quantidade === 1 ? singular : varios}`;
+}
+
 export default function CuradoriaInventario() {
   const { discos, setDiscos, entradas, setEntradas } = useLoja();
   const [filtros, setFiltros] = useState<FiltrosDiscos>(FILTROS_DISCOS_VAZIOS);
+  const [busca, setBusca] = useState('');
+  const [recorte, setRecorte] = useState<Recorte>('todos');
 
   const [isFormDiscoVisible, setIsFormDiscoVisible] = useState(false);
   const [discoEmEdicao, setDiscoEmEdicao] = useState<Disco | null>(null);
@@ -99,16 +134,18 @@ export default function CuradoriaInventario() {
   const [isInativacaoAutomaticaVisible, setIsInativacaoAutomaticaVisible] =
     useState(false);
   const [pagina, setPagina] = useState(1);
-  const [isFiltroAberto, { toggle: toggleFiltro, close: fecharFiltro }] =
-    useDisclosure(false);
+  const [isFiltroAberto, { toggle: toggleFiltro }] = useDisclosure(false);
 
   // fixo por sessão para a lista de elegíveis e a confirmação baterem (RF0013)
   const hoje = useMemo(() => new Date(), []);
 
-  const discosFiltrados = useMemo(
-    () => filtrarDiscos(discos, filtros),
-    [discos, filtros]
-  );
+  // status e busca ficam na barra; o painel de filtros guarda só os critérios finos
+  const discosFiltrados = useMemo(() => {
+    const status = recorte === 'baixo' ? 'todos' : recorte;
+    return buscarNoInventario(filtrarDiscos(discos, { ...filtros, status }), busca).filter(
+      (disco) => recorte !== 'baixo' || comEstoqueBaixo(disco),
+    );
+  }, [discos, filtros, busca, recorte]);
   const discosElegiveis = useMemo(
     () =>
       discos.filter((disco) => elegivelParaInativacaoAutomatica(disco, hoje)),
@@ -128,6 +165,12 @@ export default function CuradoriaInventario() {
   );
 
   const qtdFiltrosAtivos = contarFiltrosDiscosAtivos(filtros);
+  const discosAtivos = discos.filter((disco) => disco.isAtivo);
+  const qtdEstoqueBaixo = discosAtivos.filter(comEstoqueBaixo).length;
+  const qtdParados = discosAtivos.filter((disco) => estaParado(disco, hoje)).length;
+
+  const justificativaValida =
+    justificativaStatus.trim().length >= JUSTIFICATIVA_MINIMA_STATUS;
 
   function handleAlterarFiltro<Campo extends keyof FiltrosDiscos>(
     campo: Campo,
@@ -237,7 +280,7 @@ export default function CuradoriaInventario() {
 
   function handleConfirmarAlterarStatus(): void {
     if (!discoParaAlternarStatus || !categoriaStatus) return;
-    if (justificativaStatus.trim().length < 10) return;
+    if (!justificativaValida) return;
 
     const motivo: MotivoStatus = {
       categoria: categoriaStatus,
@@ -282,15 +325,117 @@ export default function CuradoriaInventario() {
     handleFecharInativacaoAutomatica();
   }
 
+  function renderNota(disco: Disco) {
+    const nota = notaDoDisco(disco, hoje);
+    if (!nota) return null;
+
+    const etiqueta = (
+      <span className={styles.nota} data-tom={nota.tom}>
+        {nota.texto}
+      </span>
+    );
+
+    // RN0015: o motivo da inativação fica a um hover de distância
+    return disco.motivoStatus && !disco.isAtivo ? (
+      <Tooltip
+        label={`${disco.motivoStatus.categoria} — ${disco.motivoStatus.justificativa}`}
+        multiline
+        w={260}
+      >
+        {etiqueta}
+      </Tooltip>
+    ) : (
+      etiqueta
+    );
+  }
+
+  function renderLinhas() {
+    if (discosFiltrados.length === 0) {
+      return <p className={painel.vazio}>Nenhum disco com esses filtros.</p>;
+    }
+
+    return discosDaPagina.map((disco) => {
+      const apagado = !disco.isAtivo || undefined;
+
+      return (
+        <div key={disco.id} className={painel.linhaTabela} style={GRADE_LINHA}>
+          <div className={styles.capa} data-apagado={apagado}>
+            <Capa src={disco.coverThumb ?? disco.coverSrc} alt="" />
+          </div>
+          <div className={styles.disco} data-apagado={apagado}>
+            <strong>{disco.title}</strong>
+            <span className={styles.sub}>
+              <span className={styles.artista}>{disco.artist}</span>
+              <span aria-hidden>·</span>
+              <span className={styles.formato}>{nomeFormato(disco.formatoId)}</span>
+              {renderNota(disco)}
+            </span>
+          </div>
+          <span className={painel.numero}>{disco.releaseYear}</span>
+          <span className={styles.categorias} title={disco.genres.join(' · ')}>
+            {disco.genres.join(' · ')}
+          </span>
+          <span className={styles.grupo}>
+            {nomeGrupoPrecificacao(disco.grupoPrecificacaoId)}
+          </span>
+          <span className={styles.preco}>
+            {disco.price === 0 ? (
+              <span className={styles.semPreco}>Não precificado</span>
+            ) : (
+              formatarBRL(disco.price)
+            )}
+            {disco.autorizacaoGerente !== null && (
+              <Tooltip
+                label={`Preço abaixo da margem, autorizado por ${disco.autorizacaoGerente} (RN0014)`}
+              >
+                <span className={styles.autorizado}>Autorizado</span>
+              </Tooltip>
+            )}
+          </span>
+          <span className={styles.estoque} data-nivel={nivelEstoque(disco.estoque)}>
+            {disco.estoque}
+          </span>
+          <span className={painel.acoes}>
+            <button
+              type="button"
+              className={painel.acao}
+              aria-label={`Registrar entrada de estoque de ${disco.title}`}
+              onClick={() => handleAbrirEntradaEstoque(disco)}
+            >
+              Entrada
+            </button>
+            <button
+              type="button"
+              className={painel.acao}
+              aria-label={`Editar ${disco.title}`}
+              onClick={() => handleAbrirEdicaoDisco(disco)}
+            >
+              Editar
+            </button>
+            <button
+              type="button"
+              className={disco.isAtivo ? painel.acaoPerigo : painel.acao}
+              aria-label={
+                disco.isAtivo ? `Inativar ${disco.title}` : `Reativar ${disco.title}`
+              }
+              onClick={() => handleSolicitarAlterarStatus(disco)}
+            >
+              {disco.isAtivo ? 'Inativar' : 'Reativar'}
+            </button>
+          </span>
+        </div>
+      );
+    });
+  }
+
   return (
-    <>
+    <div className={painel.painel}>
       {isFormDiscoVisible && (
         <Modal
-          centered
-          size="xl"
-          withCloseButton={false}
+          size={880}
           opened={isFormDiscoVisible}
           onClose={handleFecharFormDisco}
+          title={discoEmEdicao ? `Editar ${discoEmEdicao.title}` : 'Cadastrar disco'}
         >
           <FormDisco
             key={discoEmEdicao?.id ?? 'novo'}
@@ -305,11 +450,10 @@ export default function CuradoriaInventario() {
       )}
       {discoParaEntrada && (
         <Modal
-          centered
-          size="md"
-          withCloseButton={false}
           opened={Boolean(discoParaEntrada)}
           onClose={handleFecharFormEntrada}
+          title="Entrada de estoque"
+          styles={CABECALHO_COM_SUBTITULO}
         >
           <FormEntradaEstoque
             disco={discoParaEntrada}
@@ -321,573 +465,320 @@ export default function CuradoriaInventario() {
       )}
       {discoParaAlternarStatus && (
         <Modal
-          centered
-          size="md"
           opened={Boolean(discoParaAlternarStatus)}
           onClose={handleCancelarAlterarStatus}
-          title={
-            <Text fw={600} size="lg">
-              {discoParaAlternarStatus.isAtivo
-                ? 'Inativar disco'
-                : 'Reativar disco'}
-            </Text>
-          }
+          title={`${discoParaAlternarStatus.isAtivo ? 'Inativar' : 'Reativar'} ${discoParaAlternarStatus.title}`}
+          styles={CABECALHO_COM_SUBTITULO}
         >
-          <Text fw={300} size="sm">
+          <p className={painel.textoModal}>
             {discoParaAlternarStatus.isAtivo
-              ? 'Ao inativar, o disco sai da loja e some das buscas do cliente. Confirmar a inativação de '
-              : 'Ao reativar, o disco volta a aparecer na loja e nas buscas do cliente. Confirmar a reativação de '}
-            <Text span fw={600} size="sm">
-              {discoParaAlternarStatus.title}
-            </Text>
-            ?
-          </Text>
+              ? 'O disco sai da loja e some das buscas do cliente. O estoque e o histórico de vendas ficam preservados.'
+              : 'O disco volta a aparecer na loja e nas buscas do cliente, com o estoque atual.'}
+          </p>
 
-          <Stack gap="xs" mt="md">
-            <Select
-              label="Categoria"
-              placeholder="Selecione um motivo"
-              withAsterisk
-              data={
-                discoParaAlternarStatus.isAtivo
+          <div className={styles.camposStatus}>
+            <fieldset className={styles.campo}>
+              <legend className={styles.rotulo}>Categoria</legend>
+              {/* RN0015 / RN0017: toda mudança de status leva uma categoria */}
+              <div className={styles.pilulas}>
+                {(discoParaAlternarStatus.isAtivo
                   ? CATEGORIAS_INATIVACAO
                   : CATEGORIAS_ATIVACAO
-              }
-              value={categoriaStatus}
-              onChange={setCategoriaStatus}
-            />
+                ).map((categoria) => (
+                  <button
+                    key={categoria}
+                    type="button"
+                    className={styles.pilula}
+                    aria-pressed={categoriaStatus === categoria}
+                    onClick={() => setCategoriaStatus(categoria)}
+                  >
+                    {rotuloCategoria(categoria)}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
             <Textarea
-              label="Justificativa"
+              label={
+                <>
+                  <span>Justificativa</span>
+                  <span className={styles.contador} data-ok={justificativaValida || undefined}>
+                    {justificativaStatus.trim().length} / {JUSTIFICATIVA_MINIMA_STATUS} mín.
+                  </span>
+                </>
+              }
+              styles={{
+                label: { display: 'flex', justifyContent: 'space-between', width: '100%' },
+              }}
               placeholder="Explique o motivo da mudança de status"
-              withAsterisk
-              minRows={3}
+              rows={3}
+              resize="vertical"
               value={justificativaStatus}
               onChange={(event) =>
                 setJustificativaStatus(event.currentTarget.value)
               }
             />
-          </Stack>
+          </div>
 
-          <Group justify="flex-end" mt="xl">
-            <Button variant="default" onClick={handleCancelarAlterarStatus}>
+          <div className={painel.rodapeModal}>
+            <Button type="button" variant="default" size="sm" onClick={handleCancelarAlterarStatus}>
               Cancelar
             </Button>
             <Button
-              color="orange"
-              disabled={
-                !categoriaStatus || justificativaStatus.trim().length < 10
-              }
+              type="button"
+              size="sm"
+              color={discoParaAlternarStatus.isAtivo ? 'red' : 'dark'}
+              disabled={!categoriaStatus || !justificativaValida}
               onClick={handleConfirmarAlterarStatus}
             >
-              {discoParaAlternarStatus.isAtivo ? 'Inativar' : 'Reativar'}
+              {discoParaAlternarStatus.isAtivo ? 'Inativar disco' : 'Reativar disco'}
             </Button>
-          </Group>
+          </div>
         </Modal>
       )}
       {isInativacaoAutomaticaVisible && (
         <Modal
-          centered
-          size="lg"
           opened={isInativacaoAutomaticaVisible}
           onClose={handleFecharInativacaoAutomatica}
-          title={
-            <Text fw={600} size="lg">
-              Inativação automática
-            </Text>
-          }
+          title="Inativação automática"
+          styles={CABECALHO_COM_SUBTITULO}
         >
-          <Text fw={300} size="sm" mb="md">
+          <p className={painel.textoModal}>
             A RF0013 inativa de uma vez os discos sem estoque e sem venda há{' '}
             {PARAMETRO_INATIVACAO_AUTOMATICA.diasSemVenda} dias ou mais (nunca
-            vendidos também entram). Todos são marcados como{' '}
-            <Text span fw={600} size="sm">
-              FORA DE MERCADO
-            </Text>
-            .
-          </Text>
+            vendidos também entram). Todos saem da loja marcados como{' '}
+            <strong>FORA DE MERCADO</strong>.
+          </p>
 
-          <Table withTableBorder withColumnBorders>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Título</Table.Th>
-                <Table.Th>Estoque</Table.Th>
-                <Table.Th>Parado há</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {discosElegiveis.length === 0 && (
-                <Table.Tr>
-                  <Table.Td colSpan={3} ta="center" py="md">
-                    <Text fw={300} size="sm" c="dimmed">
-                      Nenhum disco elegível agora
-                    </Text>
-                  </Table.Td>
-                </Table.Tr>
-              )}
-              {discosElegiveis.map((disco) => {
-                const dias = diasDesde(disco.ultimaVendaEm, hoje);
-                return (
-                  <Table.Tr key={disco.id}>
-                    <Table.Td>{disco.title}</Table.Td>
-                    <Table.Td>{disco.estoque}</Table.Td>
-                    <Table.Td>
-                      {dias === null ? 'nunca vendido' : `${dias} dias`}
-                    </Table.Td>
-                  </Table.Tr>
-                );
-              })}
-            </Table.Tbody>
-          </Table>
+          <div className={styles.elegiveis}>
+            {discosElegiveis.length === 0 && (
+              <p className={painel.vazio}>Nenhum disco elegível agora.</p>
+            )}
+            {discosElegiveis.map((disco) => {
+              const dias = diasDesde(disco.ultimaVendaEm, hoje);
+              return (
+                <div key={disco.id} className={styles.elegivel}>
+                  <Capa src={disco.coverThumb ?? disco.coverSrc} alt="" />
+                  <div className={styles.elegivelTexto}>
+                    <strong>{disco.title}</strong>
+                    <span>
+                      {disco.artist} · {disco.estoque} em estoque
+                    </span>
+                  </div>
+                  <span className={styles.dias}>
+                    {dias === null ? 'Nunca vendido' : `${dias} dias`}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
 
-          <Group justify="flex-end" mt="xl">
+          <div className={painel.rodapeModal}>
             <Button
+              type="button"
               variant="default"
+              size="sm"
               onClick={handleFecharInativacaoAutomatica}
             >
               Cancelar
             </Button>
             <Button
-              color="orange"
+              type="button"
+              size="sm"
               disabled={discosElegiveis.length === 0}
               onClick={handleConfirmarInativacaoAutomatica}
             >
-              Inativar {discosElegiveis.length}{' '}
-              {discosElegiveis.length === 1 ? 'disco' : 'discos'}
+              Inativar {plural(discosElegiveis.length, 'disco', 'discos')}
             </Button>
-          </Group>
+          </div>
         </Modal>
       )}
-      <div className={styles.painelInventario}>
-        <nav className={styles.navBar}>
-          <button
-            className={styles.navButton}
-            type="button"
-            aria-label="Cadastrar disco"
-            onClick={handleAbrirNovoDisco}
-          >
-            <IconPlus />
-          </button>
-          <button
-            className={styles.navButton}
-            type="button"
-            aria-label="Executar inativação automática"
-            disabled={discosElegiveis.length === 0}
-            onClick={handleAbrirInativacaoAutomatica}
-          >
-            <Indicator
-              label={discosElegiveis.length}
-              size={16}
-              color="orange"
+
+      <CabecalhoPainel
+        titulo="Inventário"
+        resumo={[
+          plural(discosAtivos.length, 'ativo', 'ativos'),
+          `${qtdEstoqueBaixo} com estoque baixo`,
+          `${plural(qtdParados, 'parado', 'parados')} há +${PARAMETRO_INATIVACAO_AUTOMATICA.diasSemVenda} dias`,
+        ].join(' · ')}
+        acoes={
+          <>
+            <Button
+              variant="outline"
               disabled={discosElegiveis.length === 0}
+              rightSection={
+                discosElegiveis.length > 0 && (
+                  <span className={styles.contagem}>{discosElegiveis.length}</span>
+                )
+              }
+              onClick={handleAbrirInativacaoAutomatica}
+              leftSection={<Time size={20} />}
             >
-              <IconWand />
-            </Indicator>
-          </button>
-          <Popover
-            position="bottom-end"
-            width={320}
-            shadow="md"
-            withArrow
-            trapFocus
-            opened={isFiltroAberto}
-            onChange={(aberto) => {
-              if (!aberto) fecharFiltro();
-            }}
-          >
-            <Popover.Target>
-              <button
-                className={styles.navButton}
-                type="button"
-                aria-label="Filtrar discos"
-                onClick={toggleFiltro}
-              >
-                <Indicator
-                  label={qtdFiltrosAtivos}
-                  size={16}
-                  color="dark"
-                  disabled={qtdFiltrosAtivos === 0}
-                >
-                  <IconFilter2 />
-                </Indicator>
-              </button>
-            </Popover.Target>
-            <Popover.Dropdown>
-              <Stack gap="xs">
-                <TextInput
-                  label="Artista"
-                  placeholder="Nome do artista"
-                  size="xs"
-                  radius="sm"
-                  value={filtros.artista}
-                  onChange={(event) =>
-                    handleAlterarFiltro('artista', event.currentTarget.value)
-                  }
-                />
-                <TextInput
-                  label="Gravadora"
-                  placeholder="Nome da gravadora"
-                  size="xs"
-                  radius="sm"
-                  value={filtros.gravadora}
-                  onChange={(event) =>
-                    handleAlterarFiltro('gravadora', event.currentTarget.value)
-                  }
-                />
-                <Select
-                  label="Formato"
-                  size="xs"
-                  radius="sm"
-                  data={OPCOES_FORMATO_FILTRO}
-                  value={filtros.formatoId}
-                  onChange={(valor) =>
-                    handleAlterarFiltro('formatoId', valor ?? '')
-                  }
-                />
-                <TextInput
-                  label="Categoria"
-                  placeholder="Rock, Hip Hop..."
-                  size="xs"
-                  radius="sm"
-                  value={filtros.categoria}
-                  onChange={(event) =>
-                    handleAlterarFiltro('categoria', event.currentTarget.value)
-                  }
-                />
-                <TextInput
-                  label="Código"
-                  placeholder="Catálogo ou código de barras"
-                  size="xs"
-                  radius="sm"
-                  value={filtros.codigo}
-                  onChange={(event) =>
-                    handleAlterarFiltro('codigo', event.currentTarget.value)
-                  }
-                />
-                <Group gap="xs" grow>
-                  <NumberInput
-                    label="Ano de"
-                    placeholder="1970"
-                    size="xs"
-                    radius="sm"
-                    hideControls
-                    value={filtros.anoMin}
-                    onChange={(valor) =>
-                      handleAlterarFiltro('anoMin', String(valor))
-                    }
-                  />
-                  <NumberInput
-                    label="Ano até"
-                    placeholder="2026"
-                    size="xs"
-                    radius="sm"
-                    hideControls
-                    value={filtros.anoMax}
-                    onChange={(valor) =>
-                      handleAlterarFiltro('anoMax', String(valor))
-                    }
-                  />
-                </Group>
-                <Group gap="xs" grow>
-                  <NumberInput
-                    label="Preço de"
-                    placeholder="0,00"
-                    size="xs"
-                    radius="sm"
-                    hideControls
-                    decimalScale={2}
-                    prefix="R$ "
-                    value={filtros.precoMin}
-                    onChange={(valor) =>
-                      handleAlterarFiltro('precoMin', String(valor))
-                    }
-                  />
-                  <NumberInput
-                    label="Preço até"
-                    placeholder="0,00"
-                    size="xs"
-                    radius="sm"
-                    hideControls
-                    decimalScale={2}
-                    prefix="R$ "
-                    value={filtros.precoMax}
-                    onChange={(valor) =>
-                      handleAlterarFiltro('precoMax', String(valor))
-                    }
-                  />
-                </Group>
-                <Select
-                  label="Grupo de precificação"
-                  size="xs"
-                  radius="sm"
-                  data={OPCOES_GRUPO_FILTRO}
-                  value={filtros.grupoPrecificacaoId}
-                  onChange={(valor) =>
-                    handleAlterarFiltro('grupoPrecificacaoId', valor ?? '')
-                  }
-                />
-                <div>
-                  <Text size="xs" fw={500} mb={4}>
-                    Status
-                  </Text>
-                  <SegmentedControl
-                    fullWidth
-                    size="xs"
-                    color="dark"
-                    value={filtros.status}
-                    onChange={(valor) =>
-                      handleAlterarFiltro('status', valor as StatusFiltroDisco)
-                    }
-                    data={[
-                      { label: 'Todos', value: 'todos' },
-                      { label: 'Ativos', value: 'ativos' },
-                      { label: 'Inativos', value: 'inativos' },
-                    ]}
-                  />
-                </div>
-                <div>
-                  <Text size="xs" fw={500} mb={4}>
-                    Estoque
-                  </Text>
-                  <SegmentedControl
-                    fullWidth
-                    size="xs"
-                    color="dark"
-                    value={filtros.estoque}
-                    onChange={(valor) =>
-                      handleAlterarFiltro('estoque', valor as EstoqueFiltro)
-                    }
-                    data={[
-                      { label: 'Todos', value: 'todos' },
-                      { label: 'Disponível', value: 'disponivel' },
-                      { label: 'Esgotado', value: 'esgotado' },
-                    ]}
-                  />
-                </div>
-                <Group justify="flex-end">
-                  <Button
-                    variant="subtle"
-                    color="black"
-                    size="xs"
-                    onClick={handleLimparFiltros}
-                  >
-                    Limpar filtros
-                  </Button>
-                </Group>
-              </Stack>
-            </Popover.Dropdown>
-          </Popover>
+              Inativação automática
+            </Button>
+            <Button leftSection={<Add size={20} />} onClick={handleAbrirNovoDisco}>
+              Cadastrar disco
+            </Button>
+          </>
+        }
+      />
+
+      <div className={painel.barra}>
+        <TextInput
+          className={painel.busca}
+          placeholder="Busque por título, artista ou código de catálogo"
+          leftSection={<Search size={16} />}
+          aria-label="Buscar disco"
+          value={busca}
+          onChange={(event) => setBusca(event.currentTarget.value)}
+        />
+        <SegmentedControl
+          aria-label="Recorte do inventário"
+          styles={{ label: { minHeight: 46 } }}
+          value={recorte}
+          onChange={(valor) => setRecorte(valor as Recorte)}
+          data={OPCOES_RECORTE}
+        />
+        <button
+          type="button"
+          className={painel.botaoFiltros}
+          data-ativo={isFiltroAberto || qtdFiltrosAtivos > 0 || undefined}
+          aria-expanded={isFiltroAberto}
+          onClick={toggleFiltro}
+        >
+          <Filter size={16} />
+          {qtdFiltrosAtivos > 0 ? `Filtros · ${qtdFiltrosAtivos}` : 'Filtros'}
+        </button>
+      </div>
+
+      {isFiltroAberto && (
+        <div className={painel.filtros}>
           <TextInput
-            placeholder="Busque um disco por título"
-            radius="sm"
-            rightSection={<IconSearch />}
-            flex={0.3}
-            value={filtros.titulo}
+            label="Artista"
+            placeholder="Nome do artista"
+            size="sm"
+            value={filtros.artista}
             onChange={(event) =>
-              handleAlterarFiltro('titulo', event.currentTarget.value)
+              handleAlterarFiltro('artista', event.currentTarget.value)
             }
           />
-        </nav>
-        <div className={styles.tabelaContainer}>
-          <Table
-            withTableBorder
-            withColumnBorders
-            highlightOnHover
-            className={styles.tabela}
-          >
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th w={70}>Capa</Table.Th>
-                <Table.Th w={240}>Título</Table.Th>
-                <Table.Th w={170}>Artista</Table.Th>
-                <Table.Th w={70}>Ano</Table.Th>
-                <Table.Th w={190}>Categorias</Table.Th>
-                <Table.Th w={120}>Grupo</Table.Th>
-                <Table.Th w={120}>Preço</Table.Th>
-                <Table.Th w={90}>Estoque</Table.Th>
-                <Table.Th w={130}>Ações</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {discosFiltrados.length === 0 && (
-                <Table.Tr>
-                  <Table.Td colSpan={9} ta="center" py="xl">
-                    <Text fw={300} size="sm" c="dimmed">
-                      Nenhum disco encontrado
-                    </Text>
-                  </Table.Td>
-                </Table.Tr>
-              )}
-              {discosDaPagina.map((disco) => (
-                <Table.Tr
-                  key={disco.id}
-                  className={disco.isAtivo ? undefined : styles.linhaInativa}
-                >
-                  <Table.Td>
-                    <Image
-                      src={disco.coverThumb ?? disco.coverSrc}
-                      w={44}
-                      h={44}
-                      radius="sm"
-                      fit="cover"
-                      alt={disco.title}
-                    />
-                  </Table.Td>
-                  <Table.Td maw={220}>
-                    <Stack gap={2}>
-                      <Group gap={6} wrap="nowrap">
-                        <Text truncate="end" fw={500} size="sm">
-                          {disco.title}
-                        </Text>
-                        {!disco.isAtivo && disco.motivoStatus && (
-                          <Tooltip
-                            label={`${disco.motivoStatus.categoria} — ${disco.motivoStatus.justificativa}`}
-                            multiline
-                            w={260}
-                          >
-                            <Badge color="gray" size="xs">
-                              Inativo
-                            </Badge>
-                          </Tooltip>
-                        )}
-                      </Group>
-                      <Text size="xs" c="dimmed">
-                        {`${nomeFormato(disco.formatoId)} · ${nomesEdicoes(disco.edicaoIds)}`}
-                      </Text>
-                    </Stack>
-                  </Table.Td>
-                  <Table.Td>
-                    <Text truncate="end" size="sm">
-                      {disco.artist}
-                    </Text>
-                  </Table.Td>
-                  <Table.Td>{disco.releaseYear}</Table.Td>
-                  <Table.Td>
-                    <Group gap={4} wrap="nowrap">
-                      {disco.genres.slice(0, 2).map((genero) => (
-                        <Badge
-                          key={genero}
-                          variant="light"
-                          color="dark"
-                          size="sm"
-                        >
-                          {genero}
-                        </Badge>
-                      ))}
-                      {disco.genres.length > 2 && (
-                        <Tooltip label={disco.genres.slice(2).join(', ')}>
-                          <Badge variant="light" color="dark" size="sm">
-                            +{disco.genres.length - 2}
-                          </Badge>
-                        </Tooltip>
-                      )}
-                    </Group>
-                  </Table.Td>
-                  <Table.Td>
-                    <Text size="sm">
-                      {nomeGrupoPrecificacao(disco.grupoPrecificacaoId)}
-                    </Text>
-                  </Table.Td>
-                  <Table.Td>
-                    <Group gap={4} wrap="nowrap">
-                      {disco.price === 0 ? (
-                        <Text size="sm" c="dimmed">
-                          Não precificado
-                        </Text>
-                      ) : (
-                        <Text size="sm">{formatarBRL(disco.price)}</Text>
-                      )}
-                      {disco.autorizacaoGerente !== null && (
-                        <Tooltip
-                          label={`Preço abaixo da margem, autorizado por ${disco.autorizacaoGerente}`}
-                        >
-                          <IconAlertTriangle size={14} color="orange" />
-                        </Tooltip>
-                      )}
-                    </Group>
-                  </Table.Td>
-                  <Table.Td>
-                    <Badge
-                      color={
-                        disco.estoque === 0
-                          ? 'red'
-                          : disco.estoque < 5
-                            ? 'yellow'
-                            : 'green'
-                      }
-                      variant="light"
-                    >
-                      {disco.estoque}
-                    </Badge>
-                  </Table.Td>
-                  <Table.Td style={{ width: '130px' }}>
-                    <Flex gap="0.5em">
-                      <button
-                        className={styles.actionButton}
-                        type="button"
-                        aria-label={`Registrar entrada de estoque de ${disco.title}`}
-                        onClick={() => handleAbrirEntradaEstoque(disco)}
-                      >
-                        <IconPackageImport stroke={1.8} />
-                      </button>
-                      <button
-                        className={styles.actionButton}
-                        type="button"
-                        aria-label={`Editar ${disco.title}`}
-                        onClick={() => handleAbrirEdicaoDisco(disco)}
-                      >
-                        <IconPencil stroke={1.8} />
-                      </button>
-                      <button
-                        className={styles.actionButton}
-                        type="button"
-                        aria-label={
-                          disco.isAtivo
-                            ? `Inativar ${disco.title}`
-                            : `Reativar ${disco.title}`
-                        }
-                        onClick={() => handleSolicitarAlterarStatus(disco)}
-                      >
-                        {disco.isAtivo ? (
-                          <IconToggleRightFilled
-                            stroke={1.8}
-                            color="green"
-                            className={styles.toggleIcon}
-                          />
-                        ) : (
-                          <IconToggleLeftFilled
-                            stroke={1.8}
-                            opacity={0.4}
-                            className={styles.toggleIcon}
-                          />
-                        )}
-                      </button>
-                    </Flex>
-                  </Table.Td>
-                </Table.Tr>
-              ))}
-              {discosDaPagina.length > 0 &&
-                Array.from(
-                  { length: POR_PAGINA - discosDaPagina.length },
-                  (_, indice) => (
-                    <Table.Tr key={`vazia-${indice}`} className={styles.linhaVazia}>
-                      <Table.Td colSpan={9} />
-                    </Table.Tr>
-                  ),
-                )}
-            </Table.Tbody>
-          </Table>
-
-          {totalPaginas > 1 && (
-            <Pagination
-              total={totalPaginas}
-              value={paginaAtual}
-              onChange={setPagina}
-              color="dark"
-              mt="md"
+          <TextInput
+            label="Gravadora"
+            placeholder="Nome da gravadora"
+            size="sm"
+            value={filtros.gravadora}
+            onChange={(event) =>
+              handleAlterarFiltro('gravadora', event.currentTarget.value)
+            }
+          />
+          <TextInput
+            label="Categoria"
+            placeholder="Rock, Hip Hop..."
+            size="sm"
+            value={filtros.categoria}
+            onChange={(event) =>
+              handleAlterarFiltro('categoria', event.currentTarget.value)
+            }
+          />
+          <Select
+            label="Formato"
+            size="sm"
+            data={OPCOES_FORMATO_FILTRO}
+            value={filtros.formatoId}
+            onChange={(valor) => handleAlterarFiltro('formatoId', valor ?? '')}
+          />
+          <TextInput
+            label="Código"
+            placeholder="Catálogo ou código de barras"
+            size="sm"
+            value={filtros.codigo}
+            onChange={(event) =>
+              handleAlterarFiltro('codigo', event.currentTarget.value)
+            }
+          />
+          <Select
+            label="Grupo de precificação"
+            size="sm"
+            data={OPCOES_GRUPO_FILTRO}
+            value={filtros.grupoPrecificacaoId}
+            onChange={(valor) =>
+              handleAlterarFiltro('grupoPrecificacaoId', valor ?? '')
+            }
+          />
+          <NumberInput
+            label="Ano de"
+            placeholder="1970"
+            size="sm"
+            hideControls
+            value={filtros.anoMin}
+            onChange={(valor) => handleAlterarFiltro('anoMin', String(valor))}
+          />
+          <NumberInput
+            label="Ano até"
+            placeholder="2026"
+            size="sm"
+            hideControls
+            value={filtros.anoMax}
+            onChange={(valor) => handleAlterarFiltro('anoMax', String(valor))}
+          />
+          <NumberInput
+            label="Preço de"
+            placeholder="R$ 0,00"
+            size="sm"
+            hideControls
+            decimalScale={2}
+            prefix="R$ "
+            value={filtros.precoMin}
+            onChange={(valor) => handleAlterarFiltro('precoMin', String(valor))}
+          />
+          <NumberInput
+            label="Preço até"
+            placeholder="R$ 0,00"
+            size="sm"
+            hideControls
+            decimalScale={2}
+            prefix="R$ "
+            value={filtros.precoMax}
+            onChange={(valor) => handleAlterarFiltro('precoMax', String(valor))}
+          />
+          <div className={painel.filtroLargo}>
+            <span className={painel.rotulo}>Estoque</span>
+            <SegmentedControl
+              value={filtros.estoque}
+              onChange={(valor) =>
+                handleAlterarFiltro('estoque', valor as EstoqueFiltro)
+              }
+              data={[
+                { label: 'Todos', value: 'todos' },
+                { label: 'Disponível', value: 'disponivel' },
+                { label: 'Esgotado', value: 'esgotado' },
+              ]}
             />
-          )}
+          </div>
+          <div className={painel.filtrosRodape}>
+            <Button variant="link" onClick={handleLimparFiltros}>
+              Limpar filtros
+            </Button>
+          </div>
         </div>
+      )}
+
+      <div className={painel.tabela}>
+        <div className={painel.cabecalhoTabela} style={GRADE}>
+          <span />
+          <span>Disco</span>
+          <span>Ano</span>
+          <span>Categorias</span>
+          <span>Grupo</span>
+          <span className={painel.direita}>Preço</span>
+          <span className={painel.direita}>Estoque</span>
+          <span className={painel.direita}>Ações</span>
+        </div>
+        {renderLinhas()}
       </div>
-    </>
+
+      {totalPaginas > 1 && (
+        <Pagination total={totalPaginas} value={paginaAtual} onChange={setPagina} />
+      )}
+    </div>
   );
 }
