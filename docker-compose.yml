@@ -18,6 +18,7 @@ services:
       - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
       - ./db/seed.sql:/docker-entrypoint-initdb.d/02-dados-dominio.sql:ro
       - ./db/clientes.sql:/docker-entrypoint-initdb.d/03-clientes.sql:ro
+      - ./db/administradores.sql:/docker-entrypoint-initdb.d/04-administradores.sql:ro
       - pgdata:/var/lib/postgresql/data
 
   backend:

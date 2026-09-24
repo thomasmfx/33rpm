@@ -36,10 +36,6 @@ import jakarta.persistence.EntityManager;
 @Service("Cliente")
 public class ClienteService implements IService {
 
-  /** RNF0031: mínimo de 8 caracteres, maiúsculas, minúsculas e caractere especial. */
-  private static final Pattern SENHA_FORTE =
-      Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\W).{8,}$");
-
   private static final Pattern EMAIL = Pattern.compile("^\\S+@\\S+\\.\\S+$");
 
   private final ClienteRepository clienteRepository;
@@ -49,14 +45,15 @@ public class ClienteService implements IService {
   private final CidadeRepository cidadeRepository;
   private final EstadoRepository estadoRepository;
   private final RegistradorLog registradorLog;
+  private final RegrasSenha regrasSenha;
   private final PasswordEncoder encoder;
   private final EntityManager entityManager;
 
   public ClienteService(ClienteRepository clienteRepository, GeneroRepository generoRepository,
       TipoTelefoneRepository tipoTelefoneRepository,
       BandeiraCartaoRepository bandeiraCartaoRepository, CidadeRepository cidadeRepository,
-      EstadoRepository estadoRepository, RegistradorLog registradorLog, PasswordEncoder encoder,
-      EntityManager entityManager) {
+      EstadoRepository estadoRepository, RegistradorLog registradorLog, RegrasSenha regrasSenha,
+      PasswordEncoder encoder, EntityManager entityManager) {
     this.clienteRepository = clienteRepository;
     this.generoRepository = generoRepository;
     this.tipoTelefoneRepository = tipoTelefoneRepository;
@@ -64,6 +61,7 @@ public class ClienteService implements IService {
     this.cidadeRepository = cidadeRepository;
     this.estadoRepository = estadoRepository;
     this.registradorLog = registradorLog;
+    this.regrasSenha = regrasSenha;
     this.encoder = encoder;
     this.entityManager = entityManager;
   }
@@ -76,7 +74,7 @@ public class ClienteService implements IService {
     normalizar(cliente);
 
     List<String> erros = validarDadosCadastrais(cliente, null);
-    erros.addAll(validarSenha(cliente.getSenha(), cliente.getConfirmarSenha()));
+    erros.addAll(regrasSenha.validar(cliente.getSenha(), cliente.getConfirmarSenha()));
     erros.addAll(validarEnderecos(cliente));
     erros.addAll(validarCartoes(cliente));
     if (!erros.isEmpty()) {
@@ -130,7 +128,7 @@ public class ClienteService implements IService {
 
     List<String> erros = validarDadosCadastrais(entrada, atual.getId());
     if (entrada.getSenha() != null && !entrada.getSenha().isBlank()) {
-      erros.addAll(validarSenha(entrada.getSenha(), entrada.getConfirmarSenha()));
+      erros.addAll(regrasSenha.validar(entrada.getSenha(), entrada.getConfirmarSenha()));
     }
     erros.addAll(validarEnderecos(entrada));
     erros.addAll(validarCartoes(entrada));
@@ -204,7 +202,7 @@ public class ClienteService implements IService {
 
   /** RF0028: trocar a senha sem editar o resto do cadastro. */
   private Resultado alterarSenha(Cliente atual, Cliente entrada) {
-    List<String> erros = validarSenha(entrada.getSenha(), entrada.getConfirmarSenha());
+    List<String> erros = regrasSenha.validar(entrada.getSenha(), entrada.getConfirmarSenha());
     if (!erros.isEmpty()) {
       return Resultado.erro(erros);
     }
@@ -327,22 +325,6 @@ public class ClienteService implements IService {
   }
 
   /** RNF0031 e RNF0032. */
-  private List<String> validarSenha(String senha, String confirmacao) {
-    List<String> erros = new ArrayList<>();
-    if (vazio(senha)) {
-      erros.add("Informe a senha (RN0026).");
-      return erros;
-    }
-    if (!SENHA_FORTE.matcher(senha).matches()) {
-      erros.add("A senha deve ter no mínimo 8 caracteres, letras maiúsculas, "
-          + "minúsculas e um caractere especial (RNF0031).");
-    }
-    if (!senha.equals(confirmacao)) {
-      erros.add("As senhas não coincidem (RNF0032).");
-    }
-    return erros;
-  }
-
   /** RN0021, RN0022 e RN0023. */
   private List<String> validarEnderecos(Cliente cliente) {
     List<String> erros = new ArrayList<>();

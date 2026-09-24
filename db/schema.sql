@@ -249,6 +249,23 @@ CREATE TABLE pedido_cupom (
 );
 
 -- ---------------------------------------------------------------------
+-- Administrador da curadoria
+-- ---------------------------------------------------------------------
+-- Tabela própria, sem relação com cliente: o administrador não tem CPF,
+-- endereço nem cartão. O login único (POST /api/sessoes) procura o e-mail
+-- aqui antes de procurar em cliente.
+CREATE TABLE administrador (
+    id            bigserial PRIMARY KEY,
+    codigo        varchar(20)  NOT NULL UNIQUE,
+    nome          varchar(120) NOT NULL,
+    email         varchar(120) NOT NULL UNIQUE,
+    -- RNF0033: hash BCrypt, nunca a senha em texto
+    senha         varchar(72)  NOT NULL,
+    is_ativo      boolean      NOT NULL DEFAULT true,
+    data_cadastro timestamp    NOT NULL DEFAULT now()
+);
+
+-- ---------------------------------------------------------------------
 -- Log de transações (RNF0012)
 -- ---------------------------------------------------------------------
 CREATE TABLE log (
