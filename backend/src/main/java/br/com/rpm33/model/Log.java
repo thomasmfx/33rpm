@@ -2,6 +2,7 @@ package br.com.rpm33.model;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.Immutable;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -15,8 +16,12 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
-/** RNF0012: registro das operações de escrita. */
+/**
+ * RNF0012: registro das operações de escrita. Imutável: além de ser o que um log é,
+ * poupa o Hibernate de reconferir cada registro a cada flush do reset.
+ */
 @Entity
+@Immutable
 @Table(name = "log")
 public class Log {
 
@@ -34,7 +39,7 @@ public class Log {
   @Column(name = "entidade_id")
   private Long entidadeId;
 
-  @Column(length = 80)
+  @Column(length = 120)
   private String usuario;
 
   @Column(name = "data_hora", insertable = false, updatable = false)

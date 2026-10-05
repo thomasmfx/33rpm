@@ -1,0 +1,4781 @@
+[
+  {
+    "disco": {
+      "titulo": "Astroworld",
+      "artista": {
+        "nome": "Travis Scott"
+      },
+      "gravadora": {
+        "nome": "Cactus Jack / Epic"
+      },
+      "anoLancamento": "2018-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Trap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Pop Rap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Psychedelic",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Catálogo"
+      },
+      "codigoCatalogo": "EPIC-19075871371",
+      "codigoBarras": "7891123456781",
+      "numeroFaixas": 17,
+      "duracao": "59:21",
+      "descricao": "Álbum conceitual de Travis Scott inspirado no parque de diversões Six Flags AstroWorld, fechado em Houston. A prensagem em vinil duplo preserva a variação de clima entre as faixas, do trap mais pesado aos interlúdios psicodélicos. Participações de Drake, Frank Ocean e The Weeknd completam o encarte.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/EJzFyUkI9IXsUCOxtvuwffxqZvIjplGNQFG7rIwOWAQ/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMzNTY0/NDgwLTE3NDM0MTk4/NjctNjcxNC5wbmc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/hETV3Hi2vTBIbECTGTa5YFWbSPxCUz8SSnz6mL6HUhY/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMzNTY0/NDgwLTE3NDM0MTk4/NjctNjcxNC5wbmc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 10,
+        "valorCusto": 213.95,
+        "fornecedor": {
+          "nome": "Sony Music Entertainment"
+        },
+        "dataEntrada": "2025-11-10"
+      },
+      {
+        "quantidade": 9,
+        "valorCusto": 243.13,
+        "fornecedor": {
+          "nome": "Sony Music Entertainment"
+        },
+        "dataEntrada": "2026-06-15"
+      }
+    ],
+    "precoVenda": 389,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Currents",
+      "artista": {
+        "nome": "Tame Impala"
+      },
+      "gravadora": {
+        "nome": "Modular Recordings"
+      },
+      "anoLancamento": "2015-01-01",
+      "categorias": [
+        {
+          "desc": "Electronic",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Rock",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Psychedelic Rock",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Indie Rock",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Catálogo"
+      },
+      "codigoCatalogo": "MODVL105",
+      "codigoBarras": "7891123456798",
+      "numeroFaixas": 13,
+      "duracao": "51:04",
+      "descricao": "Terceiro disco do Tame Impala marca a virada de Kevin Parker para produções mais eletrônicas, sem abandonar as raízes psicodélicas da banda. A sequência de faixas foi pensada para ouvir do início ao fim, e o vinil em 180g reforça essa proposta de audição contínua. Uma referência do indie rock dos anos 2010.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.6,
+      "peso": 320,
+      "capaUrl": "https://i.discogs.com/0m9adSJO-pWPRlWpwczRCUJfTokcREPbsmZMprEs1-o/rs:fit/g:sm/q:90/h:592/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTcyNTIx/MTEtMTY5NzM4MTkw/MS0yMjg3LmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/IPQHVvwWF0XrYmhXnrfFJpKcb-1hJxdUBH7w7igdryw/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTcyNTIx/MTEtMTY5NzM4MTkw/MS0yMjg3LmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 7,
+        "valorCusto": 185.41,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2025-05-20"
+      },
+      {
+        "quantidade": 6,
+        "valorCusto": 218.13,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-07-02"
+      }
+    ],
+    "precoVenda": 349,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Thriller",
+      "artista": {
+        "nome": "Michael Jackson"
+      },
+      "gravadora": {
+        "nome": "Epic"
+      },
+      "anoLancamento": "1982-01-01",
+      "categorias": [
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Pop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Contemporary R&B",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Disco",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Soul",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Picture Disc"
+        },
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Clássico"
+      },
+      "codigoCatalogo": "EPIC-38112",
+      "codigoBarras": "7891123456804",
+      "numeroFaixas": 9,
+      "duracao": "42:19",
+      "descricao": "O disco mais vendido da história do pop, com produção de Quincy Jones e faixas que ainda tocam em pistas de dança até hoje. Esta prensagem reproduz o layout original de capa e encarte da Epic. Um item essencial para qualquer coleção que passe por Michael Jackson.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.4,
+      "peso": 250,
+      "capaUrl": "/images/capas/thriller.jpg",
+      "capaMiniaturaUrl": null
+    },
+    "entradas": [
+      {
+        "quantidade": 8,
+        "valorCusto": 107.77,
+        "fornecedor": {
+          "nome": "Polysom Indústria Fonográfica"
+        },
+        "dataEntrada": "2024-09-05"
+      },
+      {
+        "quantidade": 8,
+        "valorCusto": 121.24,
+        "fornecedor": {
+          "nome": "Sony Music Entertainment"
+        },
+        "dataEntrada": "2025-06-18"
+      },
+      {
+        "quantidade": 10,
+        "valorCusto": 134.71,
+        "fornecedor": {
+          "nome": "Sony Music Entertainment"
+        },
+        "dataEntrada": "2026-05-10"
+      }
+    ],
+    "precoVenda": 229,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "The Miseducation Of Lauryn Hill",
+      "artista": {
+        "nome": "Lauryn Hill"
+      },
+      "gravadora": {
+        "nome": "Ruffhouse / Columbia"
+      },
+      "anoLancamento": "1998-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Conscious",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Contemporary R&B",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Clássico"
+      },
+      "codigoCatalogo": "RUFF-C2-69035",
+      "codigoBarras": "7891123457153",
+      "numeroFaixas": 16,
+      "duracao": "77:39",
+      "descricao": "Único álbum solo de Lauryn Hill, gravado depois da saída dos Fugees, cruzando hip hop, soul e reggae num só disco. Os interlúdios de sala de aula amarram as faixas e ganham fôlego na prensagem dupla, que espalha as dezesseis músicas por quatro lados. Marco do neo soul dos anos 1990 e vencedor de cinco Grammys.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/bTjtNom72YkK2FXCB3dQ9yPEMwlIP2Sp-H4cj832QlY/rs:fit/g:sm/q:90/h:597/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE5MTUw/NTIyLTE2MjM3NzE1/NjgtMTI5Ni5qcGVn.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/hPenBr9Tv2SNAXAOxwLwDMWjjPTcnI6VnWwP9HnEGwU/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE5MTUw/NTIyLTE2MjM3NzE1/NjgtMTI5Ni5qcGVn.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 11,
+        "valorCusto": 211.18,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-01-15"
+      }
+    ],
+    "precoVenda": 359,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "The Dark Side Of The Moon",
+      "artista": {
+        "nome": "Pink Floyd"
+      },
+      "gravadora": {
+        "nome": "Harvest / EMI"
+      },
+      "anoLancamento": "1973-01-01",
+      "categorias": [
+        {
+          "desc": "Rock",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Prog Rock",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Psychedelic Rock",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        },
+        {
+          "nome": "Remasterizado"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Clássico"
+      },
+      "codigoCatalogo": "HAR-SHVL804",
+      "codigoBarras": "7891123456828",
+      "numeroFaixas": 10,
+      "duracao": "42:59",
+      "descricao": "Um dos discos mais ouvidos do rock progressivo, gravado pelo Pink Floyd nos estúdios Abbey Road. A remasterização preservada nesta prensagem mantém a dinâmica original entre os efeitos sonoros e os instrumentos. Peça central para quem estuda a história do álbum conceitual.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 280,
+      "capaUrl": "https://i.discogs.com/mwWMy1jLJhX7BGUigOAzbMQjmN6y2a9ppdzulDAUYSU/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE4NzMw/MTMtMTQ3MTEwMDM4/MS0zMDIyLmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/3E0sabyyOSAx9e4wHdlBP7v31SDWvPooA3nAh_rqaB8/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE4NzMw/MTMtMTQ3MTEwMDM4/MS0zMDIyLmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 6,
+        "valorCusto": 144.22,
+        "fornecedor": {
+          "nome": "Polysom Indústria Fonográfica"
+        },
+        "dataEntrada": "2024-07-22"
+      },
+      {
+        "quantidade": 7,
+        "valorCusto": 161.81,
+        "fornecedor": {
+          "nome": "Warner Music Brasil"
+        },
+        "dataEntrada": "2025-09-11"
+      },
+      {
+        "quantidade": 8,
+        "valorCusto": 175.88,
+        "fornecedor": {
+          "nome": "Warner Music Brasil"
+        },
+        "dataEntrada": "2026-06-05"
+      }
+    ],
+    "precoVenda": 299,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "To Pimp A Butterfly",
+      "artista": {
+        "nome": "Kendrick Lamar"
+      },
+      "gravadora": {
+        "nome": "Top Dawg Entertainment / Interscope"
+      },
+      "anoLancamento": "2015-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Jazz",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Conscious",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Jazzy Hip-Hop",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "G-Funk",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Neo Soul",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Catálogo"
+      },
+      "codigoCatalogo": "TDE-0002-LP",
+      "codigoBarras": "7891123456811",
+      "numeroFaixas": 16,
+      "duracao": "78:51",
+      "descricao": "Kendrick Lamar mistura jazz, funk e spoken word numa obra densa sobre raça e identidade nos Estados Unidos. A duração estendida das faixas pede o formato duplo, com gatefold que traz as letras impressas. Um dos discos mais discutidos do hip hop na década de 2010.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 470,
+      "capaUrl": "https://i.discogs.com/8ZD7MZypmyxuliTV-Czyy03rA9ou2E-BL2rhIFTLUlk/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTY3ODEy/ODYtMTU4NjA5MTU4/OC04ODQ5LmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/DLLwBajeE5HO1FICW8LDkw5OVdP2_v0yDI1k9VtajXI/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTY3ODEy/ODYtMTU4NjA5MTU4/OC04ODQ5LmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 6,
+        "valorCusto": 207.57,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2025-08-14"
+      },
+      {
+        "quantidade": 7,
+        "valorCusto": 230.63,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-06-30"
+      }
+    ],
+    "precoVenda": 369,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Man On The Moon: The End Of Day",
+      "artista": {
+        "nome": "Kid Cudi"
+      },
+      "gravadora": {
+        "nome": "Dream On / G.O.O.D. Music"
+      },
+      "anoLancamento": "2009-01-01",
+      "categorias": [
+        {
+          "desc": "Electronic",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Pop Rap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Soul",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "House",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "UMO-0013350",
+      "codigoBarras": "7891123457399",
+      "numeroFaixas": 15,
+      "duracao": "58:32",
+      "descricao": "Estreia de Kid Cudi, lançada pela G.O.O.D. Music de Kanye West e organizada em atos, como uma história sobre solidão e sonhos. O vinil duplo traz “Day 'n' Nite”, “Pursuit Of Happiness” e “Make Her Say”. Abriu caminho para o rap melódico e psicodélico de Travis Scott e Don Toliver.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/TNPzMHgcBSuJjQOBDu8CNsg9M9E_1K0WBzUs7JCGRCs/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE2NTk1/NzY2LTE2NDA0Mzk3/MTctNzExMy5qcGVn.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/naisdxs37aR46so8TtjY_kjFQhr8Y_gvbFLiO6GxRfA/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE2NTk1/NzY2LTE2NDA0Mzk3/MTctNzExMy5qcGVn.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 9,
+        "valorCusto": 185.24,
+        "fornecedor": {
+          "nome": "Import LP Distribuidora"
+        },
+        "dataEntrada": "2026-09-02"
+      }
+    ],
+    "precoVenda": 389,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Illmatic",
+      "artista": {
+        "nome": "Nas"
+      },
+      "gravadora": {
+        "nome": "Columbia"
+      },
+      "anoLancamento": "1994-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Conscious",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Boom Bap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Jazzy Hip-Hop",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Clássico"
+      },
+      "codigoCatalogo": "COL-C57684",
+      "codigoBarras": "7891123457351",
+      "numeroFaixas": 10,
+      "duracao": "39:39",
+      "descricao": "Estreia de Nas, aos vinte anos, contando a vida no conjunto habitacional de Queensbridge sobre batidas de DJ Premier, Pete Rock, Q-Tip e Large Professor. O LP tem só dez faixas, entre elas “N.Y. State Of Mind” e “The World Is Yours”. É apontado com frequência como o melhor álbum de rap de todos os tempos.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 250,
+      "capaUrl": "https://i.discogs.com/wrbuutLseZDQSdcRIKF9dK1k-K00qs08bHHqr-bZ0p8/rs:fit/g:sm/q:90/h:593/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM5MjYw/NC0xNjk2MDg5NjAw/LTY2MTcuanBlZw.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/1GrA9UIHGuydnr9LlBMIP0lKySfmeU9-apaiVvbImmc/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM5MjYw/NC0xNjk2MDg5NjAw/LTY2MTcuanBlZw.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 16,
+        "valorCusto": 170,
+        "fornecedor": {
+          "nome": "Sony Music Entertainment"
+        },
+        "dataEntrada": "2026-08-26"
+      }
+    ],
+    "precoVenda": 289,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Debí Tirar Más Fotos",
+      "artista": {
+        "nome": "Bad Bunny"
+      },
+      "gravadora": {
+        "nome": "Rimas Entertainment"
+      },
+      "anoLancamento": "2025-01-01",
+      "categorias": [
+        {
+          "desc": "Electronic",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Latin",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Pop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Reggaeton",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Salsa",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Aguinaldo",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Bomba",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Plena",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Trap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Hip Hop",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "House",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Latin Pop",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Lançamento"
+      },
+      "codigoCatalogo": "RIM-2025DTMF",
+      "codigoBarras": "7891123456910",
+      "numeroFaixas": 17,
+      "duracao": "52:16",
+      "descricao": "Bad Bunny retorna às raízes porto-riquenhas com um disco que passeia por salsa, plena e reggaeton clássico. A prensagem de lançamento traz um encarte com fotos do processo de gravação. Um dos títulos mais procurados do catálogo latino da loja.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 300,
+      "capaUrl": "https://i.discogs.com/sKdg2-UawQ7QzMOqg7VXpJktykbjEloglXcmb-4jk1E/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMyODE3/NDAyLTE3MzY2MjA3/NTctMzY3Ni5qcGVn.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/mpQTRqxCnw4qFeOC3iXuHzkRPXPrAkw9Ebd1lVzqnGY/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMyODE3/NDAyLTE3MzY2MjA3/NTctMzY3Ni5qcGVn.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 7,
+        "valorCusto": 178.73,
+        "fornecedor": {
+          "nome": "Import LP Distribuidora"
+        },
+        "dataEntrada": "2025-02-14"
+      },
+      {
+        "quantidade": 6,
+        "valorCusto": 195.55,
+        "fornecedor": {
+          "nome": "Tratore Distribuidora"
+        },
+        "dataEntrada": "2025-10-30"
+      },
+      {
+        "quantidade": 8,
+        "valorCusto": 210.27,
+        "fornecedor": {
+          "nome": "Tratore Distribuidora"
+        },
+        "dataEntrada": "2026-06-12"
+      }
+    ],
+    "precoVenda": 389,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Good Kid, M.A.A.D City (Deluxe Edition)",
+      "artista": {
+        "nome": "Kendrick Lamar"
+      },
+      "gravadora": {
+        "nome": "Top Dawg Entertainment / Interscope"
+      },
+      "anoLancamento": "2012-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Conscious",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "TDE-0001-LP-DX",
+      "codigoBarras": "0602537891234",
+      "numeroFaixas": 15,
+      "duracao": "78:53",
+      "descricao": "Edição estendida do álbum de estreia de Kendrick Lamar pela major, com faixas bônus que não constam na versão padrão. A prensagem importada em vinil duplo já não é mais fabricada, o que a torna uma das poucas formas físicas de acessar essas faixas extras. Um documento da chegada de Kendrick ao mainstream.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 500,
+      "capaUrl": "https://i.discogs.com/m8eUFdh6Dmu3VIwfNJUNI8Eht0dZfJyB9ycEYgatQdY/rs:fit/g:sm/q:90/h:588/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM5NzU5/NTMtMTU3MDQwNDc5/NS01Njk0LmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/bWN4wGLGobx-8DJ3C5D-_actD7W-kuVQyWE1uqVkz1Q/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM5NzU5/NTMtMTU3MDQwNDc5/NS01Njk0LmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 6,
+        "valorCusto": 175.58,
+        "fornecedor": {
+          "nome": "Import LP Distribuidora"
+        },
+        "dataEntrada": "2024-06-25"
+      },
+      {
+        "quantidade": 6,
+        "valorCusto": 199.52,
+        "fornecedor": {
+          "nome": "Import LP Distribuidora"
+        },
+        "dataEntrada": "2025-04-17"
+      }
+    ],
+    "precoVenda": 419,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "So Much Fun",
+      "artista": {
+        "nome": "Young Thug"
+      },
+      "gravadora": {
+        "nome": "300 Entertainment / YSL"
+      },
+      "anoLancamento": "2019-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Trap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Pop Rap",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Catálogo"
+      },
+      "codigoCatalogo": "SOMUCHFUN-1694319",
+      "codigoBarras": "7891123457140",
+      "numeroFaixas": 19,
+      "duracao": "62:13",
+      "descricao": "Primeiro álbum de estúdio oficial de Young Thug depois de anos de mixtapes, com dezenove faixas de trap melódico. A reprensagem dupla segue a sequência original. Participações de Future, Lil Uzi Vert e Gunna marcam o disco.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/ZukeVRkVF3kAuetFwCfb_Nvu44eM3H8nvwE-UFCV848/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE0MDQ1/MzIxLTE1OTg1MzUy/NTQtOTM3My5qcGVn.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/lTon4xoRuLAn8eh22D7XTpzmqNp7pA9_w-sVx_8Q2bs/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE0MDQ1/MzIxLTE1OTg1MzUy/NTQtOTM3My5qcGVn.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 12,
+        "valorCusto": 199.38,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-06-15"
+      }
+    ],
+    "precoVenda": 319,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Nada Como Um Dia Após O Outro Dia",
+      "artista": {
+        "nome": "Racionais MC's"
+      },
+      "gravadora": {
+        "nome": "Cosa Nostra"
+      },
+      "anoLancamento": "2002-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Latin",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Gangsta",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Conscious",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Clássico"
+      },
+      "codigoCatalogo": "NADACOMO-430850",
+      "codigoBarras": "7891123457021",
+      "numeroFaixas": 21,
+      "duracao": "110:33",
+      "descricao": "Álbum duplo dos Racionais MC's gravado depois de Sobrevivendo No Inferno, dividido entre um lado mais melódico e outro de rap cru. A reprensagem nacional recupera o encarte com as letras completas. Documento essencial do rap brasileiro dos anos 2000.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/nNBMBF1wezph85GUW4l_G6moxChjU5h0R1b83SDkx1Y/rs:fit/g:sm/q:90/h:586/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE3OTAy/Mi0xNTg4MjIyMTk0/LTk3NTIuanBlZw.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/FpYpDZOtx5yITMQwK6gI6M1pSXpgg089SK_YS8XZxfo/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE3OTAy/Mi0xNTg4MjIyMTk0/LTk3NTIuanBlZw.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 19,
+        "valorCusto": 222.94,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-06-15"
+      }
+    ],
+    "precoVenda": 379,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Pet Sounds",
+      "artista": {
+        "nome": "The Beach Boys"
+      },
+      "gravadora": {
+        "nome": "Capitol"
+      },
+      "anoLancamento": "1966-01-01",
+      "categorias": [
+        {
+          "desc": "Rock",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Pop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Pop Rock",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Vocal",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Psychedelic Rock",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Clássico"
+      },
+      "codigoCatalogo": "CAP-T2458",
+      "codigoBarras": "7891123457276",
+      "numeroFaixas": 13,
+      "duracao": "35:01",
+      "descricao": "Disco em que Brian Wilson levou os Beach Boys do surf rock para arranjos de estúdio com cordas, sopros e até campainha de bicicleta. O LP abre com “Wouldn't It Be Nice” e passa por “God Only Knows”, que Paul McCartney costuma citar entre suas canções favoritas. Serviu de estímulo direto para o Sgt. Pepper's dos Beatles.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 250,
+      "capaUrl": "https://i.discogs.com/yHDkZ0vAaV15mObTKnLtK1QZM8Hnp6EGrMUhKHS3PpE/rs:fit/g:sm/q:90/h:598/w:598/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEzNTQ0/NzktMTM0NjM4NzAy/Ny00Nzc0LmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/3afSa_9cDCrwkB6Al8uxLzSk0GI_4oYNDe8Drr89_tk/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEzNTQ0/NzktMTM0NjM4NzAy/Ny00Nzc0LmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 14,
+        "valorCusto": 170,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-08-05"
+      }
+    ],
+    "precoVenda": 289,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Huncho Jack, Jack Huncho",
+      "artista": {
+        "nome": "Huncho Jack"
+      },
+      "gravadora": {
+        "nome": "Cactus Jack / Quality Control"
+      },
+      "anoLancamento": "2017-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Trap",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        },
+        {
+          "nome": "Splatter"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "HUNCHOJACK-1545493",
+      "codigoBarras": "7891123457077",
+      "numeroFaixas": 13,
+      "duracao": "41:27",
+      "descricao": "Projeto conjunto de Travis Scott e Quavo, gravado no intervalo entre os discos solo dos dois. A prensagem importada em vinil colorido segue a arte original da Cactus Jack. Trap de produção densa, com os dois se revezando nos refrões.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 280,
+      "capaUrl": "https://i.discogs.com/6TxdxxjP2p7UI8LDTvF-HVj26dinC_8tJH8kf2YA26M/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExMzE1/MzY3LTE1ODQxMzAy/MDUtMTc1NC5qcGVn.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/f4SfLUW5C6vfoLHCTE0EVtrjB__A6GAsNuuPq3Zf_pE/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExMzE1/MzY3LTE1ODQxMzAy/MDUtMTc1NC5qcGVn.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 9,
+        "valorCusto": 180.48,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-06-15"
+      }
+    ],
+    "precoVenda": 379,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "It Takes A Nation Of Millions To Hold Us Back",
+      "artista": {
+        "nome": "Public Enemy"
+      },
+      "gravadora": {
+        "nome": "Def Jam"
+      },
+      "anoLancamento": "1988-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Conscious",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "DEF-C44303",
+      "codigoBarras": "7891123457337",
+      "numeroFaixas": 16,
+      "duracao": "58:06",
+      "descricao": "Segundo álbum do Public Enemy, com a produção em camadas da Bomb Squad, as letras políticas de Chuck D e o contraponto de Flavor Flav. O LP reúne “Bring The Noise”, “Don't Believe The Hype” e “Black Steel In The Hour Of Chaos”. Abriu caminho para o rap político que chega a Kendrick Lamar e aos Racionais MC's.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 250,
+      "capaUrl": "https://i.discogs.com/95HQL_1OAchh6qRqFY4oJILzjEYXqGirR5dSLaulisE/rs:fit/g:sm/q:90/h:593/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTc3NTIy/OC0xNDQ4MTM1NDU3/LTIyNTAuanBlZw.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/O6xsLydBYOsh6sKD2jpjdK9GjMvqdQfjUPFPtVVkeD4/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTc3NTIy/OC0xNDQ4MTM1NDU3/LTIyNTAuanBlZw.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 9,
+        "valorCusto": 161.43,
+        "fornecedor": {
+          "nome": "Import LP Distribuidora"
+        },
+        "dataEntrada": "2026-08-19"
+      }
+    ],
+    "precoVenda": 339,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Random Access Memories",
+      "artista": {
+        "nome": "Daft Punk"
+      },
+      "gravadora": {
+        "nome": "Columbia"
+      },
+      "anoLancamento": "2013-01-01",
+      "categorias": [
+        {
+          "desc": "Electronic",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Pop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Disco",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Funk",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Synth-pop",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "COL-88883716861",
+      "codigoBarras": "7891123457221",
+      "numeroFaixas": 13,
+      "duracao": "74:30",
+      "descricao": "Último álbum de estúdio do Daft Punk, gravado com músicos de verdade em vez de samples, em homenagem à música dos anos 1970 e 1980. A prensagem dupla reúne Nile Rodgers, Pharrell Williams, Giorgio Moroder e Julian Casablancas nas treze faixas. Venceu o Grammy de álbum do ano, e “Get Lucky” foi o hit do verão de 2013.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/IR6_z_1KUErO-OORqXG2_MJhqWxsaPxYRi-hOLLdHic/rs:fit/g:sm/q:90/h:592/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTQ1NzAz/NjYtMTc0OTM3MjMx/Ny0xODg1LmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/rqE3sfigR3-tErFq1l1AV_4XYDHpjNV6PwD0EcENccM/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTQ1NzAz/NjYtMTc0OTM3MjMx/Ny0xODg1LmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 8,
+        "valorCusto": 204.29,
+        "fornecedor": {
+          "nome": "Sony Music Entertainment"
+        },
+        "dataEntrada": "2026-07-15"
+      }
+    ],
+    "precoVenda": 429,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Heroes & Villains",
+      "artista": {
+        "nome": "Metro Boomin"
+      },
+      "gravadora": {
+        "nome": "Boominati Worldwide / Republic"
+      },
+      "anoLancamento": "2022-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Trap",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "BMW-22HV002",
+      "codigoBarras": "0060254789013",
+      "numeroFaixas": 15,
+      "duracao": "53:57",
+      "descricao": "Segundo álbum solo de Metro Boomin, com uma lista de participações que passa por Travis Scott, Future e The Weeknd. A prensagem importada em vinil duplo mantém o gatefold da edição americana. Um disco que consolidou o produtor como nome de peso fora dos créditos de estúdio.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/n21h0GO52Iw6d_vhdqXdAi3H5jlkSBf8kp4yYsaVDaU/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI1MzUx/MDIxLTE3NTQwMDEz/NjgtNTExMS5qcGVn.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/hBP1fLzfjbEux-lvxHZlAwGyQYz8-fPtVCXlhQ4vlx0/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI1MzUx/MDIxLTE3NTQwMDEz/NjgtNTExMS5qcGVn.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 8,
+        "valorCusto": 175.71,
+        "fornecedor": {
+          "nome": "Import LP Distribuidora"
+        },
+        "dataEntrada": "2026-01-27"
+      }
+    ],
+    "precoVenda": 369,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Songs In The Key Of Life",
+      "artista": {
+        "nome": "Stevie Wonder"
+      },
+      "gravadora": {
+        "nome": "Tamla"
+      },
+      "anoLancamento": "1976-01-01",
+      "categorias": [
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Soul",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Disco",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Clássico"
+      },
+      "codigoCatalogo": "TAM-T13340C2",
+      "codigoBarras": "7891123457306",
+      "numeroFaixas": 21,
+      "duracao": "104:38",
+      "descricao": "Álbum duplo que Stevie Wonder levou dois anos para gravar, cruzando soul, funk, jazz e música africana. Vem com o compacto extra de quatro faixas da edição original e reúne “Sir Duke”, “I Wish”, “Isn't She Lovely” e “Pastime Paradise”, sampleada por Coolio em “Gangsta's Paradise”. Venceu o Grammy de álbum do ano.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/YzhtLts7LkthVlFHqcaq5ZNZ59GEwslZA9KCw556CSc/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM1NTIz/My0xNDI2MTY2MTc0/LTkwODYuanBlZw.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/LjKQ4PfBS-M-uA-W3zOKTlnrh0W_WgnZf7cXAtZ-aLM/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM1NTIz/My0xNDI2MTY2MTc0/LTkwODYuanBlZw.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 11,
+        "valorCusto": 222.94,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-08-12"
+      }
+    ],
+    "precoVenda": 379,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Anti",
+      "artista": {
+        "nome": "Rihanna"
+      },
+      "gravadora": {
+        "nome": "Westbury Road Entertainment"
+      },
+      "anoLancamento": "2016-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Pop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Contemporary R&B",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Soul",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        },
+        {
+          "nome": "Splatter"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "WBR-2016-LP",
+      "codigoBarras": "0602557193281",
+      "numeroFaixas": 13,
+      "duracao": "43:50",
+      "descricao": "Rihanna abandona as fórmulas de hit single para um disco mais introspectivo, gravado ao longo de anos de sessões dispersas. A prensagem em vinil translúcido acompanha o encarte com as letras completas. Um ponto de virada na carreira da artista.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 290,
+      "capaUrl": "https://i.discogs.com/mg1yxMcWPITNIRcd0KTbwybqqqJ_tWDAeG5OBOAS1Cw/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTgwNDkx/NTAtMTQ1NDE2ODc0/OC0yNjI1LmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/gqFojgF3eXHh2AZSXE5fpJrgoR6VvB7jZn8xYfPHwcE/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTgwNDkx/NTAtMTQ1NDE2ODc0/OC0yNjI1LmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 5,
+        "valorCusto": 170.95,
+        "fornecedor": {
+          "nome": "Import LP Distribuidora"
+        },
+        "dataEntrada": "2026-02-20"
+      }
+    ],
+    "precoVenda": 359,
+    "autorizacaoGerente": "Rodrigo Rocha — 12/07/2026",
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Let God Sort Em Out",
+      "artista": {
+        "nome": "Clipse"
+      },
+      "gravadora": {
+        "nome": "Roc Nation"
+      },
+      "anoLancamento": "2025-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Lançamento"
+      },
+      "codigoCatalogo": "ROC-810182962078",
+      "codigoBarras": "7891123457191",
+      "numeroFaixas": 12,
+      "duracao": "37:33",
+      "descricao": "Volta do Clipse depois de dezesseis anos sem álbum da dupla, com Pusha T e Malice sobre produção inteira de Pharrell Williams. O LP concentra as faixas num disco só, com participações de Kendrick Lamar, Tyler, The Creator e Nas. Foi apontado como um dos grandes discos de rap de 2025.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 250,
+      "capaUrl": "https://i.discogs.com/HOCslwb8Kq7ffVRwl2jcZEff8hHZjFEoAZgmsQoJuuk/rs:fit/g:sm/q:90/h:585/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM0NTEw/NTU1LTE3NTI0NDky/NjUtOTg5OS5qcGVn.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/9GxZL1ngY6OKhKvGfUSHwJ6Q3xXKr1kxyvvIp-cbEUw/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM0NTEw/NTU1LTE3NTI0NDky/NjUtOTg5OS5qcGVn.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 20,
+        "valorCusto": 161.62,
+        "fornecedor": {
+          "nome": "Import LP Distribuidora"
+        },
+        "dataEntrada": "2026-07-22"
+      }
+    ],
+    "precoVenda": 299,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "OK Computer",
+      "artista": {
+        "nome": "Radiohead"
+      },
+      "gravadora": {
+        "nome": "Parlophone"
+      },
+      "anoLancamento": "1997-01-01",
+      "categorias": [
+        {
+          "desc": "Electronic",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Rock",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Alternative Rock",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Clássico"
+      },
+      "codigoCatalogo": "PAR-NODATA02",
+      "codigoBarras": "7891123457207",
+      "numeroFaixas": 12,
+      "duracao": "53:22",
+      "descricao": "Terceiro álbum do Radiohead, gravado em boa parte numa mansão do século XVI e marcado pela ansiedade com a tecnologia e a vida moderna. A prensagem dupla divide as doze faixas em quatro lados, de “Airbag” a “The Tourist”, passando por “Paranoid Android” e “Karma Police”. Venceu o Grammy de melhor álbum alternativo e aparece em toda lista de discos essenciais.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/F_KSyKjGi2YN5SBttMhdgP2zyNdmHv7HHWvDVGj3Shg/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTQ5NTA3/OTgtMTM4ODYyMzYx/MS0yMzYyLmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/It2WdSQUjZOi8xqSE9CWNsqF5F88l4I3YHRlY0uaILE/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTQ5NTA3/OTgtMTM4ODYyMzYx/MS0yMzYyLmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 13,
+        "valorCusto": 199.41,
+        "fornecedor": {
+          "nome": "Warner Music Brasil"
+        },
+        "dataEntrada": "2026-07-15"
+      }
+    ],
+    "precoVenda": 339,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "The College Dropout",
+      "artista": {
+        "nome": "Kanye West"
+      },
+      "gravadora": {
+        "nome": "Roc-A-Fella"
+      },
+      "anoLancamento": "2004-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Pop Rap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Conscious",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Contemporary R&B",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "RAF-B0002030-01",
+      "codigoBarras": "7891123457160",
+      "numeroFaixas": 15,
+      "duracao": "70:58",
+      "descricao": "Estreia de Kanye West como rapper, depois de anos produzindo para a Roc-A-Fella, com samples de soul acelerados e letras sobre fé, família e a faculdade largada no meio. A prensagem dupla distribui as quinze faixas por quatro lados. Traz “Jesus Walks” e “Through The Wire”, gravada com a mandíbula ainda presa por fios depois de um acidente de carro.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/bbYRxCngKfYkzKx5TUuYKGod4DpYv535H363fx8qaKE/rs:fit/g:sm/q:90/h:584/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIzMzQ0/NS0xNDg5ODEwNDA0/LTk3MDEuanBlZw.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/zkVrbwNN72h1RPhgSwSbaACjgCcdd5WTLj5OksgYrAM/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIzMzQ0/NS0xNDg5ODEwNDA0/LTk3MDEuanBlZw.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 12,
+        "valorCusto": 185.24,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-07-08"
+      }
+    ],
+    "precoVenda": 389,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Long.Live.A$AP",
+      "artista": {
+        "nome": "ASAP Rocky"
+      },
+      "gravadora": {
+        "nome": "RCA / Polo Grounds"
+      },
+      "anoLancamento": "2013-01-01",
+      "categorias": [
+        {
+          "desc": "Electronic",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Cloud Rap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Trap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Electro",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Pop Rap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Experimental",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "LLASAP-511822",
+      "codigoBarras": "7891123457028",
+      "numeroFaixas": 16,
+      "duracao": "62:00",
+      "descricao": "Estreia de A$AP Rocky em major, com o cloud rap arrastado que definiu o som de Harlem no início dos anos 2010. A prensagem dupla importada segue a sequência original de faixas. Produções de Clams Casino e Hit-Boy sustentam o clima do disco.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/SAf4ukaCCH6TZaY5REB-g9m1F5Bc9HaVvsBiVwAIxgc/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTQyMjY1/NDktMTM1OTA3OTk2/OC00ODM5LmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/cxqAtkS0zBId7DuZzfgoGnNDUreDt0mW9m2wI10y-9Y/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTQyMjY1/NDktMTM1OTA3OTk2/OC00ODM5LmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 9,
+        "valorCusto": 185.24,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-06-15"
+      }
+    ],
+    "precoVenda": 389,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Octane",
+      "artista": {
+        "nome": "Don Toliver"
+      },
+      "gravadora": {
+        "nome": "Cactus Jack / Atlantic"
+      },
+      "anoLancamento": "2026-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Trap",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Lançamento"
+      },
+      "codigoCatalogo": "ATL-2026114",
+      "codigoBarras": "7891123456880",
+      "numeroFaixas": 18,
+      "duracao": "52:10",
+      "descricao": "Novo álbum de Don Toliver, ainda no giro alto de vendas típico das primeiras semanas de lançamento. A prensagem simples em vinil acompanha um encarte numerado, próprio das primeiras tiragens. Um disco recente que já figura entre os mais buscados da loja.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 300,
+      "capaUrl": "https://i.discogs.com/Uws6X_YtdeyigTLt0zdApEfE2gdJxuBDVgMyHvsNcu8/rs:fit/g:sm/q:90/h:592/w:592/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM2NTI1/MDY0LTE3NzEyNzM3/MjMtNzg0OS5wbmc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/OayNp9uSDx5JKXlKQIXBP7RfP98sQNCrzGPX_QBwnl0/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM2NTI1/MDY0LTE3NzEyNzM3/MjMtNzg0OS5wbmc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 10,
+        "valorCusto": 151.16,
+        "fornecedor": {
+          "nome": "Warner Music Brasil"
+        },
+        "dataEntrada": "2026-02-10"
+      },
+      {
+        "quantidade": 8,
+        "valorCusto": 167.17,
+        "fornecedor": {
+          "nome": "Warner Music Brasil"
+        },
+        "dataEntrada": "2026-05-22"
+      },
+      {
+        "quantidade": 10,
+        "valorCusto": 177.84,
+        "fornecedor": {
+          "nome": "Warner Music Brasil"
+        },
+        "dataEntrada": "2026-08-01"
+      }
+    ],
+    "precoVenda": 329,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "AM",
+      "artista": {
+        "nome": "Arctic Monkeys"
+      },
+      "gravadora": {
+        "nome": "Domino Recording Co."
+      },
+      "anoLancamento": "2013-01-01",
+      "categorias": [
+        {
+          "desc": "Rock",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Alternative Rock",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Indie Rock",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        },
+        {
+          "nome": "Splatter"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Catálogo"
+      },
+      "codigoCatalogo": "DOM-WIGLP314",
+      "codigoBarras": "7891123456842",
+      "numeroFaixas": 12,
+      "duracao": "40:56",
+      "descricao": "Quinto álbum do Arctic Monkeys aposta em riffs mais lentos e um clima noturno que se afastou do indie rock dos primeiros discos da banda. A cor do vinil varia entre as tiragens, mas a faixa e a masterização seguem o mesmo padrão. Um disco que ajudou a definir o som da banda na década seguinte.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.6,
+      "peso": 300,
+      "capaUrl": "https://i.discogs.com/-5VP_faWPuZm-_4156UfRx0a_Wh8c5YKFS-GYgmeN_Y/rs:fit/g:sm/q:90/h:566/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTQ4ODM1/MDUtMTYxNjkyNTU1/OC0xMTY2LmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/-WYv-8-UoeSHAAC0qq5vPWDE2uoH1arFPatzP_voph8/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTQ4ODM1/MDUtMTYxNjkyNTU1/OC0xMTY2LmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 9,
+        "valorCusto": 153.45,
+        "fornecedor": {
+          "nome": "Tratore Distribuidora"
+        },
+        "dataEntrada": "2025-04-02"
+      },
+      {
+        "quantidade": 9,
+        "valorCusto": 174.38,
+        "fornecedor": {
+          "nome": "Tratore Distribuidora"
+        },
+        "dataEntrada": "2026-07-20"
+      }
+    ],
+    "precoVenda": 279,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "África Brasil",
+      "artista": {
+        "nome": "Jorge Ben"
+      },
+      "gravadora": {
+        "nome": "Philips"
+      },
+      "anoLancamento": "1976-01-01",
+      "categorias": [
+        {
+          "desc": "Jazz",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Latin",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        },
+        {
+          "desc": "MPB",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Samba",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Funk",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Clássico"
+      },
+      "codigoCatalogo": "PHI-6349187",
+      "codigoBarras": "7891123457313",
+      "numeroFaixas": 11,
+      "duracao": "41:35",
+      "descricao": "Disco em que Jorge Ben troca o violão pela guitarra elétrica e mergulha no samba-funk, com percussão pesada e metais. O LP traz “Ponta De Lança Africano (Umbabarauma)”, “Taj Mahal” e “Xica Da Silva”. “Umbabarauma” ganhou o mundo quando David Byrne a incluiu numa coletânea de música brasileira.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 250,
+      "capaUrl": "https://i.discogs.com/0U5iXX13lho82ZjU2rnrH4z64LR5AzaFzgzSLpTcH1Q/rs:fit/g:sm/q:90/h:596/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTcyNjk0/NC0xNTUzNjMyODAw/LTg1MzYuanBlZw.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/nr1hFKOwpTRWLLTcFUJxYT3vAZ62Wn3WDWlNej-JSPg/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTcyNjk0/NC0xNTUzNjMyODAw/LTg1MzYuanBlZw.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 12,
+        "valorCusto": 158.24,
+        "fornecedor": {
+          "nome": "Polysom Indústria Fonográfica"
+        },
+        "dataEntrada": "2026-08-12"
+      }
+    ],
+    "precoVenda": 269,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Ride The Lightning",
+      "artista": {
+        "nome": "Metallica"
+      },
+      "gravadora": {
+        "nome": "Elektra"
+      },
+      "anoLancamento": "1984-01-01",
+      "categorias": [
+        {
+          "desc": "Rock",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Thrash",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Speed Metal",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Clássico"
+      },
+      "codigoCatalogo": "ELK-60396",
+      "codigoBarras": "7891123456835",
+      "numeroFaixas": 8,
+      "duracao": "46:58",
+      "descricao": "Segundo disco do Metallica, ainda dentro do thrash metal mais cru da banda antes do estouro comercial. A prensagem nacional segue o encarte clássico da Elektra, sem alterações de faixa. Recomendado para quem busca o metal oitentista em sua forma mais direta.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.4,
+      "peso": 260,
+      "capaUrl": "https://i.discogs.com/h1yENH5BKaZ5b56zwsmWj0H7WjmUfRVLqT0y-ONqyfU/rs:fit/g:sm/q:90/h:600/w:598/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM3NzQ2/NC0xNzUzNTMwNjEz/LTExNzYuanBlZw.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/FVh5oI_zt6hbb7uTx_Vr09ziPk6rksRUPE2rITpl8N0/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM3NzQ2/NC0xNzUzNTMwNjEz/LTExNzYuanBlZw.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 5,
+        "valorCusto": 129.5,
+        "fornecedor": {
+          "nome": "Polysom Indústria Fonográfica"
+        },
+        "dataEntrada": "2024-10-30"
+      },
+      {
+        "quantidade": 5,
+        "valorCusto": 152.35,
+        "fornecedor": {
+          "nome": "Warner Music Brasil"
+        },
+        "dataEntrada": "2026-03-18"
+      }
+    ],
+    "precoVenda": 259,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Damn",
+      "artista": {
+        "nome": "Kendrick Lamar"
+      },
+      "gravadora": {
+        "nome": "Top Dawg Entertainment / Interscope"
+      },
+      "anoLancamento": "2017-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Conscious",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Contemporary R&B",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Jazzy Hip-Hop",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Trap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Boom Bap",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Catálogo"
+      },
+      "codigoCatalogo": "TDE-0006-LP",
+      "codigoBarras": "7891123456873",
+      "numeroFaixas": 14,
+      "duracao": "54:54",
+      "descricao": "Kendrick Lamar alterna faixas de contemplação religiosa com produções mais diretas para rádio, num disco que rendeu o Pulitzer de música. A capa reversível desta prensagem permite trocar entre o título em preto e em vermelho. Um marco do hip hop consciente da década.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 290,
+      "capaUrl": "https://i.discogs.com/n9BtVuF-dJtmghgg5MhBtN_nME-Wqb4SboSfeBxnWVE/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEwMTMz/NTM4LTE0OTIyMDQ5/NjMtMzE5Ni5qcGVn.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/5gflVLxiFzEVd6bMZhfLHTmg7li-O4PgDpaFubQJO3M/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEwMTMz/NTM4LTE0OTIyMDQ5/NjMtMzE5Ni5qcGVn.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 6,
+        "valorCusto": 182.22,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2025-07-09"
+      },
+      {
+        "quantidade": 8,
+        "valorCusto": 211.88,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-06-25"
+      }
+    ],
+    "precoVenda": 339,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Graduation",
+      "artista": {
+        "nome": "Kanye West"
+      },
+      "gravadora": {
+        "nome": "Roc-A-Fella / Def Jam"
+      },
+      "anoLancamento": "2007-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Contemporary R&B",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Pop Rap",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Catálogo"
+      },
+      "codigoCatalogo": "DEF-0601811",
+      "codigoBarras": "7891123456897",
+      "numeroFaixas": 13,
+      "duracao": "52:09",
+      "descricao": "Terceiro disco de Kanye West marca a virada do rapper para produções mais eletrônicas e influenciadas por rock de estádios. O gatefold desta reedição traz as ilustrações de Takashi Murakami usadas na capa original. Um divisor de águas entre o Kanye de Late Registration e a fase mais pop dos discos seguintes.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.6,
+      "peso": 320,
+      "capaUrl": "https://i.discogs.com/ZGCZsgTZlSxAbspOky80WD6jI_tc6zoJuXfqZAEWYkI/rs:fit/g:sm/q:90/h:537/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEwNjY2/MDEtMTYzMjU2Nzcx/Mi0xNTg2LnBuZw.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/-iyDPlWlmsbQakNdM0GiYCT6oYZCmxjpKSDmSmlT0JI/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEwNjY2/MDEtMTYzMjU2Nzcx/Mi0xNTg2LnBuZw.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 5,
+        "valorCusto": 173.82,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2025-03-11"
+      },
+      {
+        "quantidade": 5,
+        "valorCusto": 193.13,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-04-28"
+      }
+    ],
+    "precoVenda": 309,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "The Slow Rush",
+      "artista": {
+        "nome": "Tame Impala"
+      },
+      "gravadora": {
+        "nome": "Fiction / Island"
+      },
+      "anoLancamento": "2020-01-01",
+      "categorias": [
+        {
+          "desc": "Electronic",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Rock",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Pop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Alternative Rock",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Psychedelic Rock",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Dance-pop",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Catálogo"
+      },
+      "codigoCatalogo": "FIC-0846007",
+      "codigoBarras": "7891123457238",
+      "numeroFaixas": 12,
+      "duracao": "56:52",
+      "descricao": "Quarto álbum do Tame Impala, em que Kevin Parker gira em torno da passagem do tempo com camadas de sintetizador, disco e psicodelia. O vinil duplo acompanha a capa da sala tomada pela areia do deserto. Chegou cinco anos depois de Currents, com “Lost In Yesterday” e “Borderline” entre os destaques.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/Rja7_7blskVR_XOqWOHM86knN5klPWfbwursgM9bSaQ/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE0Nzgz/ODIyLTE1ODE2MjEy/MjEtODc1NC5qcGVn.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/5zdf0O5FnXaawlSncjEes0KC1cAPdeej6WdeKiph22U/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE0Nzgz/ODIyLTE1ODE2MjEy/MjEtODc1NC5qcGVn.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 14,
+        "valorCusto": 230.62,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-07-22"
+      }
+    ],
+    "precoVenda": 369,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Mezzanine",
+      "artista": {
+        "nome": "Massive Attack"
+      },
+      "gravadora": {
+        "nome": "Circa / Virgin"
+      },
+      "anoLancamento": "1998-01-01",
+      "categorias": [
+        {
+          "desc": "Electronic",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Leftfield",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Trip Hop",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Downtempo",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "CIR-WBRLP4",
+      "codigoBarras": "7891123457368",
+      "numeroFaixas": 11,
+      "duracao": "63:29",
+      "descricao": "Terceiro álbum do Massive Attack, mais sombrio que os anteriores, trocando o trip-hop ensolarado por guitarras e baixos pesados. O vinil duplo traz “Angel”, “Inertia Creeps” e “Teardrop”, cantada por Elizabeth Fraser, do Cocteau Twins. “Teardrop” virou a abertura da série House.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/t2cOvgvzOqKzSFab55cHspWHl5IgiVpbPtLgyzwYmxI/rs:fit/g:sm/q:90/h:596/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTY1MzAt/MTYxNTMwMzUzMi01/NDI0LmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/5go27kBMbECg5vxeDtiCCHfy7xcYWdNU8AIOa-9IR6U/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTY1MzAt/MTYxNTMwMzUzMi01/NDI0LmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 8,
+        "valorCusto": 185.24,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-08-26"
+      }
+    ],
+    "precoVenda": 389,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "God Does Like Ugly",
+      "artista": {
+        "nome": "J.I.D"
+      },
+      "gravadora": {
+        "nome": "Dreamville / Interscope"
+      },
+      "anoLancamento": "2025-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Lançamento"
+      },
+      "codigoCatalogo": "UGLY-3933725",
+      "codigoBarras": "7891123457091",
+      "numeroFaixas": 15,
+      "duracao": "57:18",
+      "descricao": "Novo álbum de JID, ainda no giro alto das primeiras semanas de lançamento. A prensagem dupla acompanha encarte com as letras e arte de capa em gatefold. Um dos títulos mais procurados do catálogo recente da loja.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/QNul47NwSkc3MsvCTuu0bf7pifIIuDQgPRqdJapPihQ/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM0NzYy/MjM1LTE3NTQ2MDYz/NzItNTYwMi5qcGVn.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/zcfaOFvFQkaT7t_9PxirYfnuelE-ijZhnYh8fE-b-Mw/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM0NzYy/MjM1LTE3NTQ2MDYz/NzItNTYwMi5qcGVn.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 22,
+        "valorCusto": 210.27,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-06-15"
+      }
+    ],
+    "precoVenda": 389,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Favourite Worst Nightmare",
+      "artista": {
+        "nome": "Arctic Monkeys"
+      },
+      "gravadora": {
+        "nome": "Domino"
+      },
+      "anoLancamento": "2007-01-01",
+      "categorias": [
+        {
+          "desc": "Rock",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Alternative Rock",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Indie Rock",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Catálogo"
+      },
+      "codigoCatalogo": "DOM-WIGLP188",
+      "codigoBarras": "7891123457245",
+      "numeroFaixas": 12,
+      "duracao": "37:34",
+      "descricao": "Segundo álbum do Arctic Monkeys, gravado um ano depois da estreia e mais rápido e barulhento que ela. O LP reúne “Brianstorm”, “Fluorescent Adolescent” e “505”, que ganhou uma segunda vida nas redes anos depois. Foi indicado ao Mercury Prize e levou o Brit Award de melhor álbum britânico.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 250,
+      "capaUrl": "https://i.discogs.com/399afSYJF0qSjkXSTQ-xwdKEV0v6gUNITk2LZz336Y0/rs:fit/g:sm/q:90/h:513/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTk1NjEz/NC0xMTc3ODQ5MzEw/LmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/utvFBspdVrQxUtqNhh24GEc8YvZ98rKtKShvokPVaDs/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTk1NjEz/NC0xMTc3ODQ5MzEw/LmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 17,
+        "valorCusto": 168.12,
+        "fornecedor": {
+          "nome": "Tratore Distribuidora"
+        },
+        "dataEntrada": "2026-07-22"
+      }
+    ],
+    "precoVenda": 269,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Blonde",
+      "artista": {
+        "nome": "Frank Ocean"
+      },
+      "gravadora": {
+        "nome": "Boys Don't Cry"
+      },
+      "anoLancamento": "2016-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Pop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Contemporary R&B",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Psychedelic",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Neo Soul",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "BLONDE-1046042",
+      "codigoBarras": "7891123457070",
+      "numeroFaixas": 17,
+      "duracao": "60:08",
+      "descricao": "Segundo álbum de Frank Ocean troca a estrutura de canção do Channel Orange por faixas mais abertas e experimentais. As reprensagens são raras e costumam esgotar rápido, o que mantém o preço alto no mercado. Um disco central do R&B da década de 2010.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/VurGdqd_vsJCl1tB9JHDfKhu5pQmKbCWSkNYnuHCFZk/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTg5MzI1/MTQtMTc3MTczMzA2/NS01NjY2LmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/3D2NOILQzQdwR9VXWglnU2bj-sxoTi1sbT4uSltxy3E/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTg5MzI1/MTQtMTc3MTczMzA2/NS01NjY2LmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 9,
+        "valorCusto": 218.57,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-06-15"
+      }
+    ],
+    "precoVenda": 459,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Utopia",
+      "artista": {
+        "nome": "Travis Scott"
+      },
+      "gravadora": {
+        "nome": "Cactus Jack / Epic"
+      },
+      "anoLancamento": "2023-01-01",
+      "categorias": [
+        {
+          "desc": "Electronic",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Trap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Cloud Rap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Pop Rap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Psychedelic",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Experimental",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Catálogo"
+      },
+      "codigoCatalogo": "UTOPIA-3184197",
+      "codigoBarras": "7891123457133",
+      "numeroFaixas": 19,
+      "duracao": "73:27",
+      "descricao": "Quarto disco de Travis Scott, construído com produção industrial e participações que vão de Beyoncé a Playboi Carti. A prensagem dupla mantém a arte de capa em gatefold. Um dos lançamentos de maior procura desde Astroworld.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/hywp7Zxb-tOP9ievyyBpeV_5NHIGRhwgnKRzU7HCyyg/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI3ODA4/MzE3LTE2OTA1NjM4/NTUtMTI2OC5qcGVn.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/QkQfOLN-nGJfGjmCjcdgp07QYhtozLJ-IOuFGURqhD0/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI3ODA4/MzE3LTE2OTA1NjM4/NTUtMTI2OC5qcGVn.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 20,
+        "valorCusto": 255.62,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-06-15"
+      }
+    ],
+    "precoVenda": 409,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Culture II",
+      "artista": {
+        "nome": "Migos"
+      },
+      "gravadora": {
+        "nome": "Quality Control / Motown"
+      },
+      "anoLancamento": "2018-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Trap",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        }
+      ],
+      "formato": {
+        "nome": "3xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "CULTURE2-1328530",
+      "codigoBarras": "7891123457105",
+      "numeroFaixas": 24,
+      "duracao": "105:02",
+      "descricao": "Sequência de Culture com vinte e quatro faixas, o que exigiu prensagem tripla para caber sem perder qualidade de áudio. Produções de Metro Boomin, Pharrell e Kanye West se alternam ao longo do disco. Um retrato do auge comercial do trio de Atlanta.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1.5,
+      "peso": 700,
+      "capaUrl": "https://i.discogs.com/IWoWNdJMGr0WkCfk1A5a0d1n2LHtLx9ZD-mw6E6KGkY/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExNTk4/MDYxLTE1MzA3MTcx/NjYtNjU3NS5qcGVn.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/IKt3ozkyQgT2F-DgZ-8RZzJlN1R4wZAPXlXsHFMAcdw/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExNTk4/MDYxLTE1MzA3MTcx/NjYtNjU3NS5qcGVn.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 9,
+        "valorCusto": 228.1,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-06-15"
+      }
+    ],
+    "precoVenda": 479,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Metallica",
+      "artista": {
+        "nome": "Metallica"
+      },
+      "gravadora": {
+        "nome": "Elektra"
+      },
+      "anoLancamento": "1991-01-01",
+      "categorias": [
+        {
+          "desc": "Rock",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Hard Rock",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Heavy Metal",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Thrash",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Groove Metal",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        },
+        {
+          "nome": "Remasterizado"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Clássico"
+      },
+      "codigoCatalogo": "METALLICA-6651",
+      "codigoBarras": "7891123457098",
+      "numeroFaixas": 12,
+      "duracao": "62:16",
+      "descricao": "O disco homônimo de 1991, conhecido como Black Album, marcou a virada do Metallica para um som mais direto e de produção limpa. A remasterização em vinil duplo separa as faixas com folga de sulco, o que melhora o grave. Um dos álbuns de metal mais vendidos da história.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/0QSPrbxUSY2NPjUj47VQ4zyAbK8S8SiAnxDnil5LPoc/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM4MTk4/OC0xNjIxMDEyMzY3/LTY2OTguanBlZw.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/MXUvXNMvpbu4GR5nzrHOKULq2i4NnLfkAET8vwqOM2U/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM4MTk4/OC0xNjIxMDEyMzY3/LTY2OTguanBlZw.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 21,
+        "valorCusto": 193.53,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-06-15"
+      }
+    ],
+    "precoVenda": 329,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Awaken, My Love!",
+      "artista": {
+        "nome": "Childish Gambino"
+      },
+      "gravadora": {
+        "nome": "Glassnote Records"
+      },
+      "anoLancamento": "2016-01-01",
+      "categorias": [
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Contemporary R&B",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Funk",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Neo Soul",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Psychedelic",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Catálogo"
+      },
+      "codigoCatalogo": "GLS-2521",
+      "codigoBarras": "7891123456866",
+      "numeroFaixas": 11,
+      "duracao": "57:57",
+      "descricao": "Childish Gambino troca o rap dos discos anteriores por funk e soul psicodélico, numa homenagem clara a Funkadelic. O encarte gatefold do vinil duplo traz o mesmo clima visual da capa, com Donald Glover em tons esverdeados. Um disco que surpreendeu quem esperava outro álbum de hip hop.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.9,
+      "peso": 460,
+      "capaUrl": "https://i.discogs.com/ntpLgSprFAaAUdPEcdkdjuTv1dCPVp7Hp2T5Cwqi-HU/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIxMzUw/MTg4LTE2Mzk1MDQ5/NDgtNDcwNS5qcGVn.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/Nw037wPFLZWXe6PA7Nzf5-_bJaXTaevr8ZSEH0sdOIc/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIxMzUw/MTg4LTE2Mzk1MDQ5/NDgtNDcwNS5qcGVn.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 6,
+        "valorCusto": 199.38,
+        "fornecedor": {
+          "nome": "Sony Music Entertainment"
+        },
+        "dataEntrada": "2025-12-01"
+      }
+    ],
+    "precoVenda": 319,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Discovery",
+      "artista": {
+        "nome": "Daft Punk"
+      },
+      "gravadora": {
+        "nome": "Virgin"
+      },
+      "anoLancamento": "2001-01-01",
+      "categorias": [
+        {
+          "desc": "Electronic",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Disco",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "House",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Electro",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "VIR-V2940",
+      "codigoBarras": "7891123457214",
+      "numeroFaixas": 14,
+      "duracao": "60:38",
+      "descricao": "Segundo álbum do Daft Punk, que troca o house cru da estreia por disco, funk e soft rock dos anos 1970 filtrados pela dupla francesa. O vinil duplo traz “One More Time”, “Digital Love” e “Harder, Better, Faster, Stronger”, sampleada depois por Kanye West em “Stronger”. O disco também virou o filme de animação Interstella 5555, com Leiji Matsumoto.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/RsXfd7bN5NgcB-kUPIRoYdZ6uOjN_yybd1-qospDq-c/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI4Nzkt/MTc4ODc5NTYwNS0y/OTc4LmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/3Gs9bPb5T646LLQn9sctMmU-As0xbcx8VMCblKfgjvk/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI4Nzkt/MTc4ODc5NTYwNS0y/OTc4LmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 11,
+        "valorCusto": 194.76,
+        "fornecedor": {
+          "nome": "Import LP Distribuidora"
+        },
+        "dataEntrada": "2026-07-15"
+      }
+    ],
+    "precoVenda": 409,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Whole Lotta Red",
+      "artista": {
+        "nome": "Playboi Carti"
+      },
+      "gravadora": {
+        "nome": "AWGE / Interscope"
+      },
+      "anoLancamento": "2020-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Trap",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        },
+        {
+          "nome": "Splatter"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "WLR-2057692",
+      "codigoBarras": "7891123457119",
+      "numeroFaixas": 24,
+      "duracao": "63:13",
+      "descricao": "Terceiro disco de Playboi Carti, de recepção dividida no lançamento e hoje tratado como divisor de águas do rage. A tiragem em vinil colorido importado costuma sumir rápido do mercado. Produções de F1lthy e Pi'erre Bourne sustentam o clima distorcido.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/R__ClQV_qnaV0ITzx0pwkzZfcdbC5F4E5MyTUNaf7TU/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE2NjE4/MzE3LTE2MTAyODEy/NzUtODcyMy5qcGVn.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/f4wUaaM_Pl4iunqVYd0gkPhSxts7NyeFPr9Ur0sUWpg/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE2NjE4/MzE3LTE2MTAyODEy/NzUtODcyMy5qcGVn.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 9,
+        "valorCusto": 204.29,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-06-15"
+      }
+    ],
+    "precoVenda": 429,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "My Beautiful Dark Twisted Fantasy",
+      "artista": {
+        "nome": "Kanye West"
+      },
+      "gravadora": {
+        "nome": "GOOD Music / Def Jam"
+      },
+      "anoLancamento": "2010-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Pop Rap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Contemporary R&B",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "GOOD-0602527",
+      "codigoBarras": "0602527730951",
+      "numeroFaixas": 14,
+      "duracao": "68:23",
+      "descricao": "Quinto disco de Kanye West é considerado por muita gente o ápice de sua fase de produção mais orquestral e maximalista. A prensagem importada em vinil duplo mantém o gatefold com a arte de George Condo. Participações de Rick Ross, Nicki Minaj e Bon Iver reforçam o caráter coletivo do projeto.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 500,
+      "capaUrl": "https://i.discogs.com/3RRJgAX-aSq0JB4tAZBpdWQezFQPiDauBE9eV0uhEAM/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI1NTkx/NTItMTczMTcxMzky/OC01OTQ0LmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/5HSWaCap9BqOtqSxnOKWA1YmoU2vBvhHNe8CB4P5L74/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI1NTkx/NTItMTczMTcxMzky/OC01OTQ0LmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 3,
+        "valorCusto": 204.29,
+        "fornecedor": {
+          "nome": "Tratore Distribuidora"
+        },
+        "dataEntrada": "2026-02-25"
+      }
+    ],
+    "precoVenda": 429,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Not All Heroes Wear Capes",
+      "artista": {
+        "nome": "Metro Boomin"
+      },
+      "gravadora": {
+        "nome": "Boominati Worldwide"
+      },
+      "anoLancamento": "2018-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Trap",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "BMW-71234",
+      "codigoBarras": "0060254712349",
+      "numeroFaixas": 13,
+      "duracao": "44:18",
+      "descricao": "Primeiro álbum solo de Metro Boomin reúne parceiros de longa data como 21 Savage, Travis Scott e Kodak Black sob sua produção característica. A prensagem importada segue o encarte simples da edição americana. Um retrato do trap de produtor que marcou o final dos anos 2010.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.4,
+      "peso": 260,
+      "capaUrl": "https://i.discogs.com/Jqu3KIN38JhzhDbC97NzhZ9e-tlFZ8R7v9ZD9UVe-co/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIyMjc2/NDQxLTE2NDU2MzU1/MzAtOTE4Mi5qcGVn.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/9Tmv9Xs5QDQL0-P1xP_pV20jcCq9mIQccee91Wk1g0o/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIyMjc2/NDQxLTE2NDU2MzU1/MzAtOTE4Mi5qcGVn.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 4,
+        "valorCusto": 170.95,
+        "fornecedor": {
+          "nome": "Import LP Distribuidora"
+        },
+        "dataEntrada": "2026-01-15"
+      }
+    ],
+    "precoVenda": 359,
+    "autorizacaoGerente": null,
+    "inativacao": {
+      "categoria": {
+        "desc": "BAIXA DEMANDA",
+        "tipo": "inativacao"
+      },
+      "justificativa": "Giro baixo desde a chegada de Heroes & Villains; espaço liberado para títulos com mais saída."
+    }
+  },
+  {
+    "disco": {
+      "titulo": "Blue Hawaii",
+      "artista": {
+        "nome": "Elvis Presley"
+      },
+      "gravadora": {
+        "nome": "RCA Victor"
+      },
+      "anoLancamento": "1961-01-01",
+      "categorias": [
+        {
+          "desc": "Rock",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Stage & Screen",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Soundtrack",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Rock & Roll",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        },
+        {
+          "nome": "Remasterizado"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Clássico"
+      },
+      "codigoCatalogo": "BLUEHAWAII-107391",
+      "codigoBarras": "7891123457056",
+      "numeroFaixas": 14,
+      "duracao": "31:49",
+      "descricao": "Trilha do filme homônimo, foi o disco mais vendido de Elvis Presley em vida e ficou vinte semanas no topo da parada americana. A remasterização preserva o timbre dos arranjos havaianos originais. Inclui Can't Help Falling In Love na sequência original.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 280,
+      "capaUrl": "https://i.discogs.com/8GYH6IKk2oSttCmPfDZ_HDUJqA3aP1Mg0JtxokqXh80/rs:fit/g:sm/q:90/h:459/w:471/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExNTYw/MjE0LTE1MTg1MDY5/NjUtODU5NC5qcGVn.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/AqZ_PJn5vcujj6scGFsBcQWrxiPDKO1DmjDBHCcfrdw/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTExNTYw/MjE0LTE1MTg1MDY5/NjUtODU5NC5qcGVn.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 15,
+        "valorCusto": 128.82,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-06-15"
+      }
+    ],
+    "precoVenda": 219,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Rita Lee",
+      "artista": {
+        "nome": "Rita Lee"
+      },
+      "gravadora": {
+        "nome": "Som Livre"
+      },
+      "anoLancamento": "1979-01-01",
+      "categorias": [
+        {
+          "desc": "Rock",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Latin",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Pop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Pop Rock",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Disco",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Rock & Roll",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Art Rock",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Clássico"
+      },
+      "codigoCatalogo": "RITALEE-573645",
+      "codigoBarras": "7891123457007",
+      "numeroFaixas": 8,
+      "duracao": "33:00",
+      "descricao": "Álbum de 1979 que traz Mania De Você, Doce Vampiro e Chega Mais, com Rita Lee circulando entre rock and roll, disco e pop numa mesma sequência de faixas. A reprensagem nacional mantém a arte original da Som Livre. Um dos discos mais tocados da carreira dela.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 280,
+      "capaUrl": "https://i.discogs.com/IAcjfhzKvW-QvHhbVjJlDrO4l9vhOb8RyAHx1UMguBk/rs:fit/g:sm/q:90/h:596/w:588/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI1NTk2/MzgtMTM5MjQ4MDE1/Mi04OTQ1LmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/HmujJ1aHKx9wUigkpZwm6O8RWn_-xtA0RMRJgoyvE-I/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI1NTk2/MzgtMTM5MjQ4MDE1/Mi04OTQ1LmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 16,
+        "valorCusto": 146.47,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-06-15"
+      }
+    ],
+    "precoVenda": 249,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Michael",
+      "artista": {
+        "nome": "Killer Mike"
+      },
+      "gravadora": {
+        "nome": "Loma Vista Recordings"
+      },
+      "anoLancamento": "2023-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Catálogo"
+      },
+      "codigoCatalogo": "LOMA-23018",
+      "codigoBarras": "7891123456927",
+      "numeroFaixas": 14,
+      "duracao": "53:33",
+      "descricao": "Disco de Killer Mike depois do sucesso do Run The Jewels, com produção que dialoga com gospel e soul do sul dos Estados Unidos. A reedição em 180g mantém o encarte original com participações de André 3000 e Future. Um retorno ao trabalho solo que rendeu ao rapper o Grammy de melhor álbum de rap.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 290,
+      "capaUrl": "https://i.discogs.com/HjSnYQqDpXzsptDgtitRJVoqP-xUm8dWmSeEMMWIq34/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI3NDAz/MTk0LTE2ODY5NDc2/NDAtODE2MC5qcGVn.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/zjahQjt4t8ET8bTlfRqICRVDay9kJVs5ivJ4zFTWG2w/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI3NDAz/MTk0LTE2ODY5NDc2/NDAtODE2MC5qcGVn.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 6,
+        "valorCusto": 173.46,
+        "fornecedor": {
+          "nome": "Tratore Distribuidora"
+        },
+        "dataEntrada": "2024-12-03"
+      },
+      {
+        "quantidade": 6,
+        "valorCusto": 199.38,
+        "fornecedor": {
+          "nome": "Tratore Distribuidora"
+        },
+        "dataEntrada": "2026-02-08"
+      }
+    ],
+    "precoVenda": 319,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Is This It",
+      "artista": {
+        "nome": "The Strokes"
+      },
+      "gravadora": {
+        "nome": "RCA"
+      },
+      "anoLancamento": "2001-01-01",
+      "categorias": [
+        {
+          "desc": "Rock",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Indie Rock",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Alternative Rock",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Post-Punk",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Catálogo"
+      },
+      "codigoCatalogo": "RCA-68045",
+      "codigoBarras": "7891123457375",
+      "numeroFaixas": 11,
+      "duracao": "36:24",
+      "descricao": "Estreia dos Strokes, gravada em Nova York com som cru e guitarras entrelaçadas que reacenderam o rock de garagem no começo dos anos 2000. O LP reúne “Last Nite”, “Someday” e “Hard To Explain” em pouco mais de meia hora. Anos depois, Alex Turner abriria um disco do Arctic Monkeys cantando que só queria ser um dos Strokes.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 250,
+      "capaUrl": "https://i.discogs.com/UMLNSgraQ68YSUb0-5DF1P19vUxPZ36TWNL9ALRlG1Q/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEzMTAz/NzQtMTQ1Njk0MTMz/My0zMDY2LmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/VSV15HRjwsqwYE-V3NgyROYAGqsF7w6JeNje3iTHnUg/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTEzMTAz/NzQtMTQ1Njk0MTMz/My0zMDY2LmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 15,
+        "valorCusto": 168.12,
+        "fornecedor": {
+          "nome": "Sony Music Entertainment"
+        },
+        "dataEntrada": "2026-08-26"
+      }
+    ],
+    "precoVenda": 269,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "At. Long. Last. A$AP",
+      "artista": {
+        "nome": "ASAP Rocky"
+      },
+      "gravadora": {
+        "nome": "RCA / Polo Grounds"
+      },
+      "anoLancamento": "2015-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Trap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Cloud Rap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Psychedelic",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "ALLA-841256",
+      "codigoBarras": "7891123457014",
+      "numeroFaixas": 18,
+      "duracao": "66:09",
+      "descricao": "Segundo álbum de A$AP Rocky, com produção psicodélica que se afasta do cloud rap do disco anterior. O vinil duplo acomoda as faixas mais longas sem cortar a dinâmica das transições. Participações de Rod Stewart, Miguel e Kanye West aparecem no encarte.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/J2Us3aoTC3TaTX9vOi8qXNgQKlqawMrfpQ1TlsSlwb4/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTcwNTM0/MTUtMTQzMjYxMTE3/Mi02NzQ4LmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/HrJNXxtf7MEU8ETknL10U1_B5AW64kq2dIFaPfJfdGM/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTcwNTM0/MTUtMTQzMjYxMTE3/Mi02NzQ4LmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 10,
+        "valorCusto": 199.52,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-06-15"
+      }
+    ],
+    "precoVenda": 419,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Diamond Life",
+      "artista": {
+        "nome": "Sade"
+      },
+      "gravadora": {
+        "nome": "Epic"
+      },
+      "anoLancamento": "1984-01-01",
+      "categorias": [
+        {
+          "desc": "Jazz",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Soul",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Clássico"
+      },
+      "codigoCatalogo": "EPC-26044",
+      "codigoBarras": "7891123457344",
+      "numeroFaixas": 9,
+      "duracao": "44:25",
+      "descricao": "Estreia da banda de Sade Adu, que juntou soul, jazz e sophisti-pop numa Londres tomada pelo synth-pop. O LP traz “Smooth Operator” e “Your Love Is King”. Levou o Brit Award de melhor álbum britânico, e Sade ganhou o Grammy de artista revelação.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 250,
+      "capaUrl": "https://i.discogs.com/-lQEjzCDqCQ_jNOEFpBZeSoQY-JFf03oNq17M1gpYcU/rs:fit/g:sm/q:90/h:580/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM0NjA5/NTctMTMzMTI2NzI4/NS5qcGVn.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/iFRgpjsC1vNmCcUic6LcAkqbocOPxf5N-UonjkDNLVU/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM0NjA5/NTctMTMzMTI2NzI4/NS5qcGVn.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 13,
+        "valorCusto": 146.47,
+        "fornecedor": {
+          "nome": "Sony Music Entertainment"
+        },
+        "dataEntrada": "2026-08-19"
+      }
+    ],
+    "precoVenda": 249,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Birds In The Trap Sing McKnight",
+      "artista": {
+        "nome": "Travis Scott"
+      },
+      "gravadora": {
+        "nome": "Grand Hustle / Epic"
+      },
+      "anoLancamento": "2016-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Trap",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        },
+        {
+          "nome": "Splatter"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "EPIC-B12016LP",
+      "codigoBarras": "0886985031382",
+      "numeroFaixas": 14,
+      "duracao": "48:32",
+      "descricao": "Segundo álbum de estúdio de Travis Scott, com produção que mistura trap e texturas psicodélicas mais experimentais que o disco de estreia. A cor do vinil varia entre as tiragens importadas, mas a faixa segue o encarte original. Participações de Kendrick Lamar e André 3000 completam o disco.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 280,
+      "capaUrl": "https://i.discogs.com/awwmHLs5RtRYcnFH5FcIe9WN4MPgpoegnJEBXWdBR0E/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTg5ODky/OTgtMTU0OTA1MzE4/NS0yNzE0LmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/78nVRc30OdpufthaN_Gl9IBRMZw4Fk-Tx3UwF_WJpJA/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTg5ODky/OTgtMTU0OTA1MzE4/NS0yNzE0LmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 9,
+        "valorCusto": 154.62,
+        "fornecedor": {
+          "nome": "Import LP Distribuidora"
+        },
+        "dataEntrada": "2025-01-20"
+      },
+      {
+        "quantidade": 9,
+        "valorCusto": 175.71,
+        "fornecedor": {
+          "nome": "Sony Music Entertainment"
+        },
+        "dataEntrada": "2025-11-05"
+      }
+    ],
+    "precoVenda": 369,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "The Melodic Blue",
+      "artista": {
+        "nome": "Baby Keem"
+      },
+      "gravadora": {
+        "nome": "pgLang / Columbia"
+      },
+      "anoLancamento": "2021-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Trap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Pop Rap",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        },
+        {
+          "nome": "Splatter"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Catálogo"
+      },
+      "codigoCatalogo": "MELODICBLUE-2412268",
+      "codigoBarras": "7891123457035",
+      "numeroFaixas": 16,
+      "duracao": "53:33",
+      "descricao": "Álbum de estreia de Baby Keem pela pgLang, com beats que trocam de direção no meio das faixas. A tiragem em vinil colorido acompanha o encarte original. As participações de Kendrick Lamar renderam ao disco um Grammy de melhor performance de rap.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/-InboBpaeCX6nzm64ZqsERwVmYudimKVEd3JySjyNRY/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIwMTgz/OTkyLTE2Mzg5Njk0/OTEtMTUwNi5qcGVn.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/DoxMAay-QIgOkLBqBenaW6o8_-GBz0GF3uNDyW5SiII/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIwMTgz/OTkyLTE2Mzg5Njk0/OTEtMTUwNi5qcGVn.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 13,
+        "valorCusto": 224.38,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-06-15"
+      }
+    ],
+    "precoVenda": 359,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Mezmerize",
+      "artista": {
+        "nome": "System Of A Down"
+      },
+      "gravadora": {
+        "nome": "American Recordings"
+      },
+      "anoLancamento": "2005-01-01",
+      "categorias": [
+        {
+          "desc": "Rock",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Alternative Metal",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Avantgarde",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        },
+        {
+          "nome": "Remasterizado"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Catálogo"
+      },
+      "codigoCatalogo": "AMR-0602547",
+      "codigoBarras": "7891123456859",
+      "numeroFaixas": 11,
+      "duracao": "35:39",
+      "descricao": "Quarto disco do System Of A Down, gravado junto com o Hypnotize numa mesma sessão de estúdio. A prensagem reedição de 2017 manteve o encarte original com as letras de Serj Tankian e Daron Malakian. Um retrato do metal alternativo do início dos anos 2000.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.4,
+      "peso": 250,
+      "capaUrl": "https://i.discogs.com/SCUBA6-lWnMyCqA-rOn83ZXjJDKi3p7mq1krUIgKfcQ/rs:fit/g:sm/q:90/h:543/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTQ1ODcw/Ny0xMjQ2NzU4OTk2/LmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/EKi93r8KpGf7V8XWjc-t8TEmrT5JgBlgN4qM0pROAg8/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTQ1ODcw/Ny0xMjQ2NzU4OTk2/LmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 8,
+        "valorCusto": 134.44,
+        "fornecedor": {
+          "nome": "Sony Music Entertainment"
+        },
+        "dataEntrada": "2024-06-10"
+      },
+      {
+        "quantidade": 6,
+        "valorCusto": 149.38,
+        "fornecedor": {
+          "nome": "Sony Music Entertainment"
+        },
+        "dataEntrada": "2025-02-14"
+      }
+    ],
+    "precoVenda": 239,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "2014 Forest Hills Drive",
+      "artista": {
+        "nome": "J. Cole"
+      },
+      "gravadora": {
+        "nome": "Dreamville / Roc Nation"
+      },
+      "anoLancamento": "2014-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Conscious",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Catálogo"
+      },
+      "codigoCatalogo": "FORESTHILLS-767810",
+      "codigoBarras": "7891123457084",
+      "numeroFaixas": 13,
+      "duracao": "64:39",
+      "descricao": "Terceiro disco de J. Cole, gravado sem nenhuma participação e todo produzido por ele mesmo. O título vem do endereço da casa onde cresceu, em Fayetteville. A reprensagem dupla mantém o encarte com as letras impressas.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/Dnt3OZd8WjOubOKc9tYU7KUIcEICuk8m-3jIccIo5xw/rs:fit/g:sm/q:90/h:600/w:595/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTY0MDE3/ODgtMTU1OTU4ODIx/Ni0yMjExLmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/1h_3_u7xJi59-BA0wc29j_aZv_MH9Ze--Hz7r2Ie9Y8/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTY0MDE3/ODgtMTU1OTU4ODIx/Ni0yMjExLmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 17,
+        "valorCusto": 211.88,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-06-15"
+      }
+    ],
+    "precoVenda": 339,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Nevermind",
+      "artista": {
+        "nome": "Nirvana"
+      },
+      "gravadora": {
+        "nome": "DGC / Sub Pop"
+      },
+      "anoLancamento": "1991-01-01",
+      "categorias": [
+        {
+          "desc": "Rock",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Grunge",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Alternative Rock",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        },
+        {
+          "nome": "Remasterizado"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Clássico"
+      },
+      "codigoCatalogo": "NEVERMIND-13814",
+      "codigoBarras": "7891123457112",
+      "numeroFaixas": 12,
+      "duracao": "42:11",
+      "descricao": "Segundo álbum do Nirvana levou o grunge de Seattle para o mainstream e desalojou Michael Jackson do topo da parada americana. A remasterização mantém a mixagem de Andy Wallace que definiu o som do disco. Uma porta de entrada obrigatória para o rock dos anos 1990.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 280,
+      "capaUrl": "https://i.discogs.com/os3Gm61mroiZvEw2bIGtNDf0RXydEx8PRmIk-YYwBSU/rs:fit/g:sm/q:90/h:600/w:594/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE4MTMw/MDYtMTQzNjgxNDc2/Mi05NjgxLmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/TcLhjpdmx3MmaXiqlQZbPOskOdPkxDcfwtS8TIp9tvo/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE4MTMw/MDYtMTQzNjgxNDc2/Mi05NjgxLmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 24,
+        "valorCusto": 170,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-06-15"
+      }
+    ],
+    "precoVenda": 289,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Purple Rain",
+      "artista": {
+        "nome": "Prince And The Revolution"
+      },
+      "gravadora": {
+        "nome": "Warner Bros."
+      },
+      "anoLancamento": "1984-01-01",
+      "categorias": [
+        {
+          "desc": "Rock",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Pop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Funk",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Minneapolis Sound",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Pop Rock",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Clássico"
+      },
+      "codigoCatalogo": "WB-25110-1",
+      "codigoBarras": "7891123457320",
+      "numeroFaixas": 9,
+      "duracao": "43:50",
+      "descricao": "Trilha do filme de mesmo nome, com Prince e a banda The Revolution misturando funk, rock e pop de sintetizador. O LP tem “Let's Go Crazy”, “When Doves Cry” e a faixa-título, gravada ao vivo num show em Minneapolis. Passou 24 semanas no topo da parada americana.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 250,
+      "capaUrl": "https://i.discogs.com/mSIjl1G4gAdx2xw9iLG1fBmNPLz_5GNo0bLqeWyDMh4/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE5NDAy/MS0xMzM1NDAwMjg5/LmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/5V--CGA7V4wulxts-n_rMBEsMXglMBHo6DNIFvH5NNg/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE5NDAy/MS0xMzM1NDAwMjg5/LmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 15,
+        "valorCusto": 170,
+        "fornecedor": {
+          "nome": "Warner Music Brasil"
+        },
+        "dataEntrada": "2026-08-19"
+      }
+    ],
+    "precoVenda": 289,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "What A Time To Be Alive",
+      "artista": {
+        "nome": "Drake"
+      },
+      "gravadora": {
+        "nome": "Cash Money / Epic"
+      },
+      "anoLancamento": "2015-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Trap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Pop Rap",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "WATTBA-923402",
+      "codigoBarras": "7891123457063",
+      "numeroFaixas": 11,
+      "duracao": "40:30",
+      "descricao": "Mixtape colaborativa de Drake e Future gravada em menos de uma semana em Atlanta, com Metro Boomin na produção da maior parte das faixas. A prensagem importada mantém o encarte simples da edição original. Um retrato do trap que dominou 2015.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 280,
+      "capaUrl": "https://i.discogs.com/ivJ9MOCeGLvq1-yPRml59ICHFNy-v_Ki0RPP4OOOKj0/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTc1MDI1/MTMtMTQ1ODM3OTEx/My02NzI3LmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/NHVSZthOAWvmskvUHhPC5T4hLrzrkR3TzzQPNSnUfR0/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTc1MDI1/MTMtMTQ1ODM3OTEx/My02NzI3LmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 9,
+        "valorCusto": 175.71,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-06-15"
+      }
+    ],
+    "precoVenda": 369,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Un Verano Sin Ti",
+      "artista": {
+        "nome": "Bad Bunny"
+      },
+      "gravadora": {
+        "nome": "Rimas Entertainment"
+      },
+      "anoLancamento": "2022-01-01",
+      "categorias": [
+        {
+          "desc": "Electronic",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Reggae",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Latin",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Pop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Reggaeton",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Trap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Synth-pop",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "House",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Reggae",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Mambo",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Latin Pop",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "RIM-2022UVST",
+      "codigoBarras": "6061234567892",
+      "numeroFaixas": 23,
+      "duracao": "81:14",
+      "descricao": "Bad Bunny expande o reggaeton para o pop e para ritmos caribenhos como bomba e plena, num disco que dominou as paradas globais. A prensagem em vinil duplo importado segue o gatefold da edição internacional. Ainda sem saída de estoque nesta loja, apesar da procura constante pelo título.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/AVfnmTckGhWNpTOluDOLMqAXo-lwDuK8RK-zRw7DjUo/rs:fit/g:sm/q:90/h:528/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI0MTEy/NTIwLTE2NjE2NTUx/ODQtMTg3NC5qcGVn.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/sdGdZU0Qy2xyUPxZDZnqR95MWhBROvzF4Ox2bTCURpI/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI0MTEy/NTIwLTE2NjE2NTUx/ODQtMTg3NC5qcGVn.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 10,
+        "valorCusto": 171,
+        "fornecedor": {
+          "nome": "Import LP Distribuidora"
+        },
+        "dataEntrada": "2024-11-08"
+      },
+      {
+        "quantidade": 10,
+        "valorCusto": 190,
+        "fornecedor": {
+          "nome": "Import LP Distribuidora"
+        },
+        "dataEntrada": "2025-08-19"
+      }
+    ],
+    "precoVenda": 399,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Late Registration",
+      "artista": {
+        "nome": "Kanye West"
+      },
+      "gravadora": {
+        "nome": "Roc-A-Fella"
+      },
+      "anoLancamento": "2005-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Conscious",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Pop Rap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Contemporary R&B",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "RAF-B0004813-01",
+      "codigoBarras": "7891123457184",
+      "numeroFaixas": 21,
+      "duracao": "69:57",
+      "descricao": "Segundo álbum de Kanye West, produzido em parceria com Jon Brion, que levou cordas e arranjos de orquestra para os samples de soul. O vinil duplo acomoda as vinte e uma faixas, com os interlúdios e o remix de “Diamonds From Sierra Leone” com Jay-Z. “Gold Digger” passou dez semanas no topo da parada americana.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/VaGAJ7bFhiP1JY5nrQDFGGw2mmbU7OH0xm_j9msSaNM/rs:fit/g:sm/q:90/h:592/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTQ5NDE2/OS0xNTAxMjY5NDM1/LTMxNzIuanBlZw.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/Y-UsRK0aJQvsfXUbUTcJSDXMbmK0WENvEMvML0JgiBk/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTQ5NDE2/OS0xNTAxMjY5NDM1/LTMxNzIuanBlZw.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 9,
+        "valorCusto": 190,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-07-08"
+      }
+    ],
+    "precoVenda": 399,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Maggot Brain",
+      "artista": {
+        "nome": "Funkadelic"
+      },
+      "gravadora": {
+        "nome": "Westbound"
+      },
+      "anoLancamento": "1971-01-01",
+      "categorias": [
+        {
+          "desc": "Rock",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        },
+        {
+          "desc": "P.Funk",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Psychedelic Rock",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "WB-2007",
+      "codigoBarras": "7891123457290",
+      "numeroFaixas": 7,
+      "duracao": "36:04",
+      "descricao": "Terceiro álbum do Funkadelic, de George Clinton, que abre com os dez minutos de solo de Eddie Hazel na faixa-título. Clinton pediu que ele tocasse como se tivesse acabado de saber da morte da mãe. O LP mistura funk, soul e rock psicodélico em sete faixas e é a referência mais direta de Awaken, My Love!, de Childish Gambino.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 250,
+      "capaUrl": "https://i.discogs.com/5mf7pC4PfhXikjlHAxOB7mPS7gEjqOJN8tS5--G_yyE/rs:fit/g:sm/q:90/h:600/w:591/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTc3MzU4/Ny0xMjUyNTkzNTcx/LmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/XYslpwura5SFFMViMsPc0BMVaK0ZLEzpmRPXF0tLsSg/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTc3MzU4/Ny0xMjUyNTkzNTcx/LmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 8,
+        "valorCusto": 151.9,
+        "fornecedor": {
+          "nome": "Import LP Distribuidora"
+        },
+        "dataEntrada": "2026-08-12"
+      }
+    ],
+    "precoVenda": 319,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Channel Orange",
+      "artista": {
+        "nome": "Frank Ocean"
+      },
+      "gravadora": {
+        "nome": "Def Jam Recordings"
+      },
+      "anoLancamento": "2012-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Pop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Contemporary R&B",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Soul",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Neo Soul",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        },
+        {
+          "nome": "Splatter"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "DEF-0602537",
+      "codigoBarras": "0602537123457",
+      "numeroFaixas": 19,
+      "duracao": "62:29",
+      "descricao": "Álbum de estreia de Frank Ocean fora do coletivo Odd Future, com um R&B mais introspectivo e cheio de interlúdios narrativos. A prensagem importada em vinil duplo colorido segue o layout original de faixas. Um disco que ajudou a redefinir o R&B contemporâneo dos anos 2010.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 470,
+      "capaUrl": "https://i.discogs.com/T194rRO-vNdN71vM_XUorDW2B3kNN5X4EwFDweUtDlc/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM3MzEx/ODUtMTc0NTQ0NzIy/Ni05NTIzLmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/Cl6ABRkrFJZ1t3yrCajvV72UnfIN_1ah2iHe7CazdNc/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM3MzEx/ODUtMTc0NTQ0NzIy/Ni05NTIzLmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 5,
+        "valorCusto": 179.57,
+        "fornecedor": {
+          "nome": "Import LP Distribuidora"
+        },
+        "dataEntrada": "2025-05-06"
+      },
+      {
+        "quantidade": 5,
+        "valorCusto": 199.52,
+        "fornecedor": {
+          "nome": "Import LP Distribuidora"
+        },
+        "dataEntrada": "2026-03-21"
+      }
+    ],
+    "precoVenda": 419,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Hardstone Psycho",
+      "artista": {
+        "nome": "Don Toliver"
+      },
+      "gravadora": {
+        "nome": "Cactus Jack / Atlantic"
+      },
+      "anoLancamento": "2024-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Rock",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Pop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Trap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Contemporary R&B",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Pop Rap",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Lançamento"
+      },
+      "codigoCatalogo": "HARDSTONE-3524320",
+      "codigoBarras": "7891123457042",
+      "numeroFaixas": 19,
+      "duracao": "61:40",
+      "descricao": "Quarto disco de Don Toliver puxa para o rock e o psicodélico sem largar o trap melódico da Cactus Jack. O vinil duplo traz a arte de capa em gatefold. Um dos títulos de maior giro do catálogo recente da loja.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/AktnK-wqhtgp875cgkhe1vMggV9xbdkpBjrRKvLyypE/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMxMDQw/MDgwLTE3MjU1Njg3/MTYtNzMzOC5qcGVn.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/CHC76DN39sN2ymYfgS9FYAEwEgRS7cDF4KDiMEzoJkw/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMxMDQw/MDgwLTE3MjU1Njg3/MTYtNzMzOC5qcGVn.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 25,
+        "valorCusto": 215.68,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-06-15"
+      }
+    ],
+    "precoVenda": 399,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "SOS",
+      "artista": {
+        "nome": "SZA"
+      },
+      "gravadora": {
+        "nome": "Top Dawg / RCA"
+      },
+      "anoLancamento": "2022-01-01",
+      "categorias": [
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Contemporary R&B",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Catálogo"
+      },
+      "codigoCatalogo": "SOS-2929684",
+      "codigoBarras": "7891123457126",
+      "numeroFaixas": 23,
+      "duracao": "67:49",
+      "descricao": "Segundo álbum de SZA passeia entre R&B, pop e até punk em vinte e três faixas, sem se prender a um formato. O vinil duplo acompanha o encarte com a foto do píer que virou capa. Ficou dez semanas no topo da parada americana.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/7hutaiit_yV70u-gZbn5qQw6lx7PzWVixKYuk8FI15U/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI1NDA0/MjgzLTE2NzA1MDY1/MjctNTcwMS5wbmc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/Q3mdNFaMWltMOeA_2GeWnUoZDM1hY72bjgnbrEB3mFE/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI1NDA0/MjgzLTE2NzA1MDY1/MjctNTcwMS5wbmc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 18,
+        "valorCusto": 230.62,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-06-15"
+      }
+    ],
+    "precoVenda": 369,
+    "autorizacaoGerente": null,
+    "inativacao": {
+      "categoria": {
+        "desc": "FORA DE LINHA",
+        "tipo": "inativacao"
+      },
+      "justificativa": "Prensagem dupla esgotada no fornecedor, sem data para uma nova tiragem."
+    }
+  },
+  {
+    "disco": {
+      "titulo": "Are You Experienced",
+      "artista": {
+        "nome": "The Jimi Hendrix Experience"
+      },
+      "gravadora": {
+        "nome": "Track Record"
+      },
+      "anoLancamento": "1967-01-01",
+      "categorias": [
+        {
+          "desc": "Rock",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Blues",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Psychedelic Rock",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Blues Rock",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Acid Rock",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Clássico"
+      },
+      "codigoCatalogo": "TRK-612001",
+      "codigoBarras": "7891123457283",
+      "numeroFaixas": 11,
+      "duracao": "36:57",
+      "descricao": "Estreia de Jimi Hendrix com Noel Redding e Mitch Mitchell, gravada em Londres, com distorção e microfonia que mudaram o jeito de tocar guitarra. Esta é a sequência britânica original, com “Foxy Lady”, “Manic Depression”, “Red House” e “Fire”. Está na raiz do rock pesado do acervo, de Metallica a Nirvana.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 250,
+      "capaUrl": "https://i.discogs.com/2-7PGO_kBzci2lp_uafKMXvnH7gbXI0F9knTOUBtay4/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTk5MzAy/OC0xNTc2MzMzMjAx/LTg1MzAuanBlZw.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/PEJk9NNJr6YT1kDM-pfakByScVSHcBO2I970gAZ2gI0/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTk5MzAy/OC0xNTc2MzMzMjAx/LTg1MzAuanBlZw.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 10,
+        "valorCusto": 170,
+        "fornecedor": {
+          "nome": "Sony Music Entertainment"
+        },
+        "dataEntrada": "2026-08-05"
+      }
+    ],
+    "precoVenda": 289,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Rodeo",
+      "artista": {
+        "nome": "Travis Scott"
+      },
+      "gravadora": {
+        "nome": "Grand Hustle / Epic"
+      },
+      "anoLancamento": "2015-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Trap",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        },
+        {
+          "nome": "Splatter"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "EPIC-R15LP2",
+      "codigoBarras": "0889854021479",
+      "numeroFaixas": 14,
+      "duracao": "65:57",
+      "descricao": "Álbum de estreia de Travis Scott, com produção que aproxima trap e rock psicodélico, num som que o artista aprofundaria nos discos seguintes. A tiragem importada em vinil colorido segue o encarte duplo original. Participações de Kanye West, Toro y Moi e The Weeknd marcam a lista de faixas.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 490,
+      "capaUrl": "https://i.discogs.com/IvgsheLssaAfZNjFGiQK1k59Hzw4NYJ6F_sackrd9H0/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMyNjAz/MDI4LTE3MzQ1NTQ0/NDEtOTQ2NC5wbmc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/6ZseCJ7Lz0DQQJdGCnQmhPh75JazwyBg43bn_W5OIaE/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMyNjAz/MDI4LTE3MzQ1NTQ0/NDEtOTQ2NC5wbmc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 7,
+        "valorCusto": 180.48,
+        "fornecedor": {
+          "nome": "Import LP Distribuidora"
+        },
+        "dataEntrada": "2026-01-09"
+      }
+    ],
+    "precoVenda": 379,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "The Score",
+      "artista": {
+        "nome": "Fugees"
+      },
+      "gravadora": {
+        "nome": "Ruffhouse / Columbia"
+      },
+      "anoLancamento": "1996-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Conscious",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Boom Bap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Neo Soul",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Clássico"
+      },
+      "codigoCatalogo": "RUFF-C2-67147",
+      "codigoBarras": "7891123457177",
+      "numeroFaixas": 16,
+      "duracao": "73:33",
+      "descricao": "Segundo e último álbum do trio de Lauryn Hill, Wyclef Jean e Pras Michel, misturando boom bap, soul e reggae dois anos antes de The Miseducation. O vinil duplo reúne “Killing Me Softly” e “Ready Or Not” e fecha com os remixes de “Fu-Gee-La”. Vendeu mais de 20 milhões de cópias e levou o Grammy de melhor álbum de rap.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/sUC-OcPFlR1nXz8VFp1eBUbrdSKSQVM7TYGPAkDgTpg/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTc5NTk1/OTUtMTQ2ODYxMTk2/OC01MjM2LmpwZWc.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/2yRoPrGbTT1gc8xZGrImpYBHb9UDjY6XGUegv8yTPqE/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTc5NTk1/OTUtMTQ2ODYxMTk2/OC01MjM2LmpwZWc.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 16,
+        "valorCusto": 193.53,
+        "fornecedor": {
+          "nome": "Sony Music Entertainment"
+        },
+        "dataEntrada": "2026-07-08"
+      }
+    ],
+    "precoVenda": 329,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Back To Black",
+      "artista": {
+        "nome": "Amy Winehouse"
+      },
+      "gravadora": {
+        "nome": "Island"
+      },
+      "anoLancamento": "2006-01-01",
+      "categorias": [
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Rhythm & Blues",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Soul",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Catálogo"
+      },
+      "codigoCatalogo": "ISL-1713041",
+      "codigoBarras": "7891123457382",
+      "numeroFaixas": 11,
+      "duracao": "34:54",
+      "descricao": "Segundo álbum de Amy Winehouse, produzido por Mark Ronson e Salaam Remi, com a sonoridade dos grupos femininos dos anos 1960 e a banda Dap-Kings. O LP traz “Rehab”, “You Know I'm No Good” e a faixa-título. Venceu o Grammy de melhor álbum vocal pop e rendeu a ela cinco estatuetas numa só noite.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 250,
+      "capaUrl": "https://i.discogs.com/syRCX8NaLwK2SMk8X6TVU_DWc8RRqE4b-tebAQ6kVH4/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTgyNTQz/OC0xNjE3ODE0NDI2/LTU1MjUuanBlZw.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/DuKy3w8RRr4n2RI9uoxxrmPu13MH2NhFcQmebg-EsZg/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTgyNTQz/OC0xNjE3ODE0NDI2/LTU1MjUuanBlZw.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 19,
+        "valorCusto": 174.38,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-09-02"
+      }
+    ],
+    "precoVenda": 279,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Love Sick",
+      "artista": {
+        "nome": "Don Toliver"
+      },
+      "gravadora": {
+        "nome": "Cactus Jack / Atlantic"
+      },
+      "anoLancamento": "2023-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Trap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Contemporary R&B",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Catálogo"
+      },
+      "codigoCatalogo": "LOVESICK-3002207",
+      "codigoBarras": "7891123457049",
+      "numeroFaixas": 16,
+      "duracao": "52:42",
+      "descricao": "Terceiro álbum de Don Toliver, construído em torno de faixas de R&B melódico com produção espaçosa. A edição deluxe acrescenta faixas que não constam na versão padrão. Participações de Future, Justin Bieber e GloRilla completam o disco.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/OdYegKSuCCEHHgLWdAA782n_6qwtXgzmtMrWRB-SIOw/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI2MjA3/NDk4LTE2NzcyNzQx/MTYtOTgzMi5qcGVn.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/dMTw9Jogt2H83bfuk7pT1sxlK4PELFgzBfGlCCFlI84/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTI2MjA3/NDk4LTE2NzcyNzQx/MTYtOTgzMi5qcGVn.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 11,
+        "valorCusto": 218.12,
+        "fornecedor": {
+          "nome": "Universal Music Brasil"
+        },
+        "dataEntrada": "2026-06-15"
+      }
+    ],
+    "precoVenda": 349,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Igor",
+      "artista": {
+        "nome": "Tyler, The Creator"
+      },
+      "gravadora": {
+        "nome": "Columbia"
+      },
+      "anoLancamento": "2019-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Contemporary R&B",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Neo Soul",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Primeira Prensagem"
+        }
+      ],
+      "formato": {
+        "nome": "LP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "COL-19075944611",
+      "codigoBarras": "7891123457252",
+      "numeroFaixas": 12,
+      "duracao": "39:43",
+      "descricao": "Quinto álbum de Tyler, The Creator, escrito, produzido e arranjado por ele, contando o fim de um relacionamento pelo personagem que dá nome ao disco. O LP guarda a capa rosa com o retrato de Tyler de peruca loira. Venceu o Grammy de melhor álbum de rap, e “Earfquake” virou o maior sucesso da carreira dele até então.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 0.5,
+      "peso": 250,
+      "capaUrl": "https://i.discogs.com/B_QfE2h5RekTykFDRtlCYdtf4025mCzkXJ_jLn1MGXk/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE4OTgw/MjcyLTE2NDc4MjA4/MzYtMTk1My5qcGVn.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/cF3mo_fA-0wHZFsJIoJjD18eh_oAkgir11yB7L87bC8/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTE4OTgw/MjcyLTE2NDc4MjA4/MzYtMTk1My5qcGVn.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 12,
+        "valorCusto": 166.19,
+        "fornecedor": {
+          "nome": "Import LP Distribuidora"
+        },
+        "dataEntrada": "2026-07-29"
+      }
+    ],
+    "precoVenda": 349,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Stankonia",
+      "artista": {
+        "nome": "OutKast"
+      },
+      "gravadora": {
+        "nome": "LaFace / Arista"
+      },
+      "anoLancamento": "2000-01-01",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Gangsta",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "P.Funk",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Crunk",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Conscious",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Pop Rap",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Clássico"
+      },
+      "codigoCatalogo": "73008-26072-1",
+      "codigoBarras": "7891123457405",
+      "numeroFaixas": 24,
+      "duracao": "72:37",
+      "descricao": "Quarto álbum do OutKast, gravado no estúdio que André 3000 e Big Boi compraram em Atlanta e rebatizaram de Stankonia. O rap sulista da dupla se mistura a funk, rock, gospel e drum and bass, de “B.O.B.” a “So Fresh, So Clean”. “Ms. Jackson” chegou ao primeiro lugar da Billboard, e o disco venceu o Grammy de melhor álbum de rap.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/MayUfg5mqH5VU3_nA_BDErCUissIYH-mK7_ONPbxqFU/rs:fit/g:sm/q:90/h:600/w:597/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIyNTE4/MS0xNjU2MzY4NDE3/LTI3MjMuanBlZw.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/H2bUY4mwkSHPDGNhfDWoSjXU4PTsPpiBc9xavmQWmXA/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTIyNTE4/MS0xNjU2MzY4NDE3/LTI3MjMuanBlZw.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 6,
+        "valorCusto": 217.06,
+        "fornecedor": {
+          "nome": "Sony Music Entertainment"
+        },
+        "dataEntrada": "2026-09-10"
+      },
+      {
+        "quantidade": 4,
+        "valorCusto": 212.4,
+        "fornecedor": {
+          "nome": "Sony Music Entertainment"
+        },
+        "dataEntrada": "2026-09-24"
+      }
+    ],
+    "precoVenda": 369,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  },
+  {
+    "disco": {
+      "titulo": "Camp",
+      "artista": {
+        "nome": "Childish Gambino"
+      },
+      "gravadora": {
+        "nome": "Glassnote"
+      },
+      "anoLancamento": "2011-01-01",
+      "categorias": [
+        {
+          "desc": "Electronic",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Pop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Hip Hop",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Hip-House",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Contemporary R&B",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Pop Rap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Electro",
+          "tipo": "estilo"
+        }
+      ],
+      "edicoes": [
+        {
+          "nome": "Reprensagem"
+        }
+      ],
+      "formato": {
+        "nome": "2xLP"
+      },
+      "grupoPrecificacao": {
+        "nome": "Importado"
+      },
+      "codigoCatalogo": "GLS-0121-01",
+      "codigoBarras": "7891123457412",
+      "numeroFaixas": 13,
+      "duracao": "56:35",
+      "descricao": "Álbum de estreia de Childish Gambino, o projeto musical do ator e roteirista Donald Glover, produzido por ele com Ludwig Göransson. As letras tratam de identidade, raça e deslocamento sobre arranjos com cordas, coral e sintetizadores. O disco fecha com “That Power”, que termina numa longa história falada sobre a volta de um acampamento de verão.",
+      "altura": 31.5,
+      "largura": 31.5,
+      "profundidade": 1,
+      "peso": 480,
+      "capaUrl": "https://i.discogs.com/KQMPVdgB2LgKj98leHT6h4TcK7bOAF9y1JOUSq5doXI/rs:fit/g:sm/q:90/h:527/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMyNzk1/NTUtMTMyMzY4OTQx/Ny5qcGVn.jpeg",
+      "capaMiniaturaUrl": "https://i.discogs.com/CcpKaaONIXI6HrdVI8qFGwESUw4CAMHMWIpRkqPSaDU/rs:fit/g:sm/q:40/h:150/w:150/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTMyNzk1/NTUtMTMyMzY4OTQx/Ny5qcGVn.jpeg"
+    },
+    "entradas": [
+      {
+        "quantidade": 7,
+        "valorCusto": 170.95,
+        "fornecedor": {
+          "nome": "Import LP Distribuidora"
+        },
+        "dataEntrada": "2026-09-17"
+      }
+    ],
+    "precoVenda": 359,
+    "autorizacaoGerente": null,
+    "inativacao": null
+  }
+]

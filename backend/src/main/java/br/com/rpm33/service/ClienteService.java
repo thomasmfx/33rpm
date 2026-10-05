@@ -10,22 +10,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.com.rpm33.model.BandeiraCartao;
 import br.com.rpm33.model.Cartao;
-import br.com.rpm33.model.Cidade;
 import br.com.rpm33.model.Cliente;
 import br.com.rpm33.model.ClienteFiltro;
 import br.com.rpm33.model.Endereco;
 import br.com.rpm33.model.EntidadeDominio;
-import br.com.rpm33.model.Estado;
 import br.com.rpm33.model.Genero;
 import br.com.rpm33.model.OperacaoLog;
 import br.com.rpm33.model.Telefone;
 import br.com.rpm33.model.TipoTelefone;
-import br.com.rpm33.repository.BandeiraCartaoRepository;
-import br.com.rpm33.repository.CidadeRepository;
 import br.com.rpm33.repository.ClienteRepository;
-import br.com.rpm33.repository.EstadoRepository;
 import br.com.rpm33.repository.GeneroRepository;
 import br.com.rpm33.repository.TipoTelefoneRepository;
 import jakarta.persistence.EntityManager;
@@ -41,25 +35,22 @@ public class ClienteService implements IService {
   private final ClienteRepository clienteRepository;
   private final GeneroRepository generoRepository;
   private final TipoTelefoneRepository tipoTelefoneRepository;
-  private final BandeiraCartaoRepository bandeiraCartaoRepository;
-  private final CidadeRepository cidadeRepository;
-  private final EstadoRepository estadoRepository;
+  private final RegrasEndereco regrasEndereco;
+  private final RegrasCartao regrasCartao;
   private final RegistradorLog registradorLog;
   private final RegrasSenha regrasSenha;
   private final PasswordEncoder encoder;
   private final EntityManager entityManager;
 
   public ClienteService(ClienteRepository clienteRepository, GeneroRepository generoRepository,
-      TipoTelefoneRepository tipoTelefoneRepository,
-      BandeiraCartaoRepository bandeiraCartaoRepository, CidadeRepository cidadeRepository,
-      EstadoRepository estadoRepository, RegistradorLog registradorLog, RegrasSenha regrasSenha,
+      TipoTelefoneRepository tipoTelefoneRepository, RegrasEndereco regrasEndereco,
+      RegrasCartao regrasCartao, RegistradorLog registradorLog, RegrasSenha regrasSenha,
       PasswordEncoder encoder, EntityManager entityManager) {
     this.clienteRepository = clienteRepository;
     this.generoRepository = generoRepository;
     this.tipoTelefoneRepository = tipoTelefoneRepository;
-    this.bandeiraCartaoRepository = bandeiraCartaoRepository;
-    this.cidadeRepository = cidadeRepository;
-    this.estadoRepository = estadoRepository;
+    this.regrasEndereco = regrasEndereco;
+    this.regrasCartao = regrasCartao;
     this.registradorLog = registradorLog;
     this.regrasSenha = regrasSenha;
     this.encoder = encoder;
@@ -76,7 +67,7 @@ public class ClienteService implements IService {
     List<String> erros = validarDadosCadastrais(cliente, null);
     erros.addAll(regrasSenha.validar(cliente.getSenha(), cliente.getConfirmarSenha()));
     erros.addAll(validarEnderecos(cliente));
-    erros.addAll(validarCartoes(cliente));
+    erros.addAll(regrasCartao.validarCartoes(cliente.getCartoes()));
     if (!erros.isEmpty()) {
       return Resultado.erro(erros);
     }
@@ -131,7 +122,7 @@ public class ClienteService implements IService {
       erros.addAll(regrasSenha.validar(entrada.getSenha(), entrada.getConfirmarSenha()));
     }
     erros.addAll(validarEnderecos(entrada));
-    erros.addAll(validarCartoes(entrada));
+    erros.addAll(regrasCartao.validarCartoes(entrada.getCartoes()));
     if (entrada.getCpf() != null && !entrada.getCpf().equals(atual.getCpf())) {
       erros.add("O CPF não pode ser alterado.");
     }
@@ -227,7 +218,7 @@ public class ClienteService implements IService {
 
   /** RF0036: cartão novo do checkout incorporado ao perfil, sem editar o cadastro. */
   private Resultado alterarCartoes(Cliente atual, Cliente entrada) {
-    List<String> erros = validarCartoes(entrada);
+    List<String> erros = regrasCartao.validarCartoes(entrada.getCartoes());
     if (!erros.isEmpty()) {
       return Resultado.erro(erros);
     }
@@ -335,15 +326,7 @@ public class ClienteService implements IService {
     }
 
     for (Endereco endereco : cliente.getEnderecos()) {
-      String identificacao = vazio(endereco.getNome()) ? "endereço" : "'" + endereco.getNome() + "'";
-      if (vazio(endereco.getNome())) {
-        erros.add("Informe um nome para o endereço (RF0026).");
-      }
-      if (!Endereco.ENTREGA.equals(endereco.getTipo()) && !Endereco.COBRANCA.equals(endereco.getTipo())
-          && !Endereco.AMBOS.equals(endereco.getTipo())) {
-        erros.add("Tipo inválido no " + identificacao + ": use entrega, cobranca ou ambos.");
-      }
-      erros.addAll(camposObrigatoriosDoEndereco(endereco, identificacao));
+      erros.addAll(regrasEndereco.validar(endereco));
     }
 
     if (!temEnderecoDe(cliente, Endereco.COBRANCA)) {
@@ -351,63 +334,6 @@ public class ClienteService implements IService {
     }
     if (!temEnderecoDe(cliente, Endereco.ENTREGA)) {
       erros.add("O cliente precisa de ao menos um endereço de entrega (RN0022).");
-    }
-    return erros;
-  }
-
-  /** RN0023: tudo obrigatório, menos observações. */
-  private List<String> camposObrigatoriosDoEndereco(Endereco endereco, String identificacao) {
-    List<String> erros = new ArrayList<>();
-    if (vazio(endereco.getTipoResidencia())) {
-      erros.add("Informe o tipo de residência no " + identificacao + " (RN0023).");
-    }
-    if (vazio(endereco.getTipoLogradouro())) {
-      erros.add("Informe o tipo de logradouro no " + identificacao + " (RN0023).");
-    }
-    if (vazio(endereco.getLogradouro())) {
-      erros.add("Informe o logradouro no " + identificacao + " (RN0023).");
-    }
-    if (vazio(endereco.getNumero())) {
-      erros.add("Informe o número no " + identificacao + " (RN0023).");
-    }
-    if (vazio(endereco.getBairro())) {
-      erros.add("Informe o bairro no " + identificacao + " (RN0023).");
-    }
-    if (endereco.getCep() == null || endereco.getCep().length() != 8) {
-      erros.add("CEP deve ter 8 dígitos no " + identificacao + " (RN0023).");
-    }
-    if (endereco.getCidade() == null || vazio(endereco.getCidade().getDesc())) {
-      erros.add("Informe a cidade no " + identificacao + " (RN0023).");
-    }
-    if (endereco.getCidade() == null || endereco.getCidade().getEstado() == null
-        || vazio(endereco.getCidade().getEstado().getDesc())) {
-      erros.add("Informe o estado no " + identificacao + " (RN0023).");
-    }
-    if (vazio(endereco.getPais())) {
-      erros.add("Informe o país no " + identificacao + " (RN0023).");
-    }
-    return erros;
-  }
-
-  /** RN0024. */
-  private List<String> validarCartoes(Cliente cliente) {
-    List<String> erros = new ArrayList<>();
-    for (Cartao cartao : cliente.getCartoes()) {
-      if (cartao.getNumero() == null || cartao.getNumero().length() < 13
-          || cartao.getNumero().length() > 19) {
-        erros.add("Número de cartão inválido (RN0024).");
-      }
-      if (vazio(cartao.getNomeImpresso())) {
-        erros.add("Informe o nome impresso no cartão (RN0024).");
-      }
-      if (cartao.getBandeira() == null
-          || (cartao.getBandeira().getId() == null && vazio(cartao.getBandeira().getDesc()))) {
-        erros.add("Selecione a bandeira do cartão (RN0024).");
-      }
-      if (cartao.getCodigoSeguranca() == null || cartao.getCodigoSeguranca().length() < 3
-          || cartao.getCodigoSeguranca().length() > 4) {
-        erros.add("Código de segurança inválido (RN0024).");
-      }
     }
     return erros;
   }
@@ -467,7 +393,7 @@ public class ClienteService implements IService {
       endereco.setCep(entrada.getCep());
       endereco.setPais(entrada.getPais().trim());
       endereco.setObservacoes(entrada.getObservacoes());
-      endereco.setCidade(resolverCidade(entrada.getCidade(), erros));
+      endereco.setCidade(regrasEndereco.resolverCidade(entrada.getCidade(), erros));
       enderecos.add(endereco);
     }
     if (!erros.isEmpty()) {
@@ -489,7 +415,7 @@ public class ClienteService implements IService {
       cartao.setNumero(entrada.getNumero());
       cartao.setNomeImpresso(entrada.getNomeImpresso().trim());
       cartao.setCodigoSeguranca(entrada.getCodigoSeguranca());
-      cartao.setBandeira(resolverBandeira(entrada.getBandeira(), erros));
+      cartao.setBandeira(regrasCartao.resolverBandeira(entrada.getBandeira(), erros));
       // RF0027: exatamente um preferencial, mesmo que a interface mande zero ou vários
       boolean preferencial = Boolean.TRUE.equals(entrada.getIsPreferencial()) && !jaTemPreferencial;
       jaTemPreferencial = jaTemPreferencial || preferencial;
@@ -534,42 +460,6 @@ public class ClienteService implements IService {
       return null;
     }
     return encontrado.get();
-  }
-
-  /** RN0025: a bandeira precisa estar registrada no sistema. */
-  private BandeiraCartao resolverBandeira(BandeiraCartao informada, List<String> erros) {
-    if (informada == null) {
-      return null;
-    }
-    Optional<BandeiraCartao> encontrada = informada.getId() != null
-        ? bandeiraCartaoRepository.findById(informada.getId())
-        : bandeiraCartaoRepository.findByDescIgnoreCase(informada.getDesc().trim());
-    if (encontrada.isEmpty()) {
-      erros.add("Bandeira de cartão não registrada no sistema (RN0025).");
-      return null;
-    }
-    return encontrada.get();
-  }
-
-  /** A interface manda cidade como texto livre; aqui ela vira registro reaproveitável. */
-  private Cidade resolverCidade(Cidade informada, List<String> erros) {
-    if (informada == null || informada.getEstado() == null) {
-      return null;
-    }
-    Optional<Estado> estado = estadoRepository.findByDescIgnoreCase(
-        informada.getEstado().getDesc().trim());
-    if (estado.isEmpty()) {
-      erros.add("Estado não registrado no sistema.");
-      return null;
-    }
-    String nomeCidade = informada.getDesc().trim();
-    return cidadeRepository.findByDescIgnoreCaseAndEstado(nomeCidade, estado.get())
-        .orElseGet(() -> {
-          Cidade nova = new Cidade();
-          nova.setDesc(nomeCidade);
-          nova.setEstado(estado.get());
-          return cidadeRepository.save(nova);
-        });
   }
 
   /** RNF0035. */

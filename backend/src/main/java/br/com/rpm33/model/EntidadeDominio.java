@@ -2,6 +2,8 @@ package br.com.rpm33.model;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.Generated;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,6 +21,8 @@ public abstract class EntidadeDominio {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  /** Default do banco; volta no próprio INSERT (RETURNING), sem consulta a mais. */
+  @Generated
   @Column(name = "data_cadastro", insertable = false, updatable = false)
   private LocalDateTime dataCadastro;
 

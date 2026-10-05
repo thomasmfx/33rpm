@@ -15,6 +15,13 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        # as associações EAGER da listagem de discos vêm em lote, não uma consulta por disco
+        default_batch_fetch_size: 100
+        # o reset recarrega o acervo inteiro: linhas de junção e updates vão em lote
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
   jackson:
     default-property-inclusion: non_null
 
@@ -25,3 +32,7 @@ app:
   cors:
     # porta do Vite definida em frontend/vite.config.ts
     origem: http://localhost:3300
+  # RF0013 e RN0016: a rotina roda todo dia às 03:00; "-" no cron a desliga
+  inativacao-automatica:
+    cron: "0 0 3 * * *"
+    dias-sem-venda: 90
