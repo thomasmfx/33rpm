@@ -6,7 +6,7 @@ import { contemTexto, normalizar } from './texto';
 
 export interface Recomendacao {
   disco: Disco;
-  motivo: string;
+  motivo?: string;
 }
 
 export interface Intencao {

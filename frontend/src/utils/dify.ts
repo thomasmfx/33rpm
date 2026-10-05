@@ -31,7 +31,7 @@ export async function perguntarAoDify(
   mensagem: string,
   discos: Disco[],
   conversaId: string | null,
-): Promise<RespostaDify> {
+): Promise<RespostaDify & { conversaId: string }> {
   if (!URL_DIFY || !CHAVE_DIFY) {
     throw new Error('Dify não configurado');
   }
@@ -66,8 +66,8 @@ export async function perguntarAoDify(
     throw new Error(`Dify respondeu ${resposta.status}`);
   }
 
-  const corpo = (await resposta.json()) as { answer?: string };
-  return interpretarResposta(corpo.answer ?? '');
+  const corpo = (await resposta.json()) as { answer?: string; conversation_id: string };
+  return { ...interpretarResposta(corpo.answer ?? ''), conversaId: corpo.conversation_id };
 }
 
 export function interpretarResposta(bruto: string): RespostaDify {

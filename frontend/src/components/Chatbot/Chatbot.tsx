@@ -1,5 +1,5 @@
 import styles from './Chatbot.module.scss';
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useLoja } from '../../contexts/loja';
@@ -66,6 +66,14 @@ export default function Chatbot({ onFechar }: Readonly<ChatbotProps>) {
   ]);
   const [mensagemAtual, setMensagemAtual] = useState<string>('');
   const [aguardandoResposta, setAguardandoResposta] = useState(false);
+  const [conversaId, setConversaId] = useState<string | null>(null);
+  const chatRef = useRef<HTMLDivElement>(null);
+
+  // rola antes da pintura; com useEffect a mensagem nova aparece um quadro fora da tela
+  useLayoutEffect(() => {
+    const chat = chatRef.current;
+    if (chat) chat.scrollTop = chat.scrollHeight;
+  }, [mensagens, aguardandoResposta]);
 
   function recomendarLocalmente(texto: string): Mensagem {
     const intencao = interpretar(texto);
@@ -99,11 +107,12 @@ export default function Chatbot({ onFechar }: Readonly<ChatbotProps>) {
 
     setAguardandoResposta(true);
     try {
-      const resposta = await perguntarAoDify(texto, discos, null);
+      const resposta = await perguntarAoDify(texto, discos, conversaId);
+      setConversaId(resposta.conversaId);
       const discosSugeridos = resposta.discoIds
         .map((id) => discos.find((disco) => disco.id === id))
         .filter((disco): disco is (typeof discos)[number] => Boolean(disco))
-        .map((disco) => ({ disco, motivo: 'Sugestão do assistente' }));
+        .map((disco) => ({ disco }));
 
       setMensagens((atuais) => [
         ...atuais,
@@ -147,7 +156,7 @@ export default function Chatbot({ onFechar }: Readonly<ChatbotProps>) {
         )}
       </div>
 
-      <div className={styles.chat}>
+      <div className={styles.chat} ref={chatRef}>
         {mensagens.map((mensagem) =>
           mensagem.autor === 'cliente' ? (
             <p key={mensagem.id} className={styles.balaoCliente}>
@@ -166,7 +175,9 @@ export default function Chatbot({ onFechar }: Readonly<ChatbotProps>) {
                   <span className={styles.cartaoTexto}>
                     <strong>{recomendacao.disco.title}</strong>
                     <span>{recomendacao.disco.artist}</span>
-                    <span className={styles.motivo}>{recomendacao.motivo}</span>
+                    {recomendacao.motivo && (
+                      <span className={styles.motivo}>{recomendacao.motivo}</span>
+                    )}
                   </span>
                   <span className={styles.preco}>
                     {formatarPrecoCurto(recomendacao.disco.price)}

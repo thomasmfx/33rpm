@@ -35,5 +35,6 @@
   border: 1px solid var(--cor-divisoria);
   box-shadow: var(--sombra-flutuante);
   overflow: hidden;
+  overscroll-behavior: contain;
   z-index: 150;
 }
