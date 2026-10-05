@@ -14,11 +14,14 @@ discos por sonoridade, clima, estética e subgênero detalhado — "rap psicodé
 | Módulo | Situação |
 |---|---|
 | Cadastro de clientes | **Completo de ponta a ponta**: React → API Spring Boot → PostgreSQL, com 44 testes Cypress. Inclui o auto-cadastro, a área "Minha conta" e o login do administrador, que guarda a curadoria |
-| Catálogo, estoque, carrinho, compra, trocas, cupons e análise gerencial | Interface pronta, rodando sobre dados mockados em `localStorage` |
+| Cadastro de discos e estoque | **Completo de ponta a ponta**, com 16 testes Cypress: cadastro, alteração, consulta com filtros, inativação manual e automática, ativação, entrada em estoque e preço pela margem do grupo. A vitrine e a Curadoria › Inventário leem da API |
+| Carrinho e criação de pedido | **Completo de ponta a ponta**, com 19 testes Cypress: carrinho com estoque decidido no servidor, checkout dirigido pela cotação do servidor (frete, cupons, vários cartões), pedido em EM PROCESSAMENTO, Meus pedidos e Meus cupons |
+| Pós-venda (status, trocas) e análise gerencial | Interface pronta, rodando sobre pedidos mockados em `localStorage` |
 | Assistente de recomendação | Funciona local; com as chaves do Dify.ai preenchidas, passa a conversar pelo serviço |
 
-O backend cobre apenas o agregado Cliente. A arquitetura em Fachada já está montada para
-receber as demais entidades sem alteração das classes existentes.
+O backend cobre Cliente, Administrador, Disco, Estoque, Pedido, Pagamento e Cupom, todos
+atrás da mesma Fachada. Validação do pagamento, baixa em estoque, bloqueio do carrinho e
+trocas ficam para a próxima fase.
 
 ## Stack
 
@@ -71,10 +74,18 @@ Sobe o contêiner `33rpm-db` com PostgreSQL 16 + pgvector, publicado em **localh
 
 | Script | O que faz |
 |---|---|
-| [db/schema.sql](db/schema.sql) | o DDL, 30 tabelas |
-| [db/seed.sql](db/seed.sql) | tabelas de domínio do RNF0013: gênero, tipo de telefone, bandeira, as 27 unidades federativas e as operações de log |
+| [db/schema.sql](db/schema.sql) | o DDL, 34 tabelas |
+| [db/seed.sql](db/seed.sql) | tabelas de domínio do RNF0013: gênero, tipo de telefone, bandeira, as 27 unidades federativas, operações de log, status do pedido, tipos de cupom, grupos de precificação, fornecedores, formatos, edições, categorias de status, artistas, gravadoras, gêneros e estilos |
 | [db/clientes.sql](db/clientes.sql) | cinco clientes de demonstração, com telefone, endereço e cartão |
 | [db/administradores.sql](db/administradores.sql) | o administrador da demonstração |
+| [db/cupons.sql](db/cupons.sql) | cupons de troca e promocionais dos clientes — a única carga direta de dado de negócio, liberada porque a geração de cupons de troca está fora desta fase |
+
+Os discos **não** entram por SQL: na primeira subida do backend com o acervo vazio, a
+`CargaAcervo` cadastra os 69 discos e as entradas em estoque de
+[backend/src/main/resources/carga/acervo.json](backend/src/main/resources/carga/acervo.json)
+pela própria Fachada, passando pelas regras do cadastro (RN0011, RN0050, RN0051) e pelo log.
+O arquivo é gerado a partir do mock do front por
+`cd frontend && node --experimental-strip-types scripts/gerar-acervo.mjs`.
 
 `up -d` devolve o prompt antes de o banco aceitar conexões. Só siga quando o `pg_isready`
 responder `accepting connections`, ou quando `docker ps` mostrar o contêiner como
@@ -116,14 +127,29 @@ Carla é a inativa de propósito: é com ela que se demonstra o bloqueio de aces
 Diego é o caso de cobrança e entrega em endereços distintos (RN0021 e RN0022) e de cartão
 preferencial entre dois (RF0027).
 
+Os cupons da Ana fecham os cenários de pagamento com um disco entregue em São Paulo,
+onde o frete fica em R$ 28,00:
+
+| Cupom | Tipo | Valor | Cenário |
+|---|---|---:|---|
+| `TROCA-AP-300` | troca | 300,00 | sozinho, deixa R$ 7,00 para um cartão num total de R$ 307,00 (RN0035) |
+| `TROCA-AP-045` | troca | 45,00 | somado ao `TROCA-AP-300`, torna o `PROMO-AP-20` dispensável num total de R$ 327,00 (RN0036) |
+| `PROMO-AP-20` | promocional | 20,00 | com o `PROMO-AP-50`, são dois promocionais (RN0033) |
+| `PROMO-AP-50` | promocional | 50,00 | com o `TROCA-AP-300`, passa de R$ 327,00 e gera R$ 23,00 de troca (RN0036) |
+
+Frete (RF0034): tarifa da região da UF de destino — Sudeste 20, Sul 25, Centro-Oeste 30,
+Nordeste 35, Norte 45 — mais R$ 8,00 por quilo iniciado do peso dos discos.
+
 Para voltar ao estado conhecido durante a demonstração, com o banco e a API no ar:
 
 ```bash
 curl -X POST http://localhost:8080/api/dev/reset      # PowerShell: curl.exe -X POST ...
 ```
 
-Esse endpoint, que só existe no perfil `dev`, é o que os testes usam: ele limpa o cadastro
-e deixa **apenas os três primeiros** clientes. O administrador não é tocado. Para ter os cinco de volta, recrie o volume
+Esse endpoint, que só existe no perfil `dev`, é o que os testes usam: ele limpa clientes,
+pedidos, cupons, discos e log, deixa **apenas os três primeiros** clientes, recadastra o
+acervo pela Fachada e recria os cupons da Ana e do Bruno — leva cerca de 1,5 s. O
+administrador não é tocado. Para ter os cinco clientes de volta, recrie o volume
 com `docker compose down -v && docker compose up -d`.
 
 ### 4. Frontend
@@ -139,9 +165,9 @@ npm run dev
 
 Loja em **localhost:3300** (porta fixa, definida em `frontend/vite.config.ts`).
 
-A lista de clientes é buscada uma vez, quando a página abre. Se você rodou o
-`dev/reset` ou recriou o banco com a loja aberta, recarregue a página: pedidos, cupons e o
-dashboard são derivados dos clientes.
+Clientes e discos são buscados quando a página abre. Se você rodou o `dev/reset` ou
+recriou o banco com a loja aberta, recarregue a página: os ids de disco e os pedidos mock
+da curadoria são derivados do que veio da API.
 
 ### Encerrar
 
@@ -197,7 +223,10 @@ Com os três serviços no ar e a massa carregada:
 | `/login` | entrar como `ana.ribeiro@email.com` / `Senha@123`; tentar `carla.nogueira@email.com` para ver o bloqueio do cadastro inativo |
 | `/cadastro` | auto-cadastro em três etapas (Conta, Dados pessoais, Endereço), com o CEP preenchendo o endereço pelo ViaCEP; o cliente já entra na loja ao concluir |
 | `/perfil` | o próprio cliente altera dados, endereços (cobrança e entrega), cartões e senha, gravando na API |
-| terminal | `npm run e2e` — os 44 testes contra a pilha real |
+| `/curadoria/inventario` | cadastrar disco (RF0011), consultar com filtros (RF0015), alterar e baixar o preço com aval (RF0014, RN0014), entrada em estoque com prévia do preço (RF0051, RF0052, RN0051), inativar e reativar com motivo (RF0012, RF0016), inativação automática (RF0013) |
+| `/disco/:id` → `/carrinho` → `/checkout` | como a Ana: quantidade na inclusão e no carrinho (RF0031, RF0032), teto do estoque (RN0031), endereço e cartão do perfil ou novos (RF0035, RF0036), frete (RF0034), cupons e vários cartões (RN0033 a RN0036) |
+| `/pedidos` e `/cupons` | o pedido em EM PROCESSAMENTO (RF0038) e o cupom de troca gerado pela sobra dos cupons |
+| terminal | `npm run demo` — o roteiro do professor no Cypress, passo a passo; `npm run e2e` — os 86 testes contra a pilha real |
 | banco | `docker compose exec db psql -U 33rpm -d 33rpm -c "SELECT codigo, nome, is_ativo FROM cliente;"` — a prova de que a tela escreveu no PostgreSQL |
 
 ## Testes de interface
@@ -209,6 +238,8 @@ Com os três serviços no ar:
 cd frontend
 npm run e2e                     # execução headless
 npm run e2e:open                # abre o runner do Cypress
+npm run demo                    # abre só a suíte de demonstração, passo a passo
+npm run demo:lento              # a mesma suíte, sem pausas e devagar
 ```
 
 | Spec | Testes | Cobre |
@@ -220,11 +251,45 @@ npm run e2e:open                # abre o runner do Cypress
 | `inativacao.cy.ts` | 4 | RF0023 — inativar sem excluir |
 | `cartoes.cy.ts` | 5 | RF0027, RN0024, RN0025 |
 | `sessao.cy.ts` | 6 | login, credencial inválida, cliente inativo, auto-cadastro, login do administrador, curadoria recusada ao cliente |
+| `disco/cadastro.cy.ts` | 3 | RF0011, RN0011, RN0012, RNF0021 |
+| `disco/estoque.cy.ts` | 3 | RF0051, RF0052, RN0013, RN0050, RN0051, RN0061, RN0062, RNF0064 |
+| `disco/alteracao.cy.ts` | 2 | RF0014, RN0014 |
+| `disco/status.cy.ts` | 5 | RF0012, RF0013, RF0016, RN0015, RN0016, RN0017 |
+| `disco/consulta.cy.ts` | 3 | RF0015 — filtros isolados e combinados |
+| `pedido/carrinho.cy.ts` | 5 | RF0031, RF0032, RN0031 |
+| `pedido/compra.cy.ts` | 4 | RF0033 a RF0036, RF0038, RN0023 a RN0025 |
+| `pedido/pagamento.cy.ts` | 7 | RF0036, RF0037, RN0033 a RN0036 |
+| `pedido/finalizacao.cy.ts` | 3 | RF0038, RNF0011, RNF0012 |
+| `demonstracao/criacao-de-pedido/` | 7 | o roteiro mínimo do professor, um spec por item |
 
-Cada teste chama `POST /api/dev/reset` antes de rodar, então a suíte é repetível sem
-recriar o banco. Esse reset trunca `cliente` **e** `log`: para mostrar o registro de
-escritas do RNF0012, faça a operação na tela depois da última execução da suíte e consulte
-o banco:
+### Suíte de demonstração
+
+`cypress/e2e/demonstracao/` guarda, por fase entregue, um spec para cada item do roteiro do
+professor, com o texto do roteiro como nome do teste ("livro" lido como "disco"). Os testes
+são divididos em etapas com o requisito que cada uma mostra, e cada um usa discos que a
+suíte de regressão não usa. A próxima fase entra numa pasta nova ao lado de
+`criacao-de-pedido/`.
+
+No Cypress a unidade de execução é o arquivo: clicar num spec roda todos os testes dele, e
+não há botão para rodar um teste só. Por isso a demonstração tem um teste por arquivo, e o
+ritmo vem do script:
+
+| Comando | Ritmo |
+|---|---|
+| `npm run demo` | pausa no início de cada etapa; o ▶ (Resume) da barra de comandos segue até a próxima, e o **Next** executa um comando por vez |
+| `npm run demo:lento` | roda sozinho, digitando devagar e segurando cada etapa por 1,5 s |
+| `npm run e2e` | sem ritmo: a demonstração roda junto com a regressão, na velocidade normal |
+
+Depois que um teste termina, passar o mouse ou clicar em cada comando do log mostra a tela
+naquele momento (time travel), sem rodar de novo. Fora da demonstração, um spec isolado roda
+com `npx cypress run --spec cypress/e2e/pedido/pagamento.cy.ts`; um teste isolado dentro de
+um spec só com `it.only`, alterando o arquivo.
+
+Os specs de cliente ficam em `cypress/e2e/cliente/`. Cada teste chama `POST /api/dev/reset`
+antes de rodar, então a suíte é repetível sem recriar o banco. Esse reset trunca também o
+`log`: os testes provam o RNF0012 por `GET /api/dev/logs?entidade=Pedido` (perfil `dev`).
+Para ver o registro de escritas no banco, faça a operação na tela depois da última execução
+da suíte e consulte:
 
 ```bash
 docker compose exec db psql -U 33rpm -d 33rpm -c "SELECT * FROM log ORDER BY id DESC LIMIT 10;"
@@ -276,8 +341,24 @@ Todas as escritas passam pela Fachada e devolvem a entidade afetada, ou `400` co
 | `GET` | `/api/administradores/{id}` | carregar o administrador da sessão |
 | `PUT` | `/api/administradores/{id}` | alterar nome e e-mail do administrador |
 | `PUT` | `/api/administradores/{id}/senha` | alterar apenas a senha do administrador (RNF0031, RNF0032) |
-| `GET` | `/api/dominios` | listas de domínio: gêneros, tipos de telefone, bandeiras e estados |
+| `GET` | `/api/dominios` | listas de domínio: gêneros, tipos de telefone, bandeiras, estados, formatos, edições, grupos de precificação, fornecedores, categorias e categorias de status |
+| `GET` | `/api/discos` | consultar com filtros `titulo`, `artista`, `gravadora`, `categoria`, `codigo`, `anoMin`, `anoMax`, `precoMin`, `precoMax`, `grupo`, `formato`, `status`, `estoque` (RF0015) |
+| `GET` | `/api/discos/{id}` | carregar um disco, com o preço sugerido pela margem |
+| `POST` | `/api/discos` | cadastrar disco (RF0011) |
+| `PUT` | `/api/discos/{id}` | alterar disco e preço (RF0014, RN0014) |
+| `PUT` | `/api/discos/{id}/inativacao` | inativar com categoria e justificativa (RF0012, RN0015) |
+| `PUT` | `/api/discos/{id}/ativacao` | ativar com categoria e justificativa (RF0016, RN0017) |
+| `POST` | `/api/discos/inativacao-automatica` | roda a inativação automática agora (RF0013, RN0016) |
+| `POST` | `/api/estoque/entradas` | registrar entrada em estoque (RF0051, RF0052, RN0051) |
+| `GET` | `/api/estoque/entradas?discoId=` | histórico de entradas |
+| `POST` | `/api/estoque/entradas/previa` | prévia do preço e do estoque, sem gravar |
+| `POST` | `/api/estoque/disponibilidade` | confere quantidades contra o estoque (RN0031) |
+| `POST` | `/api/pedidos/cotacao` | subtotal, frete, total, restante, troco e pendências da compra, sem gravar |
+| `POST` | `/api/pedidos` | criar o pedido em EM PROCESSAMENTO (RF0033, RF0038) |
+| `GET` | `/api/pedidos/{id}` · `/api/pedidos?clienteId=` | carregar um pedido · pedidos do cliente |
+| `GET` | `/api/cupons?clienteId=` | cupons do cliente |
 | `POST` | `/api/dev/reset` | recarrega a massa de teste (só no perfil `dev`) |
+| `GET` | `/api/dev/logs?entidade=&entidadeId=` | registros do RNF0012 (só no perfil `dev`) |
 
 Exemplo de cadastro. Os domínios trafegam como objeto — `genero`, `tipo` do telefone,
 `cidade`/`estado` e `bandeira` do cartão são resolvidos pela descrição, e a cidade é
@@ -345,8 +426,8 @@ servidor.
 ## Estrutura do repositório
 
 ```
-backend/     API REST Spring Boot: controller, service, model, repository
-db/          schema.sql e seed.sql do PostgreSQL
+backend/     API REST Spring Boot: controller, service, model, repository; carga/acervo.json
+db/          schema.sql, seed.sql e as cargas de demonstração do PostgreSQL
 frontend/    aplicação React, com a suíte Cypress em frontend/cypress
 ```
 
@@ -383,7 +464,10 @@ resposta imediata, mas quem decide é sempre o servidor.
   `/curadoria` fica só no React: a API continua aberta, sem JWT nem sessão no servidor.
 - **Cliente não é excluído, é inativado.** O DRS só prevê a inativação (RF0023), e as
   chaves estrangeiras de `pedido` e `cupom` impedem o delete físico de quem tem histórico.
-- **Testes automatizados cobrem o CRUD de cliente**, por definição do professor.
+- **Testes automatizados cobrem cliente, disco, estoque e criação de pedido.**
+- **Fora desta fase:** validação do pagamento e status seguintes, baixa em estoque, bloqueio
+  e expiração do carrinho e trocas. O pós-venda da curadoria e o dashboard seguem sobre
+  pedidos mockados.
 - **Deploy não foi definido.** O `docker-compose.yml` da raiz sobe a pilha inteira em
   contêiner, mas só para demonstração local: não há registro de imagens, TLS, segredos
   fora do arquivo nem servidor de destino.
@@ -433,9 +517,9 @@ volume vazio, e o backend nem sobe se a tabela `administrador` faltar.
 Recrie com `docker compose down -v && docker compose up -d`, ou carregue os três de teste
 com `POST /api/dev/reset`. Depois recarregue a página.
 
-**A loja está com estoque estranho, carrinho cheio ou pedido de ensaio.** Discos, estoque,
-carrinho, pedidos e cupons ainda vivem no `localStorage`, sob as chaves `33rpm:*` — o
-`dev/reset` só alcança o banco. Limpe os dados do site em `localhost:3300`
+**A loja está com carrinho cheio ou a curadoria com pedido de ensaio.** O carrinho e os
+pedidos mock da Curadoria › Pedidos ainda vivem no `localStorage`, sob as chaves `33rpm:*` —
+o `dev/reset` só alcança o banco. Limpe os dados do site em `localhost:3300`
 (DevTools → Application → Local Storage) ou abra uma janela anônima.
 
 **Erro de CORS no navegador.** O backend libera apenas `http://localhost:3300`
