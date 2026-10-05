@@ -75,7 +75,9 @@ function resumoPeriodo(serie: PontoGrafico[], categorias: string[]) {
 }
 
 function CuradoriaDashboard() {
-  const { pedidos, discos, carregandoClientes } = useLoja();
+  const { pedidos, discos, carregandoClientes, carregandoDiscos } = useLoja();
+  // os pedidos de demonstração nascem dos clientes e apontam para os discos do banco
+  const carregando = carregandoClientes || carregandoDiscos;
   const hoje = useMemo(() => new Date(), []);
   // as cores mais fortes da paleta ficam com as categorias de maior acervo
   const categorias = useMemo(() => {
@@ -90,9 +92,9 @@ function CuradoriaDashboard() {
     return paraIso(inicio);
   });
   const [dataFim, setDataFim] = useState<string | null>(() => paraIso(hoje));
-  const [categoriasSelecionadas, setCategoriasSelecionadas] = useState<string[]>(() =>
-    categorias.slice(0, 4),
-  );
+  // null é "as quatro maiores": os discos chegam da API depois da montagem
+  const [escolhidas, setCategoriasSelecionadas] = useState<string[] | null>(null);
+  const categoriasSelecionadas = escolhidas ?? categorias.slice(0, 4);
 
   const todasSelecionadas =
     categorias.length > 0 && categoriasSelecionadas.length === categorias.length;
@@ -125,10 +127,10 @@ function CuradoriaDashboard() {
     : [];
 
   function handleAlternarCategoria(categoria: string): void {
-    setCategoriasSelecionadas((atuais) =>
-      atuais.includes(categoria)
-        ? atuais.filter((atual) => atual !== categoria)
-        : [...atuais, categoria],
+    setCategoriasSelecionadas(
+      categoriasSelecionadas.includes(categoria)
+        ? categoriasSelecionadas.filter((atual) => atual !== categoria)
+        : [...categoriasSelecionadas, categoria],
     );
   }
 
@@ -143,8 +145,8 @@ function CuradoriaDashboard() {
   }
 
   function renderResultado() {
-    // os pedidos de demonstração nascem dos clientes: sem eles, tudo seria zero
-    if (carregandoClientes) {
+    // sem clientes e discos, tudo seria zero
+    if (carregando) {
       return (
         <>
           <div className={styles.indicadores} aria-busy="true" aria-label="Carregando">
@@ -213,7 +215,7 @@ function CuradoriaDashboard() {
           <Button
             variant="outline"
             size="sm"
-            disabled={!serie || carregandoClientes}
+            disabled={!serie || carregando}
             onClick={handleExportar}
             leftSection={<Download size={20} />}
           >

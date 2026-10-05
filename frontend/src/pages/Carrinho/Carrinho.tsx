@@ -7,6 +7,7 @@ import EstadoVazio from '../../components/EstadoVazio/EstadoVazio';
 import AvisoReserva from '../../components/AvisoReserva/AvisoReserva';
 import Capa from '../../components/Capa/Capa';
 import Quantidade from '../../components/Quantidade/Quantidade';
+import { EsqueletoPagina } from '../../components/Esqueleto/Esqueleto';
 import type { AjusteCarrinho } from '../../utils/carrinho';
 import { formatarBRL } from '../../utils/precificacao';
 import { nomeFormato } from '../../utils/catalogo';
@@ -17,6 +18,8 @@ function Carrinho() {
   const {
     carrinho,
     discos,
+    carregandoDiscos,
+    carregandoSessao,
     itensNoCarrinho,
     alterarQuantidade,
     removerDoCarrinho,
@@ -29,13 +32,31 @@ function Carrinho() {
   const navegar = useNavigate();
 
   const [ajustes, setAjustes] = useState<AjusteCarrinho[]>([]);
+  const [recusa, setRecusa] = useState<string[]>([]);
+
+  // o carrinho é de quem está na sessão: antes dela chegar, seria o do admin
+  if (carregandoDiscos || carregandoSessao) {
+    return (
+      <main className={styles.main}>
+        <EsqueletoPagina comAside blocos={[120, 120]} />
+      </main>
+    );
+  }
 
   const itens = itensDoCarrinho(carrinho, discos);
   const subtotal = calcularSubtotal(itens);
 
-  function handleReadicionarExpirados(): void {
-    itensExpirados.forEach((item) => adicionarAoCarrinho(item.discoId, item.quantidade));
+  async function handleReadicionarExpirados(): Promise<void> {
+    const recusas = await Promise.all(
+      itensExpirados.map((item) => adicionarAoCarrinho(item.discoId, item.quantidade)),
+    );
+    setRecusa(recusas.flat());
     descartarItensExpirados();
+  }
+
+  // RN0031: a quantidade nova só vale depois que o servidor aceita
+  async function handleAlterarQuantidade(discoId: number, quantidade: number): Promise<void> {
+    setRecusa(await alterarQuantidade(discoId, quantidade));
   }
 
   // RN0032: o estoque pode ter mudado; ajusta e avisa antes de seguir
@@ -64,7 +85,7 @@ function Carrinho() {
           })}
         </ul>
         <div className={styles.alertaAcoes}>
-          <Button size="xs" onClick={handleReadicionarExpirados}>
+          <Button size="xs" onClick={() => void handleReadicionarExpirados()}>
             Adicionar novamente
           </Button>
           <Button size="xs" variant="default" onClick={descartarItensExpirados}>
@@ -75,10 +96,19 @@ function Carrinho() {
     </Alert>
   );
 
+  const alertaRecusa = recusa.length > 0 && (
+    <Alert color="red" data-testid="alerta-carrinho">
+      {recusa.map((mensagem) => (
+        <div key={mensagem}>{mensagem}</div>
+      ))}
+    </Alert>
+  );
+
   if (itens.length === 0) {
     return (
       <main className={styles.main}>
         {alertaExpirados}
+        {alertaRecusa}
         <EstadoVazio
           titulo="Seu carrinho está vazio"
           descricao="Nenhum disco por aqui ainda. Vá ao acervo e comece a garimpar."
@@ -95,12 +125,18 @@ function Carrinho() {
         <div className={styles.coluna}>
           <div className={styles.topo}>
             <h1>Carrinho</h1>
-            <button type="button" className={styles.esvaziar} onClick={limparCarrinho}>
+            <button
+              type="button"
+              className={styles.esvaziar}
+              data-testid="btn-esvaziar-carrinho"
+              onClick={limparCarrinho}
+            >
               Esvaziar
             </button>
           </div>
 
           {alertaExpirados}
+          {alertaRecusa}
 
           {ajustes.length > 0 && (
             <Alert color="orange" title="Carrinho ajustado ao estoque">
@@ -116,7 +152,12 @@ function Carrinho() {
 
           <ul className={styles.itens}>
             {itens.map(({ disco, quantidade }) => (
-              <li key={disco.id} className={styles.item}>
+              <li
+                key={disco.id}
+                className={styles.item}
+                data-testid="item-carrinho"
+                data-disco-id={disco.id}
+              >
                 <Link to={`/disco/${disco.id}`} className={styles.capa}>
                   <Capa src={disco.coverSrc} alt={disco.title} />
                 </Link>
@@ -142,15 +183,21 @@ function Carrinho() {
                   valor={quantidade}
                   maximo={disco.estoque}
                   rotulo={`Quantidade de ${disco.title}`}
-                  onChange={(valor) => alterarQuantidade(disco.id, valor)}
+                  onChange={(valor) => void handleAlterarQuantidade(disco.id, valor)}
                 />
 
                 <div className={styles.valor}>
-                  <strong>{formatarBRL(disco.price * quantidade)}</strong>
+                  <strong
+                    data-testid="item-valor"
+                    data-valor={String(calcularSubtotal([{ disco, quantidade }]))}
+                  >
+                    {formatarBRL(disco.price * quantidade)}
+                  </strong>
                   <button
                     type="button"
                     className={styles.remover}
                     aria-label={`Remover ${disco.title}`}
+                    data-testid="btn-remover-item"
                     onClick={() => removerDoCarrinho(disco.id)}
                   >
                     Remover
@@ -167,7 +214,9 @@ function Carrinho() {
             <span>
               Subtotal · {itensNoCarrinho} {itensNoCarrinho === 1 ? 'disco' : 'discos'}
             </span>
-            <span>{formatarBRL(subtotal)}</span>
+            <span data-testid="carrinho-subtotal" data-valor={String(subtotal)}>
+              {formatarBRL(subtotal)}
+            </span>
           </div>
           <div className={styles.linha}>
             <span>Frete</span>
@@ -177,7 +226,12 @@ function Carrinho() {
             <span>Total</span>
             <strong>{formatarBRL(subtotal)}</strong>
           </div>
-          <Button size="lg" fullWidth onClick={handleFinalizarCompra}>
+          <Button
+            size="lg"
+            fullWidth
+            data-testid="btn-finalizar-compra"
+            onClick={handleFinalizarCompra}
+          >
             Finalizar compra
           </Button>
           <Button variant="default" fullWidth component={Link} to="/acervo">

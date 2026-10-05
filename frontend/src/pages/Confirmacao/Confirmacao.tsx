@@ -1,20 +1,24 @@
 import styles from './Confirmacao.module.scss';
-import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Alert, Button } from '@mantine/core';
 import { useLoja } from '../../contexts/loja';
+import type { Cliente } from '../../types/cliente';
+import type { PedidoCliente } from '../../types/pedido';
+import { buscarPedido } from '../../services/pedidosService';
+import { ErroApi } from '../../services/api';
 import Forma from '../../components/Forma/Forma';
 import LinhaDoTempo from '../../components/LinhaDoTempo/LinhaDoTempo';
 import EstadoVazio from '../../components/EstadoVazio/EstadoVazio';
+import StatusPonto from '../../components/StatusPonto/StatusPonto';
 import { EsqueletoPagina } from '../../components/Esqueleto/Esqueleto';
-import { passoDoPedido } from '../../utils/pedido';
+import { corDoStatus, passoDoStatus, rotuloDoStatus } from '../../utils/pedido';
 import { formatarBRL } from '../../utils/precificacao';
 import { linhaDoEndereco } from '../../utils/perfilCliente';
 
 function Confirmacao() {
-  const { id } = useParams();
-  const { state } = useLocation();
-  const navegar = useNavigate();
-  const { clienteAtivo, carregandoClientes, pedidos } = useLoja();
+  const { id = '' } = useParams();
+  const { clienteAtivo, carregandoClientes } = useLoja();
 
   if (carregandoClientes) {
     return (
@@ -28,11 +32,54 @@ function Confirmacao() {
     return <Navigate to="/login" state={{ depois: `/pedidos/${id}/confirmacao` }} replace />;
   }
 
-  const pedido = pedidos.find(
-    (candidato) => candidato.id === id && candidato.clienteId === clienteAtivo.id,
+  return <PedidoConfirmado key={id} id={id} cliente={clienteAtivo} />;
+}
+
+/** RF0038: o pedido como o servidor gravou, com o status que ele recebeu. */
+function PedidoConfirmado({ id, cliente }: Readonly<{ id: string; cliente: Cliente }>) {
+  const navegar = useNavigate();
+  const [busca, setBusca] = useState<{ pedido: PedidoCliente | null; erros: string[] } | null>(
+    null,
   );
 
-  if (!pedido) {
+  useEffect(() => {
+    let cancelado = false;
+    buscarPedido(id)
+      .then((pedido) => {
+        if (!cancelado) setBusca({ pedido, erros: [] });
+      })
+      .catch((erro: unknown) => {
+        if (cancelado) return;
+        setBusca({
+          pedido: null,
+          erros: erro instanceof ErroApi ? erro.mensagens : ['Falha ao carregar o pedido.'],
+        });
+      });
+    return () => {
+      cancelado = true;
+    };
+  }, [id]);
+
+  if (!busca) {
+    return (
+      <main className={styles.main}>
+        <EsqueletoPagina blocos={[64, 160]} />
+      </main>
+    );
+  }
+
+  if (busca.erros.length > 0) {
+    return (
+      <main className={styles.main}>
+        <Alert color="red" title="Não deu para carregar o pedido">
+          {busca.erros.join(' ')}
+        </Alert>
+      </main>
+    );
+  }
+
+  const { pedido } = busca;
+  if (!pedido || pedido.clienteId !== cliente.id) {
     return (
       <main className={styles.main}>
         <EstadoVazio
@@ -45,11 +92,10 @@ function Confirmacao() {
     );
   }
 
-  const primeiroNome = clienteAtivo.nome.split(' ')[0];
-  const perfilNaoSalvo = Boolean((state as { perfilNaoSalvo?: boolean } | null)?.perfilNaoSalvo);
+  const primeiroNome = cliente.nome.split(' ')[0];
 
   return (
-    <main className={styles.main}>
+    <main className={styles.main} data-testid="confirmacao-pedido" data-pedido-id={pedido.id}>
       <div className={styles.topo}>
         <div className={styles.texto}>
           <span className={styles.meta}>
@@ -60,20 +106,31 @@ function Confirmacao() {
             O pagamento passa agora pela conferência da curadoria. Você acompanha cada etapa em
             Meus pedidos.
           </p>
+          <span data-testid="pedido-status" data-status={pedido.status}>
+            <StatusPonto cor={corDoStatus(pedido.status)}>
+              {rotuloDoStatus(pedido.status)}
+            </StatusPonto>
+          </span>
         </div>
         <div className={styles.forma}>
           <Forma tipo="explosao" paleta="laranja" giro={40} />
         </div>
       </div>
 
-      {perfilNaoSalvo && (
-        <Alert color="orange">
-          O pedido foi registrado, mas o endereço ou o cartão novo não foi salvo no seu perfil.
-          Cadastre de novo em Minha conta.
+      {pedido.cupomGerado && (
+        <Alert
+          color="green"
+          title="Sobrou crédito"
+          data-testid="cupom-gerado"
+          data-codigo={pedido.cupomGerado.codigo}
+          data-valor={String(pedido.cupomGerado.valor)}
+        >
+          A diferença dos cupons virou o cupom {pedido.cupomGerado.codigo}, no valor de{' '}
+          {formatarBRL(pedido.cupomGerado.valor)} (RN0036). Ele já está em Meus cupons.
         </Alert>
       )}
 
-      <LinhaDoTempo passo={passoDoPedido(pedido.status) ?? 0} detalhes={['Agora']} />
+      <LinhaDoTempo passo={passoDoStatus(pedido.status) ?? 0} detalhes={['Agora']} />
 
       <div className={styles.grade}>
         <div className={styles.coluna}>
@@ -104,7 +161,9 @@ function Confirmacao() {
           </div>
           <div className={styles.total}>
             <span>Total</span>
-            <strong>{formatarBRL(pedido.total)}</strong>
+            <strong data-testid="confirmacao-total" data-valor={String(pedido.total)}>
+              {formatarBRL(pedido.total)}
+            </strong>
           </div>
         </div>
 

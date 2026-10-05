@@ -1,53 +1,59 @@
 import painel from '../../pages/Curadoria/Painel.module.scss';
 import styles from './CuradoriaInventario.module.scss';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   Button,
   Modal,
   NumberInput,
   Pagination,
   SegmentedControl,
   Select,
+  Skeleton,
   Textarea,
   TextInput,
   Tooltip,
 } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
-import type { Disco, MotivoStatus } from '../../types/disco';
+import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
+import type { Disco } from '../../types/disco';
 import type {
-  EntradaEstoque,
   EstoqueFiltro,
   FiltrosDiscos,
   StatusFiltroDisco,
 } from '../../types/inventario';
 import {
-  CATEGORIAS_ATIVACAO,
-  CATEGORIAS_INATIVACAO,
+  CATEGORIA_INATIVACAO_AUTOMATICA,
   FORMATOS_DISCO,
   GRUPOS_PRECIFICACAO,
 } from '../../types/inventario';
 import {
-  buscarNoInventario,
   contarFiltrosDiscosAtivos,
-  filtrarDiscos,
   FILTROS_DISCOS_VAZIOS,
 } from '../../utils/filtrarDiscos';
 import {
-  aplicarEntradaEstoque,
   diasDesde,
-  elegivelParaInativacaoAutomatica,
   estaParado,
   estoqueAcabando,
   JUSTIFICATIVA_MINIMA_STATUS,
-  motivoInativacaoAutomatica,
-  paraIso,
   PARAMETRO_INATIVACAO_AUTOMATICA,
 } from '../../utils/estoque';
 import { nomeFormato } from '../../utils/catalogo';
 import { formatarBRL, nomeGrupoPrecificacao } from '../../utils/precificacao';
 import { useLoja } from '../../contexts/loja';
+import { ErroApi } from '../../services/api';
+import {
+  alterarDisco,
+  alterarStatusDisco,
+  cadastrarDisco,
+  listarDiscos,
+  rodarInativacaoAutomatica,
+} from '../../services/discosService';
+import { registrarEntrada } from '../../services/estoqueService';
+import { buscarDominiosDisco, DOMINIOS_DISCO_PADRAO } from '../../services/dominiosService';
+import type { DominiosDisco } from '../../services/dominiosService';
 import CabecalhoPainel from '../CabecalhoPainel/CabecalhoPainel';
 import Capa from '../Capa/Capa';
+import { EsqueletoLinhas } from '../Esqueleto/Esqueleto';
 import FormDisco, { type FormDiscoValues } from '../FormDisco/FormDisco';
 import FormEntradaEstoque, {
   type FormEntradaEstoqueValues,
@@ -89,8 +95,23 @@ const OPCOES_FORMATO_FILTRO = [
   })),
 ];
 
+interface AlertaInventario {
+  cor: 'red' | 'green' | 'gray';
+  titulo?: string;
+  mensagens: string[];
+}
+
+function mensagensDe(erro: unknown, padrao: string): string[] {
+  return erro instanceof ErroApi ? erro.mensagens : [padrao];
+}
+
 function comEstoqueBaixo(disco: Disco): boolean {
   return disco.isAtivo && estoqueAcabando(disco.estoque);
+}
+
+// o estoque baixo é recorte da tela sobre os ativos que o servidor devolveu
+function recortar(discos: Disco[], recorte: Recorte): Disco[] {
+  return recorte === 'baixo' ? discos.filter(comEstoqueBaixo) : discos;
 }
 
 type TomNota = 'inativo' | 'esgotado' | 'parado';
@@ -119,10 +140,21 @@ function plural(quantidade: number, singular: string, varios: string): string {
 }
 
 export default function CuradoriaInventario() {
-  const { discos, setDiscos, entradas, setEntradas } = useLoja();
+  const { discos: acervo, carregandoDiscos, recarregarDiscos } = useLoja();
   const [filtros, setFiltros] = useState<FiltrosDiscos>(FILTROS_DISCOS_VAZIOS);
-  const [busca, setBusca] = useState('');
   const [recorte, setRecorte] = useState<Recorte>('todos');
+
+  // RF0015: a consulta é do servidor; o recorte de estoque baixo pede só os ativos
+  const consultaAtual = useMemo<FiltrosDiscos>(
+    () => ({ ...filtros, status: recorte === 'baixo' ? 'ativos' : recorte }),
+    [filtros, recorte],
+  );
+  const [consulta] = useDebouncedValue(consultaAtual, 300);
+  const [discos, setDiscos] = useState<Disco[]>([]);
+  // esqueleto só na primeira carga; nas seguintes a tabela antiga fica até a nova chegar
+  const [carregando, setCarregando] = useState(true);
+  const [alerta, setAlerta] = useState<AlertaInventario | null>(null);
+  const [dominios, setDominios] = useState<DominiosDisco>(DOMINIOS_DISCO_PADRAO);
 
   const [isFormDiscoVisible, setIsFormDiscoVisible] = useState(false);
   const [discoEmEdicao, setDiscoEmEdicao] = useState<Disco | null>(null);
@@ -131,26 +163,49 @@ export default function CuradoriaInventario() {
     useState<Disco | null>(null);
   const [categoriaStatus, setCategoriaStatus] = useState<string | null>(null);
   const [justificativaStatus, setJustificativaStatus] = useState('');
-  const [isInativacaoAutomaticaVisible, setIsInativacaoAutomaticaVisible] =
-    useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [isRodandoRotina, setIsRodandoRotina] = useState(false);
+  // mensagens do servidor no modal aberto, seja de disco, entrada ou status
+  const [errosModal, setErrosModal] = useState<string[]>([]);
   const [pagina, setPagina] = useState(1);
   const [isFiltroAberto, { toggle: toggleFiltro }] = useDisclosure(false);
 
-  // fixo por sessão para a lista de elegíveis e a confirmação baterem (RF0013)
   const hoje = useMemo(() => new Date(), []);
 
-  // status e busca ficam na barra; o painel de filtros guarda só os critérios finos
-  const discosFiltrados = useMemo(() => {
-    const status = recorte === 'baixo' ? 'todos' : recorte;
-    return buscarNoInventario(filtrarDiscos(discos, { ...filtros, status }), busca).filter(
-      (disco) => recorte !== 'baixo' || comEstoqueBaixo(disco),
-    );
-  }, [discos, filtros, busca, recorte]);
-  const discosElegiveis = useMemo(
-    () =>
-      discos.filter((disco) => elegivelParaInativacaoAutomatica(disco, hoje)),
-    [discos, hoje]
-  );
+  const buscar = useCallback(async (): Promise<Disco[]> => {
+    try {
+      const lista = await listarDiscos(consulta);
+      setDiscos(lista);
+      setAlerta((atual) => (atual?.cor === 'red' ? null : atual));
+      return lista;
+    } catch (erro) {
+      setAlerta({ cor: 'red', mensagens: mensagensDe(erro, 'Falha ao consultar o inventário.') });
+      return [];
+    } finally {
+      setCarregando(false);
+    }
+  }, [consulta]);
+
+  useEffect(() => {
+    // busca no servidor a cada mudança de filtro; a API é o sistema externo aqui
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void buscar();
+  }, [buscar]);
+
+  useEffect(() => {
+    let cancelado = false;
+    buscarDominiosDisco()
+      .then((resposta) => {
+        if (!cancelado) setDominios(resposta);
+      })
+      // sem resposta ficam as listas do seed, que o servidor também conhece
+      .catch(() => undefined);
+    return () => {
+      cancelado = true;
+    };
+  }, []);
+
+  const discosFiltrados = useMemo(() => recortar(discos, recorte), [discos, recorte]);
   const totalPaginas = Math.max(1, Math.ceil(discosFiltrados.length / POR_PAGINA));
   // filtrar pode encurtar a lista com a página lá na frente
   const paginaAtual = Math.min(pagina, totalPaginas);
@@ -165,12 +220,21 @@ export default function CuradoriaInventario() {
   );
 
   const qtdFiltrosAtivos = contarFiltrosDiscosAtivos(filtros);
-  const discosAtivos = discos.filter((disco) => disco.isAtivo);
+  const discosAtivos = acervo.filter((disco) => disco.isAtivo);
   const qtdEstoqueBaixo = discosAtivos.filter(comEstoqueBaixo).length;
   const qtdParados = discosAtivos.filter((disco) => estaParado(disco, hoje)).length;
 
   const justificativaValida =
     justificativaStatus.trim().length >= JUSTIFICATIVA_MINIMA_STATUS;
+
+  /** Depois de cada escrita, a tabela e a vitrine da loja voltam a bater com o servidor. */
+  async function atualizarListas(discoSalvoId?: number): Promise<void> {
+    const [lista] = await Promise.all([buscar(), recarregarDiscos()]);
+    if (discoSalvoId === undefined) return;
+    // a ordem é por título: o disco salvo pode ter ido para outra página
+    const indice = recortar(lista, recorte).findIndex((disco) => disco.id === discoSalvoId);
+    if (indice >= 0) setPagina(Math.floor(indice / POR_PAGINA) + 1);
+  }
 
   function handleAlterarFiltro<Campo extends keyof FiltrosDiscos>(
     campo: Campo,
@@ -179,150 +243,135 @@ export default function CuradoriaInventario() {
     setFiltros((filtrosAtuais) => ({ ...filtrosAtuais, [campo]: valor }));
   }
 
+  // o título fica na barra de busca e não conta como filtro do painel
   function handleLimparFiltros(): void {
-    setFiltros(FILTROS_DISCOS_VAZIOS);
+    setFiltros((filtrosAtuais) => ({ ...FILTROS_DISCOS_VAZIOS, titulo: filtrosAtuais.titulo }));
   }
 
   function handleAbrirNovoDisco(): void {
     setDiscoEmEdicao(null);
+    setErrosModal([]);
     setIsFormDiscoVisible(true);
   }
 
   function handleAbrirEdicaoDisco(disco: Disco): void {
     setDiscoEmEdicao(disco);
+    setErrosModal([]);
     setIsFormDiscoVisible(true);
   }
 
   function handleFecharFormDisco(): void {
     setIsFormDiscoVisible(false);
     setDiscoEmEdicao(null);
+    setErrosModal([]);
   }
 
-  function handleSubmitDisco(valores: FormDiscoValues): void {
-    if (discoEmEdicao) {
-      setDiscos((discosAtuais) =>
-        discosAtuais.map((disco) =>
-          disco.id === discoEmEdicao.id
-            ? {
-                ...disco,
-                ...valores,
-                // a miniatura do Discogs não vale mais se a capa mudou
-                coverThumb:
-                  valores.coverSrc === disco.coverSrc ? disco.coverThumb : undefined,
-              }
-            : disco
-        )
-      );
-    } else {
-      setDiscos((discosAtuais) => [
-        ...discosAtuais,
-        {
-          ...valores,
-          id: Date.now(), // id definitivo vem do backend (RNF0021) - mockado temporariamente
-          numForSale: 0,
-          discogsUri: '',
-          estoque: 0,
-          isAtivo: true,
-          motivoStatus: null,
-          ultimaVendaEm: null,
-        },
-      ]);
-
+  async function handleSubmitDisco(valores: FormDiscoValues): Promise<void> {
+    setEnviando(true);
+    try {
+      const salvo = discoEmEdicao
+        ? await alterarDisco(
+            discoEmEdicao.id,
+            valores,
+            // a miniatura do Discogs não vale mais se a capa mudou
+            valores.coverSrc === discoEmEdicao.coverSrc ? (discoEmEdicao.coverThumb ?? null) : null,
+          )
+        : await cadastrarDisco(valores);
+      handleFecharFormDisco();
+      await atualizarListas(salvo.id);
+    } catch (erro) {
+      setErrosModal(mensagensDe(erro, 'Falha ao salvar o disco.'));
+    } finally {
+      setEnviando(false);
     }
-
-    handleFecharFormDisco();
   }
 
   function handleAbrirEntradaEstoque(disco: Disco): void {
+    setErrosModal([]);
     setDiscoParaEntrada(disco);
   }
 
   function handleFecharFormEntrada(): void {
     setDiscoParaEntrada(null);
+    setErrosModal([]);
   }
 
-  function handleSubmitEntrada(valores: FormEntradaEstoqueValues): void {
+  async function handleSubmitEntrada(valores: FormEntradaEstoqueValues): Promise<void> {
     if (!discoParaEntrada) return;
 
-    const entradaNova: EntradaEstoque = {
-      id: `ee-${String(entradas.length + 1).padStart(3, '0')}`,
-      discoId: discoParaEntrada.id,
-      quantidade: valores.quantidade,
-      valorCusto: valores.valorCusto,
-      fornecedor: valores.fornecedor,
-      dataEntrada: valores.dataEntrada ?? paraIso(hoje),
-    };
-
-    setEntradas((entradasAtuais) => [...entradasAtuais, entradaNova]);
-    setDiscos((discosAtuais) =>
-      discosAtuais.map((disco) =>
-        disco.id === discoParaEntrada.id
-          ? aplicarEntradaEstoque(disco, entradaNova, entradas)
-          : disco
-      )
-    );
-
-
-    handleFecharFormEntrada();
+    setEnviando(true);
+    try {
+      await registrarEntrada(discoParaEntrada.id, valores);
+      handleFecharFormEntrada();
+      await atualizarListas();
+    } catch (erro) {
+      setErrosModal(mensagensDe(erro, 'Falha ao registrar a entrada.'));
+    } finally {
+      setEnviando(false);
+    }
   }
 
   function handleSolicitarAlterarStatus(disco: Disco): void {
     setDiscoParaAlternarStatus(disco);
     setCategoriaStatus(null);
     setJustificativaStatus('');
+    setErrosModal([]);
   }
 
   function handleCancelarAlterarStatus(): void {
     setDiscoParaAlternarStatus(null);
     setCategoriaStatus(null);
     setJustificativaStatus('');
+    setErrosModal([]);
   }
 
-  function handleConfirmarAlterarStatus(): void {
-    if (!discoParaAlternarStatus || !categoriaStatus) return;
-    if (!justificativaValida) return;
+  // RF0012 + RN0015 e RF0016 + RN0017: categoria e justificativa vão ao servidor
+  async function handleConfirmarAlterarStatus(): Promise<void> {
+    if (!discoParaAlternarStatus || !categoriaStatus || !justificativaValida) return;
 
-    const motivo: MotivoStatus = {
-      categoria: categoriaStatus,
-      justificativa: justificativaStatus,
-      data: paraIso(new Date()),
-      automatico: false,
-    };
-
-    setDiscos((discosAtuais) =>
-      discosAtuais.map((disco) =>
-        disco.id === discoParaAlternarStatus.id
-          ? { ...disco, isAtivo: !disco.isAtivo, motivoStatus: motivo }
-          : disco
-      )
-    );
-
-
-    handleCancelarAlterarStatus();
+    setEnviando(true);
+    try {
+      await alterarStatusDisco(
+        discoParaAlternarStatus.id,
+        !discoParaAlternarStatus.isAtivo,
+        categoriaStatus,
+        justificativaStatus,
+      );
+      handleCancelarAlterarStatus();
+      await atualizarListas();
+    } catch (erro) {
+      setErrosModal(mensagensDe(erro, 'Falha ao alterar o status do disco.'));
+    } finally {
+      setEnviando(false);
+    }
   }
 
-  function handleAbrirInativacaoAutomatica(): void {
-    setIsInativacaoAutomaticaVisible(true);
-  }
-
-  function handleFecharInativacaoAutomatica(): void {
-    setIsInativacaoAutomaticaVisible(false);
-  }
-
-  function handleConfirmarInativacaoAutomatica(): void {
-    setDiscos((discosAtuais) =>
-      discosAtuais.map((disco) =>
-        elegivelParaInativacaoAutomatica(disco, hoje)
+  /** RF0013 + RN0016: a mesma rotina que o servidor roda todo dia, disparada à mão. */
+  async function handleInativacaoAutomatica(): Promise<void> {
+    setIsRodandoRotina(true);
+    try {
+      const inativados = await rodarInativacaoAutomatica();
+      setAlerta(
+        inativados.length === 0
           ? {
-              ...disco,
-              isAtivo: false,
-              motivoStatus: motivoInativacaoAutomatica(disco, hoje),
+              cor: 'gray',
+              mensagens: ['Nenhum disco sem estoque e parado para inativar agora (RF0013).'],
             }
-          : disco
-      )
-    );
-
-    handleFecharInativacaoAutomatica();
+          : {
+              cor: 'green',
+              titulo: `${plural(inativados.length, 'disco inativado', 'discos inativados')} como ${CATEGORIA_INATIVACAO_AUTOMATICA} (RN0016)`,
+              mensagens: inativados.map((disco) => `${disco.title} · ${disco.artist}`),
+            },
+      );
+      await atualizarListas();
+    } catch (erro) {
+      setAlerta({
+        cor: 'red',
+        mensagens: mensagensDe(erro, 'Falha ao rodar a inativação automática.'),
+      });
+    } finally {
+      setIsRodandoRotina(false);
+    }
   }
 
   function renderNota(disco: Disco) {
@@ -350,6 +399,8 @@ export default function CuradoriaInventario() {
   }
 
   function renderLinhas() {
+    if (carregando) return <EsqueletoLinhas colunas={COLUNAS} />;
+
     if (discosFiltrados.length === 0) {
       return <p className={painel.vazio}>Nenhum disco com esses filtros.</p>;
     }
@@ -358,7 +409,14 @@ export default function CuradoriaInventario() {
       const apagado = !disco.isAtivo || undefined;
 
       return (
-        <div key={disco.id} className={painel.linhaTabela} style={GRADE_LINHA}>
+        <div
+          key={disco.id}
+          className={painel.linhaTabela}
+          style={GRADE_LINHA}
+          data-testid="disco-linha"
+          data-disco-id={disco.id}
+          data-codigo={disco.codigo}
+        >
           <div className={styles.capa} data-apagado={apagado}>
             <Capa src={disco.coverThumb ?? disco.coverSrc} alt="" />
           </div>
@@ -368,6 +426,8 @@ export default function CuradoriaInventario() {
               <span className={styles.artista}>{disco.artist}</span>
               <span aria-hidden>·</span>
               <span className={styles.formato}>{nomeFormato(disco.formatoId)}</span>
+              <span aria-hidden>·</span>
+              <span className={styles.formato}>{disco.codigo}</span>
               {renderNota(disco)}
             </span>
           </div>
@@ -400,6 +460,7 @@ export default function CuradoriaInventario() {
               type="button"
               className={painel.acao}
               aria-label={`Registrar entrada de estoque de ${disco.title}`}
+              data-testid="btn-nova-entrada"
               onClick={() => handleAbrirEntradaEstoque(disco)}
             >
               Entrada
@@ -408,6 +469,7 @@ export default function CuradoriaInventario() {
               type="button"
               className={painel.acao}
               aria-label={`Editar ${disco.title}`}
+              data-testid="btn-editar-disco"
               onClick={() => handleAbrirEdicaoDisco(disco)}
             >
               Editar
@@ -418,6 +480,7 @@ export default function CuradoriaInventario() {
               aria-label={
                 disco.isAtivo ? `Inativar ${disco.title}` : `Reativar ${disco.title}`
               }
+              data-testid={disco.isAtivo ? 'btn-inativar-disco' : 'btn-ativar-disco'}
               onClick={() => handleSolicitarAlterarStatus(disco)}
             >
               {disco.isAtivo ? 'Inativar' : 'Reativar'}
@@ -441,10 +504,12 @@ export default function CuradoriaInventario() {
             key={discoEmEdicao?.id ?? 'novo'}
             initialValues={discoEmEdicao ?? undefined}
             isEdit={Boolean(discoEmEdicao)}
-            discos={discos}
-            entradas={entradas}
+            discos={acervo}
+            dominios={dominios}
+            erros={errosModal}
+            enviando={enviando}
             onClose={handleFecharFormDisco}
-            onSubmit={handleSubmitDisco}
+            onSubmit={(valores) => void handleSubmitDisco(valores)}
           />
         </Modal>
       )}
@@ -457,9 +522,11 @@ export default function CuradoriaInventario() {
         >
           <FormEntradaEstoque
             disco={discoParaEntrada}
-            entradas={entradas}
+            fornecedores={dominios.fornecedores}
+            erros={errosModal}
+            enviando={enviando}
             onClose={handleFecharFormEntrada}
-            onSubmit={handleSubmitEntrada}
+            onSubmit={(valores) => void handleSubmitEntrada(valores)}
           />
         </Modal>
       )}
@@ -480,10 +547,10 @@ export default function CuradoriaInventario() {
             <fieldset className={styles.campo}>
               <legend className={styles.rotulo}>Categoria</legend>
               {/* RN0015 / RN0017: toda mudança de status leva uma categoria */}
-              <div className={styles.pilulas}>
+              <div className={styles.pilulas} data-testid="status-categoria">
                 {(discoParaAlternarStatus.isAtivo
-                  ? CATEGORIAS_INATIVACAO
-                  : CATEGORIAS_ATIVACAO
+                  ? dominios.categoriasInativacao
+                  : dominios.categoriasAtivacao
                 ).map((categoria) => (
                   <button
                     key={categoria}
@@ -512,12 +579,21 @@ export default function CuradoriaInventario() {
               placeholder="Explique o motivo da mudança de status"
               rows={3}
               resize="vertical"
+              data-testid="status-justificativa"
               value={justificativaStatus}
               onChange={(event) =>
                 setJustificativaStatus(event.currentTarget.value)
               }
             />
           </div>
+
+          {errosModal.length > 0 && (
+            <Alert color="red" mt="md" data-testid="alerta-status">
+              {errosModal.map((mensagem) => (
+                <div key={mensagem}>{mensagem}</div>
+              ))}
+            </Alert>
+          )}
 
           <div className={painel.rodapeModal}>
             <Button type="button" variant="default" size="sm" onClick={handleCancelarAlterarStatus}>
@@ -528,66 +604,11 @@ export default function CuradoriaInventario() {
               size="sm"
               color={discoParaAlternarStatus.isAtivo ? 'red' : 'dark'}
               disabled={!categoriaStatus || !justificativaValida}
-              onClick={handleConfirmarAlterarStatus}
+              loading={enviando}
+              data-testid="btn-confirmar-status"
+              onClick={() => void handleConfirmarAlterarStatus()}
             >
               {discoParaAlternarStatus.isAtivo ? 'Inativar disco' : 'Reativar disco'}
-            </Button>
-          </div>
-        </Modal>
-      )}
-      {isInativacaoAutomaticaVisible && (
-        <Modal
-          opened={isInativacaoAutomaticaVisible}
-          onClose={handleFecharInativacaoAutomatica}
-          title="Inativação automática"
-          styles={CABECALHO_COM_SUBTITULO}
-        >
-          <p className={painel.textoModal}>
-            A RF0013 inativa de uma vez os discos sem estoque e sem venda há{' '}
-            {PARAMETRO_INATIVACAO_AUTOMATICA.diasSemVenda} dias ou mais (nunca
-            vendidos também entram). Todos saem da loja marcados como{' '}
-            <strong>FORA DE MERCADO</strong>.
-          </p>
-
-          <div className={styles.elegiveis}>
-            {discosElegiveis.length === 0 && (
-              <p className={painel.vazio}>Nenhum disco elegível agora.</p>
-            )}
-            {discosElegiveis.map((disco) => {
-              const dias = diasDesde(disco.ultimaVendaEm, hoje);
-              return (
-                <div key={disco.id} className={styles.elegivel}>
-                  <Capa src={disco.coverThumb ?? disco.coverSrc} alt="" />
-                  <div className={styles.elegivelTexto}>
-                    <strong>{disco.title}</strong>
-                    <span>
-                      {disco.artist} · {disco.estoque} em estoque
-                    </span>
-                  </div>
-                  <span className={styles.dias}>
-                    {dias === null ? 'Nunca vendido' : `${dias} dias`}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className={painel.rodapeModal}>
-            <Button
-              type="button"
-              variant="default"
-              size="sm"
-              onClick={handleFecharInativacaoAutomatica}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              disabled={discosElegiveis.length === 0}
-              onClick={handleConfirmarInativacaoAutomatica}
-            >
-              Inativar {plural(discosElegiveis.length, 'disco', 'discos')}
             </Button>
           </div>
         </Modal>
@@ -595,45 +616,73 @@ export default function CuradoriaInventario() {
 
       <CabecalhoPainel
         titulo="Inventário"
-        resumo={[
-          plural(discosAtivos.length, 'ativo', 'ativos'),
-          `${qtdEstoqueBaixo} com estoque baixo`,
-          `${plural(qtdParados, 'parado', 'parados')} há +${PARAMETRO_INATIVACAO_AUTOMATICA.diasSemVenda} dias`,
-        ].join(' · ')}
+        resumo={
+          carregandoDiscos ? (
+            <Skeleton height={12} width={260} />
+          ) : (
+            [
+              plural(discosAtivos.length, 'ativo', 'ativos'),
+              `${qtdEstoqueBaixo} com estoque baixo`,
+              `${plural(qtdParados, 'parado', 'parados')} há +${PARAMETRO_INATIVACAO_AUTOMATICA.diasSemVenda} dias`,
+            ].join(' · ')
+          )
+        }
         acoes={
           <>
-            <Button
-              variant="outline"
-              disabled={discosElegiveis.length === 0}
-              rightSection={
-                discosElegiveis.length > 0 && (
-                  <span className={styles.contagem}>{discosElegiveis.length}</span>
-                )
-              }
-              onClick={handleAbrirInativacaoAutomatica}
-              leftSection={<Time size={20} />}
+            <Tooltip
+              label={`RF0013: inativa como ${CATEGORIA_INATIVACAO_AUTOMATICA} os discos sem estoque e sem venda há ${PARAMETRO_INATIVACAO_AUTOMATICA.diasSemVenda} dias ou mais (nunca vendidos também entram).`}
+              multiline
+              w={300}
             >
-              Inativação automática
-            </Button>
-            <Button leftSection={<Add size={20} />} onClick={handleAbrirNovoDisco}>
+              <Button
+                variant="outline"
+                loading={isRodandoRotina}
+                onClick={() => void handleInativacaoAutomatica()}
+                leftSection={<Time size={20} />}
+                data-testid="btn-inativacao-automatica"
+              >
+                Rodar inativação automática
+              </Button>
+            </Tooltip>
+            <Button
+              leftSection={<Add size={20} />}
+              onClick={handleAbrirNovoDisco}
+              data-testid="btn-novo-disco"
+            >
               Cadastrar disco
             </Button>
           </>
         }
       />
 
+      {alerta && (
+        <Alert
+          color={alerta.cor}
+          title={alerta.titulo}
+          withCloseButton
+          onClose={() => setAlerta(null)}
+          data-testid="alerta-inventario"
+        >
+          {alerta.mensagens.map((mensagem) => (
+            <div key={mensagem}>{mensagem}</div>
+          ))}
+        </Alert>
+      )}
+
       <div className={painel.barra}>
         <TextInput
           className={painel.busca}
-          placeholder="Busque por título, artista ou código de catálogo"
+          placeholder="Busque pelo título"
           leftSection={<Search size={16} />}
-          aria-label="Buscar disco"
-          value={busca}
-          onChange={(event) => setBusca(event.currentTarget.value)}
+          aria-label="Buscar disco pelo título"
+          data-testid="filtro-titulo"
+          value={filtros.titulo}
+          onChange={(event) => handleAlterarFiltro('titulo', event.currentTarget.value)}
         />
         <SegmentedControl
           aria-label="Recorte do inventário"
           styles={{ label: { minHeight: 46 } }}
+          data-testid="filtro-status"
           value={recorte}
           onChange={(valor) => setRecorte(valor as Recorte)}
           data={OPCOES_RECORTE}
@@ -643,6 +692,7 @@ export default function CuradoriaInventario() {
           className={painel.botaoFiltros}
           data-ativo={isFiltroAberto || qtdFiltrosAtivos > 0 || undefined}
           aria-expanded={isFiltroAberto}
+          data-testid="btn-filtros"
           onClick={toggleFiltro}
         >
           <Filter size={16} />
@@ -656,6 +706,7 @@ export default function CuradoriaInventario() {
             label="Artista"
             placeholder="Nome do artista"
             size="sm"
+            data-testid="filtro-artista"
             value={filtros.artista}
             onChange={(event) =>
               handleAlterarFiltro('artista', event.currentTarget.value)
@@ -665,6 +716,7 @@ export default function CuradoriaInventario() {
             label="Gravadora"
             placeholder="Nome da gravadora"
             size="sm"
+            data-testid="filtro-gravadora"
             value={filtros.gravadora}
             onChange={(event) =>
               handleAlterarFiltro('gravadora', event.currentTarget.value)
@@ -674,6 +726,7 @@ export default function CuradoriaInventario() {
             label="Categoria"
             placeholder="Rock, Hip Hop..."
             size="sm"
+            data-testid="filtro-categoria"
             value={filtros.categoria}
             onChange={(event) =>
               handleAlterarFiltro('categoria', event.currentTarget.value)
@@ -683,13 +736,15 @@ export default function CuradoriaInventario() {
             label="Formato"
             size="sm"
             data={OPCOES_FORMATO_FILTRO}
+            data-testid="filtro-formato"
             value={filtros.formatoId}
             onChange={(valor) => handleAlterarFiltro('formatoId', valor ?? '')}
           />
           <TextInput
             label="Código"
-            placeholder="Catálogo ou código de barras"
+            placeholder="DSC, catálogo ou código de barras"
             size="sm"
+            data-testid="filtro-codigo"
             value={filtros.codigo}
             onChange={(event) =>
               handleAlterarFiltro('codigo', event.currentTarget.value)
@@ -699,6 +754,7 @@ export default function CuradoriaInventario() {
             label="Grupo de precificação"
             size="sm"
             data={OPCOES_GRUPO_FILTRO}
+            data-testid="filtro-grupo"
             value={filtros.grupoPrecificacaoId}
             onChange={(valor) =>
               handleAlterarFiltro('grupoPrecificacaoId', valor ?? '')
@@ -709,6 +765,7 @@ export default function CuradoriaInventario() {
             placeholder="1970"
             size="sm"
             hideControls
+            data-testid="filtro-ano-min"
             value={filtros.anoMin}
             onChange={(valor) => handleAlterarFiltro('anoMin', String(valor))}
           />
@@ -717,6 +774,7 @@ export default function CuradoriaInventario() {
             placeholder="2026"
             size="sm"
             hideControls
+            data-testid="filtro-ano-max"
             value={filtros.anoMax}
             onChange={(valor) => handleAlterarFiltro('anoMax', String(valor))}
           />
@@ -727,6 +785,7 @@ export default function CuradoriaInventario() {
             hideControls
             decimalScale={2}
             prefix="R$ "
+            data-testid="filtro-preco-min"
             value={filtros.precoMin}
             onChange={(valor) => handleAlterarFiltro('precoMin', String(valor))}
           />
@@ -737,12 +796,14 @@ export default function CuradoriaInventario() {
             hideControls
             decimalScale={2}
             prefix="R$ "
+            data-testid="filtro-preco-max"
             value={filtros.precoMax}
             onChange={(valor) => handleAlterarFiltro('precoMax', String(valor))}
           />
           <div className={painel.filtroLargo}>
             <span className={painel.rotulo}>Estoque</span>
             <SegmentedControl
+              data-testid="filtro-estoque"
               value={filtros.estoque}
               onChange={(valor) =>
                 handleAlterarFiltro('estoque', valor as EstoqueFiltro)
@@ -755,7 +816,7 @@ export default function CuradoriaInventario() {
             />
           </div>
           <div className={painel.filtrosRodape}>
-            <Button variant="link" onClick={handleLimparFiltros}>
+            <Button variant="link" data-testid="btn-limpar-filtros" onClick={handleLimparFiltros}>
               Limpar filtros
             </Button>
           </div>

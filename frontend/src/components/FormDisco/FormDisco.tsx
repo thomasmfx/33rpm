@@ -13,7 +13,6 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import type { Dimensoes, Disco } from '../../types/disco';
-import type { EntradaEstoque } from '../../types/inventario';
 import {
   FORMATOS_DISCO,
   EDICOES,
@@ -26,13 +25,7 @@ import {
   obterFormato,
   sugestoesDeCadastro,
 } from '../../utils/catalogo';
-import {
-  exigeAutorizacaoGerente,
-  formatarBRL,
-  maiorValorCusto,
-  obterGrupoPrecificacao,
-  valorVendaSugerido,
-} from '../../utils/precificacao';
+import { exigeAutorizacaoGerente, formatarBRL } from '../../utils/precificacao';
 import { apenasDigitos } from '../../utils/texto';
 import Capa from '../Capa/Capa';
 
@@ -60,8 +53,13 @@ export interface FormDiscoValues {
 interface FormDiscoProps {
   initialValues?: Disco;
   isEdit: boolean;
-  entradas: EntradaEstoque[];
+  /** Acervo atual, para sugerir gravadoras e estilos já usados. */
   discos: Disco[];
+  /** RNF0013: gêneros e estilos registrados no servidor. */
+  dominios: { generos: string[]; estilos: string[] };
+  /** Mensagens do servidor na última tentativa de salvar. */
+  erros: string[];
+  enviando: boolean;
   onClose?: () => void;
   onSubmit: (valores: FormDiscoValues) => void;
 }
@@ -89,25 +87,30 @@ const DESCRICAO_ABAIXO: ('label' | 'input' | 'description' | 'error')[] = [
   'error',
 ];
 
+/**
+ * As validações daqui só repetem o formato para dar resposta imediata, com as
+ * mesmas mensagens do servidor (RN0011, RN0012); quem decide é o servidor.
+ */
 export default function FormDisco({
   initialValues,
   isEdit,
-  entradas,
   discos,
+  dominios,
+  erros,
+  enviando,
   onClose,
   onSubmit,
 }: Readonly<FormDiscoProps>) {
-  // sem id ainda em cadastro novo, então nenhuma entrada de estoque casa com ele (RN0013)
-  const discoId = initialValues?.id ?? -1;
-  // RN0051: só existe preço a formar quando alguma entrada já custeou o disco
-  const custoBase = maiorValorCusto(entradas, discoId);
+  // RN0013: o servidor só sugere preço depois que alguma entrada custeou o disco
+  const precoSugerido = initialValues?.precoSugerido ?? null;
+  const grupoSalvo = initialValues?.grupoPrecificacaoId ?? '';
 
   // o formato já entra escolhido, então as dimensões entram junto: abrir o
   // cadastro com 'LP' selecionado e quatro campos zerados era incoerente
   const formatoInicial = initialValues?.formatoId || FORMATO_PADRAO;
   const dimensoesIniciais =
     initialValues?.dimensoes ?? obterFormato(formatoInicial)?.dimensoes;
-  const sugestoes = useMemo(() => sugestoesDeCadastro(discos), [discos]);
+  const sugestoes = useMemo(() => sugestoesDeCadastro(discos, dominios), [discos, dominios]);
 
   const form = useForm<FormDiscoValues>({
     mode: 'uncontrolled',
@@ -139,72 +142,53 @@ export default function FormDisco({
     },
 
     validate: {
-      title: (value) => (value.trim().length === 0 ? 'Informe o título' : null),
-      artist: (value) => (value.trim().length === 0 ? 'Informe o artista' : null),
+      title: (value) => (value.trim().length === 0 ? 'Informe o título (RN0011).' : null),
+      artist: (value) => (value.trim().length === 0 ? 'Informe o artista (RN0011).' : null),
       releaseYear: (value) =>
         value < 1900 || value > 2030
-          ? 'O ano deve estar entre 1900 e 2030'
+          ? 'O ano deve estar entre 1900 e 2030 (RN0011).'
           : null,
       genres: (value) =>
-        value.length === 0 ? 'Selecione ao menos um gênero (RN0012)' : null,
+        value.length === 0 ? 'Selecione ao menos um gênero (RN0012).' : null,
       // RN0013: sem custo registrado o preço nem aparece na tela, então não há o que validar
       price: (value) =>
-        custoBase !== null && value <= 0
+        precoSugerido !== null && value <= 0
           ? 'Informe um preço de venda maior que zero'
           : null,
       coverSrc: (value) =>
-        value.trim().length === 0 ? 'Informe a URL ou caminho da capa' : null,
-      gravadora: (value) => (value.trim().length === 0 ? 'Informe a gravadora' : null),
-      formatoId: (value) => (!value ? 'Selecione um formato' : null),
+        value.trim().length === 0 ? 'Informe a capa (URL ou caminho).' : null,
+      gravadora: (value) =>
+        value.trim().length === 0 ? 'Informe a gravadora (RN0011).' : null,
+      formatoId: (value) => (!value ? 'Selecione o formato (RN0011).' : null),
       edicaoIds: (value) =>
-        value.length === 0 ? 'Selecione ao menos um tipo de edição' : null,
+        value.length === 0 ? 'Selecione ao menos uma edição (RN0011).' : null,
       codigoCatalogo: (value) =>
-        value.trim().length === 0 ? 'Informe o código de catálogo' : null,
+        value.trim().length === 0 ? 'Informe o código de catálogo (RN0011).' : null,
       codigoBarras: (value) =>
         apenasDigitos(value).length !== 13
-          ? 'O código de barras deve ter 13 dígitos'
+          ? 'O código de barras deve ter 13 dígitos (RN0011).'
           : null,
       numeroFaixas: (value) =>
         !Number.isInteger(value) || value <= 0
-          ? 'Informe o número de faixas'
+          ? 'Informe o número de faixas (RN0011).'
           : null,
       descricao: (value) =>
-        value.trim().length === 0 ? 'Informe a descrição' : null,
+        value.trim().length === 0 ? 'Informe a descrição (RN0011).' : null,
       grupoPrecificacaoId: (value) =>
-        !value ? 'Selecione um grupo de precificação' : null,
+        !value ? 'Selecione o grupo de precificação (RN0013).' : null,
       dimensoes: {
-        altura: (value) => (value > 0 ? null : 'Informe a altura em cm'),
-        largura: (value) => (value > 0 ? null : 'Informe a largura em cm'),
+        altura: (value) => (value > 0 ? null : 'Informe a altura em cm (RN0011).'),
+        largura: (value) => (value > 0 ? null : 'Informe a largura em cm (RN0011).'),
         profundidade: (value) =>
-          value > 0 ? null : 'Informe a profundidade em cm',
-        peso: (value) => (value > 0 ? null : 'Informe o peso em g'),
-      },
-
-      // RN0014: preço abaixo do sugerido pelo grupo só vale com aval do gerente
-      // (e sem custo registrado o campo nem existe na tela)
-      autorizacaoGerente: (value, values) => {
-        if (custoBase === null) return null;
-
-        const sugeridoAtual = valorVendaSugerido(
-          { id: discoId, grupoPrecificacaoId: values.grupoPrecificacaoId },
-          entradas,
-        );
-        if (
-          exigeAutorizacaoGerente(values.price, sugeridoAtual) &&
-          !value?.trim()
-        ) {
-          return 'RN0014: informe a autorização do gerente de vendas';
-        }
-        return null;
+          value > 0 ? null : 'Informe a profundidade em cm (RN0011).',
+        peso: (value) => (value > 0 ? null : 'Informe o peso em g (RN0011).'),
       },
     },
   });
 
   // modo uncontrolled não expõe o valor atual no render, então espelhamos aqui
-  // o que a RF0052 precisa observar em tempo real: grupo, preço e capa
-  const [grupoSelecionado, setGrupoSelecionado] = useState(
-    initialValues?.grupoPrecificacaoId ?? '',
-  );
+  // o que a RN0014 precisa observar em tempo real: grupo, preço e capa
+  const [grupoSelecionado, setGrupoSelecionado] = useState(grupoSalvo);
   const [precoAtual, setPrecoAtual] = useState(initialValues?.price ?? 0);
   const [coverSrcAtual, setCoverSrcAtual] = useState(
     initialValues?.coverSrc ?? '',
@@ -220,12 +204,18 @@ export default function FormDisco({
   form.watch('coverSrc', ({ value }) => setCoverSrcAtual(value));
   form.watch('edicaoIds', ({ value }) => setEdicoesSelecionadas(value));
 
-  const grupoInfo = obterGrupoPrecificacao(grupoSelecionado);
-  const sugerido = valorVendaSugerido(
-    { id: discoId, grupoPrecificacaoId: grupoSelecionado },
-    entradas,
-  );
-  const precisaAutorizacao = exigeAutorizacaoGerente(precoAtual, sugerido);
+  /**
+   * RN0014: o valor sugerido do servidor é o do grupo salvo. Com outro grupo a
+   * margem muda e só o servidor sabe o novo sugerido, então a autorização fica à
+   * mão — a decisão continua sendo dele ao salvar.
+   */
+  function pedeAutorizacao(preco: number, grupoId: string): boolean {
+    if (precoSugerido === null) return false;
+    return grupoId !== grupoSalvo || exigeAutorizacaoGerente(preco, precoSugerido);
+  }
+
+  const grupoMudou = grupoSelecionado !== grupoSalvo;
+  const precisaAutorizacao = pedeAutorizacao(precoAtual, grupoSelecionado);
 
   /**
    * Preenche as dimensões com o preset do formato — ponto de partida, os campos
@@ -247,24 +237,15 @@ export default function FormDisco({
 
   function handleSubmit(values: FormDiscoValues): void {
     // RN0013: sem custo registrado ainda não há preço a formar; ele nasce na 1ª entrada
-    if (custoBase === null) {
+    if (precoSugerido === null) {
       onSubmit({ ...values, price: 0, autorizacaoGerente: null });
       return;
     }
 
-    const sugeridoFinal = valorVendaSugerido(
-      { id: discoId, grupoPrecificacaoId: values.grupoPrecificacaoId },
-      entradas,
-    );
-    const precisaAutorizacaoFinal = exigeAutorizacaoGerente(
-      values.price,
-      sugeridoFinal,
-    );
-
     onSubmit({
       ...values,
       // preço voltou pra dentro da margem: a autorização anterior não vale mais
-      autorizacaoGerente: precisaAutorizacaoFinal
+      autorizacaoGerente: pedeAutorizacao(values.price, values.grupoPrecificacaoId)
         ? values.autorizacaoGerente
         : null,
     });
@@ -279,12 +260,14 @@ export default function FormDisco({
           <TextInput
             label="Título"
             placeholder="Ex: The Dark Side of the Moon"
+            data-testid="disco-titulo"
             key={form.key('title')}
             {...form.getInputProps('title')}
           />
           <TextInput
             label="Artista"
             placeholder="Ex: Pink Floyd"
+            data-testid="disco-artista"
             key={form.key('artist')}
             {...form.getInputProps('artist')}
           />
@@ -295,18 +278,21 @@ export default function FormDisco({
             max={2030}
             decimalScale={0}
             allowNegative={false}
+            data-testid="disco-ano"
             key={form.key('releaseYear')}
             {...form.getInputProps('releaseYear')}
           />
         </div>
 
         <div className={styles.grade2}>
-          <TagsInput
+          <MultiSelect
             label="Gêneros"
-            placeholder="Digite e pressione Enter"
+            placeholder="Escolha na lista"
             description="RN0012: pelo menos um gênero"
             inputWrapperOrder={DESCRICAO_ABAIXO}
             data={sugestoes.generos}
+            searchable
+            data-testid="disco-generos"
             key={form.key('genres')}
             {...form.getInputProps('genres')}
           />
@@ -314,6 +300,7 @@ export default function FormDisco({
             label="Estilos (opcional)"
             placeholder="Digite e pressione Enter"
             data={sugestoes.estilos}
+            data-testid="disco-estilos"
             key={form.key('styles')}
             {...form.getInputProps('styles')}
           />
@@ -330,6 +317,7 @@ export default function FormDisco({
           <TextInput
             label="Capa (URL ou caminho)"
             placeholder="/covers/disco.jpg"
+            data-testid="disco-capa"
             key={form.key('coverSrc')}
             {...form.getInputProps('coverSrc')}
           />
@@ -343,6 +331,7 @@ export default function FormDisco({
           <Autocomplete
             label="Gravadora"
             data={sugestoes.gravadoras}
+            data-testid="disco-gravadora"
             key={form.key('gravadora')}
             {...form.getInputProps('gravadora')}
           />
@@ -354,6 +343,8 @@ export default function FormDisco({
               }
               data={OPCOES_EDICAO}
               clearable
+              searchable
+              data-testid="disco-edicoes"
               key={form.key('edicaoIds')}
               {...form.getInputProps('edicaoIds')}
             />
@@ -371,6 +362,7 @@ export default function FormDisco({
           <TextInput
             label="Código de catálogo"
             disabled={isEdit}
+            data-testid="disco-codigo-catalogo"
             key={form.key('codigoCatalogo')}
             {...form.getInputProps('codigoCatalogo')}
           />
@@ -378,6 +370,7 @@ export default function FormDisco({
             label="Código de barras"
             placeholder="0000000000000"
             disabled={isEdit}
+            data-testid="disco-codigo-barras"
             key={form.key('codigoBarras')}
             {...form.getInputProps('codigoBarras')}
           />
@@ -389,12 +382,14 @@ export default function FormDisco({
             min={1}
             decimalScale={0}
             allowNegative={false}
+            data-testid="disco-numero-faixas"
             key={form.key('numeroFaixas')}
             {...form.getInputProps('numeroFaixas')}
           />
           <TextInput
             label="Duração total (opcional)"
             placeholder="42:15"
+            data-testid="disco-duracao"
             key={form.key('duracao')}
             {...form.getInputProps('duracao')}
           />
@@ -404,6 +399,7 @@ export default function FormDisco({
           label="Descrição"
           autosize
           minRows={3}
+          data-testid="disco-descricao"
           key={form.key('descricao')}
           {...form.getInputProps('descricao')}
         />
@@ -417,6 +413,7 @@ export default function FormDisco({
           placeholder="Selecione um formato"
           data={OPCOES_FORMATO}
           allowDeselect={false}
+          data-testid="disco-formato"
           key={form.key('formatoId')}
           {...form.getInputProps('formatoId')}
           onChange={(value) => handleTrocarFormato(value ?? '')}
@@ -429,6 +426,7 @@ export default function FormDisco({
             step={0.1}
             decimalScale={2}
             allowNegative={false}
+            data-testid="disco-altura"
             key={form.key('dimensoes.altura')}
             {...form.getInputProps('dimensoes.altura')}
           />
@@ -438,6 +436,7 @@ export default function FormDisco({
             step={0.1}
             decimalScale={2}
             allowNegative={false}
+            data-testid="disco-largura"
             key={form.key('dimensoes.largura')}
             {...form.getInputProps('dimensoes.largura')}
           />
@@ -447,6 +446,7 @@ export default function FormDisco({
             step={0.1}
             decimalScale={2}
             allowNegative={false}
+            data-testid="disco-profundidade"
             key={form.key('dimensoes.profundidade')}
             {...form.getInputProps('dimensoes.profundidade')}
           />
@@ -456,6 +456,7 @@ export default function FormDisco({
             step={1}
             decimalScale={0}
             allowNegative={false}
+            data-testid="disco-peso"
             key={form.key('dimensoes.peso')}
             {...form.getInputProps('dimensoes.peso')}
           />
@@ -477,11 +478,12 @@ export default function FormDisco({
             inputWrapperOrder={DESCRICAO_ABAIXO}
             data={OPCOES_GRUPO_PRECIFICACAO}
             allowDeselect={false}
+            data-testid="disco-grupo"
             key={form.key('grupoPrecificacaoId')}
             {...form.getInputProps('grupoPrecificacaoId')}
           />
 
-          {custoBase === null ? (
+          {precoSugerido === null ? (
             <p className={styles.aviso}>
               O valor de venda será calculado na primeira entrada em estoque,
               pela margem do grupo escolhido (RF0052 / RN0013).
@@ -490,9 +492,9 @@ export default function FormDisco({
             <NumberInput
               label="Preço de venda"
               description={
-                sugerido === null
-                  ? 'O valor de venda será calculado na primeira entrada em estoque.'
-                  : `Valor sugerido pelo grupo: ${formatarBRL(sugerido)} (maior custo ${formatarBRL(custoBase)} + ${grupoInfo?.margemLucro ?? 0}%)`
+                grupoMudou
+                  ? 'Com outro grupo, o valor sugerido sai da nova margem e é conferido ao salvar (RN0014).'
+                  : `Valor sugerido pelo grupo: ${formatarBRL(precoSugerido)}, a margem sobre o maior custo em estoque (RN0051).`
               }
               inputWrapperOrder={DESCRICAO_ABAIXO}
               prefix="R$ "
@@ -502,22 +504,24 @@ export default function FormDisco({
               decimalSeparator=","
               min={0}
               allowNegative={false}
+              data-testid="disco-preco"
               key={form.key('price')}
               {...form.getInputProps('price')}
             />
           )}
         </div>
 
-        {custoBase !== null && precisaAutorizacao && (
+        {precisaAutorizacao && (
           <>
             <Alert color="orange" title="Autorização necessária">
-              RN0014: o preço informado está abaixo do valor sugerido pelo
-              grupo de precificação. É preciso registrar a autorização de um
-              gerente de vendas para manter esse valor.
+              {grupoMudou
+                ? 'RN0014: se o preço ficar abaixo da margem do novo grupo, o servidor exige a autorização de um gerente de vendas.'
+                : 'RN0014: o preço informado está abaixo do valor sugerido pelo grupo de precificação. É preciso registrar a autorização de um gerente de vendas para manter esse valor.'}
             </Alert>
             <TextInput
               label="Autorização do gerente de vendas"
               placeholder="Nome de quem autorizou"
+              data-testid="disco-autorizacao"
               key={form.key('autorizacaoGerente')}
               {...form.getInputProps('autorizacaoGerente')}
             />
@@ -525,11 +529,21 @@ export default function FormDisco({
         )}
       </section>
 
+      {erros.length > 0 && (
+        <Alert color="red" title="O disco não foi salvo" data-testid="alerta-disco">
+          {erros.map((mensagem) => (
+            <div key={mensagem}>{mensagem}</div>
+          ))}
+        </Alert>
+      )}
+
       <div className={styles.rodape}>
         <Button type="button" variant="default" onClick={onClose}>
           Cancelar
         </Button>
-        <Button type="submit">{isEdit ? 'Salvar alterações' : 'Cadastrar disco'}</Button>
+        <Button type="submit" loading={enviando} data-testid="btn-salvar-disco">
+          {isEdit ? 'Salvar alterações' : 'Cadastrar disco'}
+        </Button>
       </div>
     </form>
   );

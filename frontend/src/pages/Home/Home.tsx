@@ -2,12 +2,15 @@ import styles from './Home.module.scss';
 import { useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Alert } from '@mantine/core';
 import { useLoja } from '../../contexts/loja';
+import type { Disco } from '../../types/disco';
 import VinylCard from '../../components/VinylCard/VinylCard';
 import Capa from '../../components/Capa/Capa';
 import CabecalhoSecao from '../../components/CabecalhoSecao/CabecalhoSecao';
 import Forma, { Ondas } from '../../components/Forma/Forma';
 import Vinil from '../../components/Vinil/Vinil';
+import { EsqueletoPagina } from '../../components/Esqueleto/Esqueleto';
 import { ArrowDown, ArrowLeft, ArrowRight, Checkmark, Shuffle } from '@carbon/icons-react';
 import {
   agruparSemRepetir,
@@ -66,14 +69,43 @@ function embaralhar<T>(itens: T[]): T[] {
   return copia;
 }
 
+/**
+ * O corpo só monta com o acervo em mãos: a fila do garimpo é sorteada uma vez,
+ * no primeiro render, e sairia vazia se os discos ainda estivessem a caminho.
+ */
 function Home() {
-  const { discos, carrinho, adicionarAoCarrinho } = useLoja();
+  const { discos, carregandoDiscos, erroDiscos } = useLoja();
+
+  if (carregandoDiscos) {
+    return (
+      <main className={styles.esqueleto}>
+        <EsqueletoPagina blocos={[360, 240]} />
+      </main>
+    );
+  }
+
+  if (erroDiscos && discos.length === 0) {
+    return (
+      <main className={styles.esqueleto}>
+        <Alert color="red" title="Não deu para carregar o acervo">
+          {erroDiscos}
+        </Alert>
+      </main>
+    );
+  }
+
+  return <CorpoHome discos={discos} />;
+}
+
+function CorpoHome({ discos }: Readonly<{ discos: Disco[] }>) {
+  const { carrinho, carregandoSessao, adicionarAoCarrinho } = useLoja();
   const navegar = useNavigate();
   const categoriasRef = useRef<HTMLElement>(null);
   const novidadesRef = useRef<HTMLDivElement>(null);
   const [isLequeAberto, setIsLequeAberto] = useState(false);
   const [eixo, setEixo] = useState<EixoCatalogo>('genero');
   const [grupoEmFoco, setGrupoEmFoco] = useState<string | null>(null);
+  const [recusa, setRecusa] = useState<string[]>([]);
 
   const vitrine = useMemo(() => discosNaVitrine(discos), [discos]);
   // embaralhada a cada visita: o garimpo não abre sempre no mesmo disco e só
@@ -104,6 +136,10 @@ function Home() {
 
   function sortearGarimpo(): void {
     setPosicaoGarimpo((posicao) => (posicao + 1) % filaGarimpo.length);
+  }
+
+  async function handleAdicionar(discoId: number): Promise<void> {
+    setRecusa(await adicionarAoCarrinho(discoId, 1));
   }
 
   function rolarNovidades(sentido: 1 | -1): void {
@@ -331,6 +367,13 @@ function Home() {
           <p>Os discos que mais saíram do acervo nos últimos 30 dias.</p>
         </div>
         <div className={styles.ranking}>
+          {recusa.length > 0 && (
+            <Alert color="red">
+              {recusa.map((mensagem) => (
+                <div key={mensagem}>{mensagem}</div>
+              ))}
+            </Alert>
+          )}
           {maisVendidos.map((disco, indice) => {
             const noCarrinho = carrinho.some((item) => item.discoId === disco.id);
             return (
@@ -351,9 +394,9 @@ function Home() {
                   type="button"
                   className={styles.adicionar}
                   data-no-carrinho={noCarrinho || undefined}
-                  disabled={disco.estoque === 0}
+                  disabled={disco.estoque === 0 || carregandoSessao}
                   onClick={() => {
-                    if (!noCarrinho) adicionarAoCarrinho(disco.id, 1);
+                    if (!noCarrinho) void handleAdicionar(disco.id);
                   }}
                 >
                   {rotuloAdicionar(noCarrinho, disco.estoque)}

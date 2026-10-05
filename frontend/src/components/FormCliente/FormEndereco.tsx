@@ -14,6 +14,8 @@ interface FormEnderecoProps {
   rotuloSalvar?: string;
   /** Conteúdo extra antes dos botões, como o "Salvar no meu perfil" do checkout. */
   extra?: ReactNode;
+  /** O checkout não pergunta o uso: endereço para outra entrega é de entrega. */
+  comTipo?: boolean;
   onCancelar: () => void;
   onSubmit: (valores: FormEnderecoValues) => void;
 }
@@ -27,6 +29,7 @@ export default function FormEndereco({
   titulo,
   rotuloSalvar = 'Salvar endereço',
   extra,
+  comTipo = true,
   onCancelar,
   onSubmit,
 }: Readonly<FormEnderecoProps>) {
@@ -38,7 +41,7 @@ export default function FormEndereco({
         {titulo ?? (initialValues ? 'Editar endereço' : 'Novo endereço')}
       </h3>
 
-      <CamposEndereco form={form} />
+      <CamposEndereco form={form} comTipo={comTipo} />
       {extra}
 
       <div className={styles.rodapeInline}>

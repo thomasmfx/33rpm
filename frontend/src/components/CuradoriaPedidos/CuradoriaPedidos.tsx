@@ -330,11 +330,14 @@ function CuradoriaPedidos() {
     pedidos,
     clientes,
     carregandoClientes,
+    carregandoDiscos,
     cupons,
     atualizarPedido,
     receberItensDeTroca,
     resolverPagamento,
   } = useLoja();
+  // a massa de demonstração aponta para clientes e discos do banco: espera os dois
+  const carregando = carregandoClientes || carregandoDiscos;
   const estado = useLocation().state as EstadoPedidos | null;
   const [busca, setBusca] = useState(estado?.busca ?? '');
   const [filtro, setFiltro] = useState<Filtro>('todos');
@@ -465,7 +468,7 @@ function CuradoriaPedidos() {
   }
 
   function renderLinhas() {
-    if (carregandoClientes) {
+    if (carregando) {
       return <EsqueletoLinhas colunas={COLUNAS} linhas={8} altura={60} />;
     }
 
@@ -540,7 +543,7 @@ function CuradoriaPedidos() {
       <CabecalhoPainel
         titulo="Pedidos"
         resumo={
-          carregandoClientes ? (
+          carregando ? (
             <Skeleton height={12} width={220} />
           ) : (
             `${qtdPrecisamDeAcao} ${qtdPrecisamDeAcao === 1 ? 'precisa' : 'precisam'} de ação · ${pedidos.length} no total`
@@ -559,7 +562,7 @@ function CuradoriaPedidos() {
               onClick={() => handleFiltrar(chip.filtro)}
             >
               {chip.rotulo}
-              {!carregandoClientes && (
+              {!carregando && (
                 <span className={styles.chipContagem}>
                   {pedidos.filter((pedido) => passaNoFiltro(pedido, chip.filtro)).length}
                 </span>
@@ -615,7 +618,7 @@ function CuradoriaPedidos() {
         {renderLinhas()}
       </div>
 
-      {!carregandoClientes && totalPaginas > 1 && (
+      {!carregando && totalPaginas > 1 && (
         <Pagination
           size="sm"
           total={totalPaginas}

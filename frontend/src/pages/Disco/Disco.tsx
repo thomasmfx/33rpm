@@ -1,13 +1,14 @@
 import styles from './Disco.module.scss';
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Button, Skeleton, Tooltip } from '@mantine/core';
+import { Alert, Button, Skeleton, Tooltip } from '@mantine/core';
 import { formatarBRL } from '../../utils/precificacao';
 import { faixasDoDisco, nomeFormato, obterEdicao } from '../../utils/catalogo';
 import { estoqueAcabando } from '../../utils/estoque';
 import { useLoja } from '../../contexts/loja';
 import VinylCard from '../../components/VinylCard/VinylCard';
 import Quantidade from '../../components/Quantidade/Quantidade';
+import { EsqueletoPagina } from '../../components/Esqueleto/Esqueleto';
 import { ArrowRight, Checkmark, ShoppingCart } from '@carbon/icons-react';
 
 const LIMITE_RELACIONADOS = 5;
@@ -24,6 +25,17 @@ function textoEstoque(estoque: number): string {
  */
 function Disco() {
   const { id } = useParams();
+  const { carregandoDiscos, carregandoSessao } = useLoja();
+
+  // o botão de compra grava no carrinho de quem está na sessão, então espera os dois
+  if (carregandoDiscos || carregandoSessao) {
+    return (
+      <main className={styles.main}>
+        <EsqueletoPagina comAside blocos={[480]} />
+      </main>
+    );
+  }
+
   return <PaginaDisco key={id} id={id} />;
 }
 
@@ -31,6 +43,8 @@ function PaginaDisco({ id }: Readonly<{ id: string | undefined }>) {
   const { discos, adicionarAoCarrinho } = useLoja();
   const [quantidade, setQuantidade] = useState<number>(1);
   const [adicionadas, setAdicionadas] = useState<number | null>(null);
+  const [recusa, setRecusa] = useState<string[]>([]);
+  const [isAdicionando, setIsAdicionando] = useState(false);
   const [isCapaCarregada, setIsCapaCarregada] = useState(false);
 
   // disco inativo sai da loja (RF0012), então some junto com o inexistente
@@ -73,7 +87,7 @@ function PaginaDisco({ id }: Readonly<{ id: string | undefined }>) {
   }
 
   const esgotado = disco.estoque === 0;
-  const faixas = faixasDoDisco(disco.id);
+  const faixas = faixasDoDisco(disco.codigoCatalogo);
   const genero = disco.genres[0];
 
   const fichaTecnica = [
@@ -86,6 +100,15 @@ function PaginaDisco({ id }: Readonly<{ id: string | undefined }>) {
     ['Código de barras', disco.codigoBarras],
     ['Peso', `${disco.dimensoes.peso} g`],
   ];
+
+  // RN0031: quem decide é o servidor, com o que já está no carrinho somado
+  async function handleAdicionar(discoId: number): Promise<void> {
+    setIsAdicionando(true);
+    const mensagens = await adicionarAoCarrinho(discoId, quantidade);
+    setIsAdicionando(false);
+    setRecusa(mensagens);
+    setAdicionadas(mensagens.length === 0 ? quantidade : null);
+  }
 
   return (
     <main className={styles.main}>
@@ -121,7 +144,8 @@ function PaginaDisco({ id }: Readonly<{ id: string | undefined }>) {
           </div>
 
           <div className={styles.pilulas}>
-            {[...disco.genres, ...disco.styles].map((categoria) => (
+            {/* o mesmo nome pode ser gênero e estilo, como o Hip Hop do Camp */}
+            {[...new Set([...disco.genres, ...disco.styles])].map((categoria) => (
               <Link
                 key={categoria}
                 to={`/acervo?categoria=${encodeURIComponent(categoria)}`}
@@ -142,11 +166,18 @@ function PaginaDisco({ id }: Readonly<{ id: string | undefined }>) {
             <span className={styles.etiqueta}>{disco.releaseYear}</span>
           </div>
 
-          <div className={styles.compra}>
+          <div className={styles.compra} data-testid="disco-compra">
             <div className={styles.linhaPreco}>
-              <span className={styles.preco}>{formatarBRL(disco.price)}</span>
+              <span
+                className={styles.preco}
+                data-testid="disco-preco"
+                data-valor={String(disco.price)}
+              >
+                {formatarBRL(disco.price)}
+              </span>
               <span
                 className={styles.estoque}
+                data-testid="disco-estoque"
                 data-alerta={estoqueAcabando(disco.estoque) || undefined}
                 data-esgotado={esgotado || undefined}
               >
@@ -162,23 +193,31 @@ function PaginaDisco({ id }: Readonly<{ id: string | undefined }>) {
                 onChange={(valor) => {
                   setQuantidade(valor);
                   setAdicionadas(null);
+                  setRecusa([]);
                 }}
               />
               <Button
                 flex={1}
                 disabled={esgotado}
+                loading={isAdicionando}
                 leftSection={<ShoppingCart size={20} />}
-                onClick={() => {
-                  adicionarAoCarrinho(disco.id, quantidade);
-                  setAdicionadas(quantidade);
-                }}
+                data-testid="btn-adicionar-carrinho"
+                onClick={() => void handleAdicionar(disco.id)}
               >
                 Adicionar ao carrinho
               </Button>
             </div>
 
+            {recusa.length > 0 && (
+              <Alert color="red" data-testid="alerta-carrinho">
+                {recusa.map((mensagem) => (
+                  <div key={mensagem}>{mensagem}</div>
+                ))}
+              </Alert>
+            )}
+
             {adicionadas !== null && (
-              <div className={styles.adicionado} role="status">
+              <div className={styles.adicionado} role="status" data-testid="aviso-adicionado">
                 <span>
                   <Checkmark size={16} />
                   {adicionadas} {adicionadas === 1 ? 'cópia adicionada' : 'cópias adicionadas'} ao

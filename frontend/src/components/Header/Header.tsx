@@ -143,11 +143,20 @@ function Header() {
 
         <div className={styles.acoes}>
           {renderSessao()}
-          <Link to="/carrinho" className={styles.carrinho} aria-label="Carrinho">
+          <Link
+            to="/carrinho"
+            className={styles.carrinho}
+            aria-label="Carrinho"
+            data-testid="link-carrinho"
+          >
             <ShoppingCart size={20} />
             Carrinho
             {/* o carrinho é por cliente: até a sessão chegar, o número seria o do admin */}
-            {!carregandoClientes && <span className={styles.contador}>{itensNoCarrinho}</span>}
+            {!carregandoClientes && (
+              <span className={styles.contador} data-testid="contador-carrinho">
+                {itensNoCarrinho}
+              </span>
+            )}
           </Link>
         </div>
       </div>

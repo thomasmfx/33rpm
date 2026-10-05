@@ -5,8 +5,15 @@ import { precisaDeAcao } from '../../utils/pedido';
 import { ArrowLeft, ChartLine, Delivery, Catalog, Logout, UserMultiple } from '@carbon/icons-react';
 
 function Curadoria() {
-  const { clientes, discos, pedidos, carregandoClientes, administradorAtivo, sairDaSessao } =
-    useLoja();
+  const {
+    clientes,
+    discos,
+    pedidos,
+    carregandoClientes,
+    carregandoDiscos,
+    administradorAtivo,
+    sairDaSessao,
+  } = useLoja();
   const navegar = useNavigate();
 
   function sair(): void {
@@ -21,13 +28,19 @@ function Curadoria() {
       icone: <UserMultiple size={20} />,
       contagem: carregandoClientes ? null : clientes.length,
     },
-    { rota: 'inventario', rotulo: 'Inventário', icone: <Catalog size={20} />, contagem: discos.length },
+    {
+      rota: 'inventario',
+      rotulo: 'Inventário',
+      icone: <Catalog size={20} />,
+      contagem: carregandoDiscos ? null : discos.length,
+    },
     {
       rota: 'pedidos',
       rotulo: 'Pedidos',
       icone: <Delivery size={20} />,
-      // os pedidos de demonstração nascem dos clientes, então esperam por eles
-      contagem: carregandoClientes ? null : pedidos.filter(precisaDeAcao).length,
+      // os pedidos de demonstração nascem dos clientes e dos discos, então esperam por eles
+      contagem:
+        carregandoClientes || carregandoDiscos ? null : pedidos.filter(precisaDeAcao).length,
     },
     { rota: 'dashboard', rotulo: 'Dashboard', icone: <ChartLine size={20} />, contagem: null },
   ];

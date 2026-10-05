@@ -8,12 +8,17 @@ const DESTINO = new URL('../../bin/screenshots/', import.meta.url).pathname;
 const CLIENTE = '1'; // Ana Paula Ribeiro, primeiro cliente de POST /api/dev/reset
 const ADMINISTRADOR = '1'; // ADM-000001, de db/administradores.sql
 
+// ids do banco: a carga do acervo segue a ordem do mock, Thriller é o 3º e
+// The Dark Side Of The Moon o 5º
+const THRILLER = 3;
+const DARK_SIDE = 5;
+
 // telas do cliente precisam de sessão simulada; as da curadoria, da sessão do
 // admin, senão a guarda de rota mostra o 403
 const CARRINHO = {
   [CLIENTE]: [
-    { discoId: 8883, quantidade: 1 },
-    { discoId: 10362, quantidade: 2 },
+    { discoId: THRILLER, quantidade: 1 },
+    { discoId: DARK_SIDE, quantidade: 2 },
   ],
 };
 
@@ -24,7 +29,7 @@ const TELAS = [
   // nenhuma janela pega os dois sem cortar um deles
   { nome: '01_home', rota: '/', altura: 1400 },
   { nome: '02_acervo', rota: '/acervo' },
-  { nome: '03_disco', rota: '/disco/10362' }, // The Dark Side Of The Moon
+  { nome: '03_disco', rota: `/disco/${DARK_SIDE}` },
   { nome: '04_carrinho', rota: '/carrinho', sessao: true, carrinho: true },
   { nome: '05_checkout', rota: '/checkout', sessao: true, carrinho: true },
   { nome: '06_meus-pedidos', rota: '/pedidos', sessao: true },

@@ -1,4 +1,5 @@
 import type { Endereco } from './cliente';
+import type { Cupom } from './cupom';
 
 /** Nomes conforme a lista da entrega, que difere do DRS. */
 export type StatusPedido =
@@ -79,4 +80,40 @@ export interface Pedido {
   troca: Troca | null;
   /** RN0037 e RN0038: resultado da validação, null enquanto não foi validada. */
   validacaoPagamento: ValidacaoPagamento | null;
+}
+
+/**
+ * Pedido do cliente como o servidor registrou (RF0038). O status vem com os nomes
+ * do DRS, que não são os da massa de demonstração da curadoria.
+ */
+export interface PedidoCliente {
+  id: string;
+  clienteId: string;
+  data: string;
+  status: string;
+  itens: ItemPedido[];
+  /** RN0023: cópia do endereço no momento da compra. */
+  enderecoEntrega: Endereco;
+  subtotal: number;
+  frete: number;
+  total: number;
+  cupons: PagamentoCupom[];
+  cartoes: PagamentoCartao[];
+  /** RN0036: a sobra dos cupons, devolvida como cupom de troca. */
+  cupomGerado: Cupom | null;
+}
+
+/** RF0034 e RN0033 a RN0036 calculados pelo servidor para o checkout, sem gravar nada. */
+export interface Cotacao {
+  subtotal: number;
+  /** Em gramas. */
+  pesoTotal: number;
+  regiao: string;
+  frete: number;
+  total: number;
+  valorCupons: number;
+  restante: number;
+  troco: number;
+  /** As mesmas mensagens que a criação do pedido devolveria na recusa. */
+  pendencias: string[];
 }

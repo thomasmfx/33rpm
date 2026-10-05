@@ -2,20 +2,6 @@
 
 // Peças próprias do inventário; o resto vem de pages/Curadoria/Painel.module.scss
 
-.contagem {
-  @include meta(11px, 0);
-
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-  background: var(--cor-selo);
-  color: #fff;
-}
-
 // RN0015: disco inativo some da loja, mas o admin precisa achá-lo na tabela
 .capa,
 .disco {
@@ -198,44 +184,4 @@
   &[data-ok] {
     color: var(--cor-sucesso);
   }
-}
-
-// Modal de inativação automática
-.elegiveis {
-  display: flex;
-  flex-direction: column;
-  margin-top: 20px;
-}
-
-.elegivel {
-  display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) auto;
-  gap: 12px;
-  align-items: center;
-  min-height: 56px;
-  border-bottom: 1px solid var(--cor-divisoria);
-}
-
-.elegivelTexto {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-
-  strong {
-    font-size: 14px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  span {
-    font-size: 12px;
-    color: var(--cor-auxiliar);
-  }
-}
-
-.dias {
-  @include meta(11px, 0.04em);
-
-  color: var(--cor-selo);
 }

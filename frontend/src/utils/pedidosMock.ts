@@ -1,8 +1,8 @@
-import type { Cliente } from '../types/cliente';
-import type { Disco } from '../types/disco';
+import type { Cliente, Endereco } from '../types/cliente';
+import type { Disco, DiscoMock } from '../types/disco';
 import type { Pedido, StatusPedido } from '../types/pedido';
 import { discosMock } from './discosMock';
-import { calcularFrete, montarItensPedido, ultimosDigitos } from './checkout';
+import { ultimosDigitos } from './checkout';
 
 /**
  * Histórico gerado, não escrito à mão: o gráfico gerencial precisa de 24 meses
@@ -15,6 +15,52 @@ import { calcularFrete, montarItensPedido, ultimosDigitos } from './checkout';
 const SEMENTE = 33197;
 const REFERENCIA = new Date('2026-08-23T12:00:00');
 const MESES_DE_HISTORICO = 24;
+
+// O frete de verdade (RF0034) é do servidor; esta cópia só dá ao histórico valores plausíveis
+const FRETE_POR_REGIAO: Record<string, number> = {
+  Sudeste: 20,
+  Sul: 25,
+  'Centro-Oeste': 30,
+  Nordeste: 35,
+  Norte: 45,
+};
+
+const REGIAO_POR_ESTADO: Record<string, string> = {
+  SP: 'Sudeste', RJ: 'Sudeste', MG: 'Sudeste', ES: 'Sudeste',
+  PR: 'Sul', SC: 'Sul', RS: 'Sul',
+  DF: 'Centro-Oeste', GO: 'Centro-Oeste', MT: 'Centro-Oeste', MS: 'Centro-Oeste',
+  BA: 'Nordeste', SE: 'Nordeste', AL: 'Nordeste', PE: 'Nordeste', PB: 'Nordeste',
+  RN: 'Nordeste', CE: 'Nordeste', PI: 'Nordeste', MA: 'Nordeste',
+  AM: 'Norte', PA: 'Norte', AC: 'Norte', RO: 'Norte', RR: 'Norte',
+  AP: 'Norte', TO: 'Norte',
+};
+
+function calcularFrete(
+  itens: { disco: DiscoMock; quantidade: number }[],
+  endereco: Endereco,
+): number {
+  const pesoTotal = itens.reduce(
+    (soma, item) => soma + item.disco.dimensoes.peso * item.quantidade,
+    0,
+  );
+  const base = FRETE_POR_REGIAO[REGIAO_POR_ESTADO[endereco.estado] ?? 'Sudeste'];
+
+  return Math.round((base + Math.ceil(pesoTotal / 1000) * 8) * 100) / 100;
+}
+
+/**
+ * O histórico é sorteado sobre o mock, com os ids do Discogs; o acervo do banco tem
+ * ids próprios e casa com o mock pelo código de catálogo.
+ */
+function idsNoBanco(discos: Disco[]): Map<number, number> {
+  const porCatalogo = new Map(discos.map((disco) => [disco.codigoCatalogo, disco.id]));
+  return new Map(
+    discosMock.flatMap((disco) => {
+      const id = porCatalogo.get(disco.codigoCatalogo);
+      return id === undefined ? [] : [[disco.id, id] as const];
+    }),
+  );
+}
 
 function criarSorteio(semente: number) {
   let estado = semente;
@@ -34,7 +80,7 @@ function criarSorteio(semente: number) {
  * quanto os trinta e dois de Hip Hop somados.
  */
 const CATEGORIAS_SORTEIO = (() => {
-  const porGenero = new Map<string, Disco[]>();
+  const porGenero = new Map<string, DiscoMock[]>();
 
   for (const disco of discosMock) {
     for (const genero of disco.genres) {
@@ -55,7 +101,7 @@ const PESO_TOTAL_CATEGORIAS = CATEGORIAS_SORTEIO.reduce(
   0,
 );
 
-function sortearDisco(sorteio: () => number): Disco {
+function sortearDisco(sorteio: () => number): DiscoMock {
   let alvo = sorteio() * PESO_TOTAL_CATEGORIAS;
   let escolhido = CATEGORIAS_SORTEIO[CATEGORIAS_SORTEIO.length - 1];
 
@@ -114,8 +160,9 @@ const JA_VALIDADO: StatusPedido[] = [
   'ITEM RECEBIDO',
 ];
 
-export function gerarPedidos(clientes: Cliente[]): Pedido[] {
+export function gerarPedidos(clientes: Cliente[], discos: Disco[]): Pedido[] {
   const sorteio = criarSorteio(SEMENTE);
+  const idNoBanco = idsNoBanco(discos);
   const pedidos: Pedido[] = [];
   let sequencia = 0;
 
@@ -167,11 +214,20 @@ export function gerarPedidos(clientes: Cliente[]): Pedido[] {
         status === 'TROCA ACEITA' ||
         status === 'ITEM ENVIADO';
 
+      const itensPedido = itens.map(({ disco, quantidade: qtd }) => ({
+        discoId: idNoBanco.get(disco.id) ?? disco.id,
+        titulo: disco.title,
+        artista: disco.artist,
+        coverSrc: disco.coverSrc,
+        precoUnitario: disco.price,
+        quantidade: qtd,
+      }));
+
       pedidos.push({
         id: `ped-h${String(sequencia).padStart(4, '0')}`,
         clienteId: cliente.id,
         data: data.toISOString(),
-        itens: montarItensPedido(itens),
+        itens: itensPedido,
         enderecoEntrega: endereco,
         subtotal,
         frete,
@@ -206,7 +262,7 @@ export function gerarPedidos(clientes: Cliente[]): Pedido[] {
           ? {
               itens: [
                 {
-                  discoId: itens[0].disco.id,
+                  discoId: itensPedido[0].discoId,
                   quantidade: 1,
                 },
               ],

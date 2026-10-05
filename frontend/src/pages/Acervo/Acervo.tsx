@@ -1,7 +1,7 @@
 import styles from './Acervo.module.scss';
 import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Checkbox, NumberInput, SegmentedControl } from '@mantine/core';
+import { Alert, Checkbox, NumberInput, SegmentedControl } from '@mantine/core';
 import type { FiltrosDiscos } from '../../types/inventario';
 import {
   buscarNoAcervo,
@@ -21,6 +21,7 @@ import type { OrdemAcervo } from '../../utils/catalogo';
 import { useLoja } from '../../contexts/loja';
 import VinylCard from '../../components/VinylCard/VinylCard';
 import Forma from '../../components/Forma/Forma';
+import { EsqueletoPagina } from '../../components/Esqueleto/Esqueleto';
 import { Close } from '@carbon/icons-react';
 
 const ORDENS: { value: OrdemAcervo; label: string }[] = [
@@ -35,7 +36,7 @@ interface Chip {
 }
 
 function Acervo() {
-  const { discos } = useLoja();
+  const { discos, carregandoDiscos, erroDiscos } = useLoja();
   // todo filtro mora na URL: a busca do header e os atalhos da Home chegam por ela
   const [parametros, setParametros] = useSearchParams();
 
@@ -138,8 +139,21 @@ function Acervo() {
     alterar(Object.fromEntries(chip.remover.map((chave) => [chave, null])));
   }
 
+  if (carregandoDiscos) {
+    return (
+      <main className={styles.main}>
+        <EsqueletoPagina blocos={[320, 320]} />
+      </main>
+    );
+  }
+
   return (
     <main className={styles.main}>
+      {erroDiscos && (
+        <Alert color="red" title="Não deu para carregar o acervo">
+          {erroDiscos}
+        </Alert>
+      )}
       <div className={styles.cabecalho}>
         <h1>Acervo</h1>
         <span className={styles.contagem}>

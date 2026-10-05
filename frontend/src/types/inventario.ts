@@ -9,8 +9,8 @@ export interface GrupoPrecificacao {
 }
 
 /**
- * RNF0013: tabelas de domínio que o script de implantação carregaria.
- * Enquanto não há backend, ficam aqui.
+ * RNF0013: as mesmas tabelas de domínio que o seed carrega no banco. O disco da
+ * API chega com nomes, e o front casa com estes ids pelo nome (discosService).
  */
 export const GRUPOS_PRECIFICACAO: GrupoPrecificacao[] = [
   { id: 'gp-lancamento', nome: 'Lançamento', margemLucro: 85 },

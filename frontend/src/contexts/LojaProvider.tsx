@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Cliente } from '../types/cliente';
 import type { Disco } from '../types/disco';
-import type { EntradaEstoque } from '../types/inventario';
 import type { ItemCarrinho } from '../types/carrinho';
 import type { Cupom } from '../types/cupom';
 import type { Pedido, ValidacaoPagamento } from '../types/pedido';
@@ -10,12 +9,13 @@ import type { Administrador, RespostaSessao, Sessao } from '../types/sessao';
 import { gerarCupons } from '../utils/cuponsMock';
 import { gerarPedidos } from '../utils/pedidosMock';
 import { FILTROS_VAZIOS } from '../utils/filtrarClientes';
+import { ErroApi } from '../services/api';
 import { listarClientes } from '../services/clientesService';
 import { buscarAdministrador } from '../services/administradoresService';
-import { discosMock } from '../utils/discosMock';
-import { entradasEstoqueMock } from '../utils/estoqueMock';
-import { darBaixaEmEstoque } from '../utils/checkout';
-import { devolverAoEstoque } from '../utils/pedido';
+import { listarDiscos } from '../services/discosService';
+import { consultarDisponibilidade } from '../services/estoqueService';
+import { listarPedidos } from '../services/pedidosService';
+import { listarCupons } from '../services/cuponsService';
 import {
   ajustarAoEstoque,
   estaExpirado,
@@ -43,12 +43,63 @@ function gravar(nome: string, valor: unknown): void {
   localStorage.setItem(`33rpm:${nome}`, JSON.stringify(valor));
 }
 
+function mensagemDe(erro: unknown, padrao: string): string {
+  return erro instanceof Error ? erro.message : padrao;
+}
+
+/** RN0031: o servidor decide se a quantidade total do disco cabe no estoque. */
+async function recusaDoEstoque(discoId: number, quantidade: number): Promise<string[] | null> {
+  try {
+    await consultarDisponibilidade([{ discoId, quantidade }]);
+    return null;
+  } catch (erro) {
+    return erro instanceof ErroApi ? erro.mensagens : ['Falha ao consultar o estoque.'];
+  }
+}
+
+/**
+ * Lista que pertence ao cliente da sessão. Guarda de quem é o que carregou, como
+ * o administrador: trocar de cliente nunca mostra os dados do anterior.
+ */
+function useDoCliente<T>(
+  clienteId: string | null,
+  buscar: (clienteId: string) => Promise<T[]>,
+  falha: string,
+) {
+  const [carregado, setCarregado] = useState<{
+    clienteId: string;
+    itens: T[];
+    erro: string | null;
+  } | null>(null);
+
+  const recarregar = useCallback(async () => {
+    if (!clienteId) return;
+    try {
+      setCarregado({ clienteId, itens: await buscar(clienteId), erro: null });
+    } catch (erro) {
+      setCarregado({ clienteId, itens: [], erro: mensagemDe(erro, falha) });
+    }
+  }, [clienteId, buscar, falha]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void recarregar();
+  }, [recarregar]);
+
+  const emDia = carregado !== null && carregado.clienteId === clienteId;
+  return {
+    itens: emDia ? carregado.itens : [],
+    carregando: clienteId !== null && !emDia,
+    erro: emDia ? carregado.erro : null,
+    recarregar,
+  };
+}
+
 export default function LojaProvider({ children }: Readonly<{ children: ReactNode }>) {
-  const [discos, setDiscos] = useState<Disco[]>(() => ler('discos', discosMock));
-  const [entradas, setEntradas] = useState<EntradaEstoque[]>(() =>
-    ler('entradas', entradasEstoqueMock),
-  );
-  // Clientes vêm da API; só eles saíram do mock até aqui
+  const [discos, setDiscos] = useState<Disco[]>([]);
+  // só a primeira carga, como a dos clientes
+  const [carregandoDiscos, setCarregandoDiscos] = useState(true);
+  const [erroDiscos, setErroDiscos] = useState<string | null>(null);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [erroClientes, setErroClientes] = useState<string | null>(null);
   // só a primeira carga: recargas depois de uma escrita não voltam ao esqueleto
@@ -84,6 +135,13 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
       : null;
   const carregandoAdministrador =
     isSessaoDeAdministrador && administradorCarregado?.id !== sessao.id;
+  const clienteAtivoId = clienteAtivo?.id ?? null;
+  const meusPedidos = useDoCliente(
+    clienteAtivoId,
+    listarPedidos,
+    'Falha ao carregar os pedidos.',
+  );
+  const meusCupons = useDoCliente(clienteAtivoId, listarCupons, 'Falha ao carregar os cupons.');
   const chaveCarrinho = clienteAtivo?.id ?? 'admin';
   const carrinho = useMemo(
     () => carrinhos[chaveCarrinho] ?? [],
@@ -170,19 +228,42 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
     void recarregarClientes();
   }, [recarregarClientes]);
 
+  const recarregarDiscos = useCallback(async () => {
+    try {
+      // a carga do acervo segue a ordem do mock: pelo id, a vitrine sai como foi montada
+      setDiscos((await listarDiscos()).sort((a, b) => a.id - b.id));
+      setErroDiscos(null);
+    } catch (erro) {
+      setErroDiscos(mensagemDe(erro, 'Falha ao carregar o acervo.'));
+    } finally {
+      setCarregandoDiscos(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void recarregarDiscos();
+  }, [recarregarDiscos]);
+
   /**
-   * Pedidos e cupons continuam mockados, mas apontam para clientes do banco:
-   * se os ids não baterem — banco recriado, por exemplo — a massa é regerada.
+   * A massa de demonstração da curadoria continua mockada, mas aponta para
+   * clientes e discos do banco: se os ids não baterem — banco recriado, por
+   * exemplo — ela é regerada.
    */
   useEffect(() => {
-    if (clientes.length === 0) return;
+    if (clientes.length === 0 || discos.length === 0) return;
     const ids = new Set(clientes.map((cliente) => cliente.id));
+    const idsDiscos = new Set(discos.map((disco) => disco.id));
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setPedidos((atuais) =>
-      atuais.length > 0 && atuais.every((pedido) => ids.has(pedido.clienteId))
+      atuais.length > 0 &&
+      atuais.every(
+        (pedido) =>
+          ids.has(pedido.clienteId) && pedido.itens.every((item) => idsDiscos.has(item.discoId)),
+      )
         ? atuais
-        : gerarPedidos(clientes),
+        : gerarPedidos(clientes, discos),
     );
     setCupons((atuais) =>
       atuais.length > 0 &&
@@ -190,10 +271,8 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
         ? atuais
         : gerarCupons(clientes),
     );
-  }, [clientes]);
+  }, [clientes, discos]);
 
-  useEffect(() => gravar('discos', discos), [discos]);
-  useEffect(() => gravar('entradas', entradas), [entradas]);
   useEffect(() => gravar('carrinhos', carrinhos), [carrinhos]);
   useEffect(() => gravar('sessao', sessao), [sessao]);
   useEffect(() => gravar('cupons', cupons), [cupons]);
@@ -227,50 +306,44 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
   useEffect(() => gravar('pedidos', pedidos), [pedidos]);
 
 
-  // RN0031: o carrinho nunca passa do que existe em estoque
-  const limitarAoEstoque = useCallback(
-    (discoId: number, quantidade: number) => {
-      const disco = discos.find((candidato) => candidato.id === discoId);
-      return Math.max(0, Math.min(quantidade, disco?.estoque ?? 0));
-    },
-    [discos],
-  );
-
   const adicionarAoCarrinho = useCallback(
-    (discoId: number, quantidade: number) => {
+    async (discoId: number, quantidade: number) => {
+      const total =
+        (carrinho.find((item) => item.discoId === discoId)?.quantidade ?? 0) + quantidade;
+      const recusa = await recusaDoEstoque(discoId, total);
+      if (recusa) return recusa;
+
       // o relógio precisa acompanhar, senão a primeira contagem sai defasada
       setAgora(Date.now());
       setCarrinhoAtualizadoEm(new Date().toISOString());
-      setCarrinho((itens) => {
-        const existente = itens.find((item) => item.discoId === discoId);
-        const total = limitarAoEstoque(
-          discoId,
-          (existente?.quantidade ?? 0) + quantidade,
-        );
-        if (total === 0) return itens;
-
-        return existente
+      setCarrinho((itens) =>
+        itens.some((item) => item.discoId === discoId)
           ? itens.map((item) =>
               item.discoId === discoId ? { ...item, quantidade: total } : item,
             )
-          : [...itens, { discoId, quantidade: total }];
-      });
+          : [...itens, { discoId, quantidade: total }],
+      );
+      return [];
     },
-    [limitarAoEstoque, setCarrinho],
+    [carrinho, setCarrinho],
   );
 
   const alterarQuantidade = useCallback(
-    (discoId: number, quantidade: number) => {
-      const total = limitarAoEstoque(discoId, quantidade);
+    async (discoId: number, quantidade: number) => {
+      if (quantidade <= 0) {
+        setCarrinho((itens) => itens.filter((item) => item.discoId !== discoId));
+        return [];
+      }
+
+      const recusa = await recusaDoEstoque(discoId, quantidade);
+      if (recusa) return recusa;
+
       setCarrinho((itens) =>
-        total === 0
-          ? itens.filter((item) => item.discoId !== discoId)
-          : itens.map((item) =>
-              item.discoId === discoId ? { ...item, quantidade: total } : item,
-            ),
+        itens.map((item) => (item.discoId === discoId ? { ...item, quantidade } : item)),
       );
+      return [];
     },
-    [limitarAoEstoque, setCarrinho],
+    [setCarrinho],
   );
 
   const removerDoCarrinho = useCallback(
@@ -297,28 +370,6 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
 
 
 
-  /**
-   * RF0038 + RF0053: fecha a compra num movimento só — grava o pedido, baixa o
-   * estoque, queima os cupons gastos, cria o cupom de troca do troco (RN0036) e
-   * esvazia o carrinho. Separar isso deixaria estados intermediários visíveis.
-   */
-  const registrarPedido = useCallback(
-    (pedido: Pedido, cupomTroca: Cupom | null) => {
-      const gastos = new Set(pedido.cupons.map((cupom) => cupom.cupomId));
-
-      setPedidos((atuais) => [pedido, ...atuais]);
-      setDiscos((atuais) => darBaixaEmEstoque(atuais, pedido.itens));
-      setCupons((atuais) => {
-        const queimados = atuais.map((cupom) =>
-          gastos.has(cupom.id) ? { ...cupom, isUtilizado: true } : cupom,
-        );
-        return cupomTroca ? [...queimados, cupomTroca] : queimados;
-      });
-      setCarrinho(() => []);
-    },
-    [setCarrinho],
-  );
-
   const atualizarPedido = useCallback(
     (pedidoId: string, mudanca: Partial<Pedido>) => {
       setPedidos((atuais) =>
@@ -330,38 +381,13 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
     [],
   );
 
-  /** RN0028: item de compra não efetivada volta para o estoque. */
-  const cancelarPedido = useCallback(
-    (pedidoId: string) => {
-      const pedido = pedidos.find((candidato) => candidato.id === pedidoId);
-      if (!pedido) return;
-
-      setDiscos((atuais) => devolverAoEstoque(atuais, pedido.itens));
-      setPedidos((atuais) =>
-        atuais.map((candidato) =>
-          candidato.id === pedidoId
-            ? { ...candidato, status: 'CANCELADO' as const }
-            : candidato,
-        ),
-      );
-    },
-    [pedidos],
-  );
-
   /**
-   * RN0037 e RN0038: validada a forma de pagamento, a compra vira PAGAMENTO
-   * REALIZADO ou PAGAMENTO RECUSADO. Na recusa os itens voltam ao estoque,
-   * porque a RN0028 só admite baixa em compra efetivada.
+   * RN0037 e RN0038: validada a forma de pagamento, a compra de demonstração vira
+   * PAGAMENTO REALIZADO ou PAGAMENTO RECUSADO. O estoque agora é do servidor e
+   * não acompanha a massa de demonstração.
    */
   const resolverPagamento = useCallback(
     (pedidoId: string, validacao: ValidacaoPagamento) => {
-      const pedido = pedidos.find((candidato) => candidato.id === pedidoId);
-      if (!pedido) return;
-
-      if (!validacao.aprovado) {
-        setDiscos((atuais) => devolverAoEstoque(atuais, pedido.itens));
-      }
-
       setPedidos((atuais) =>
         atuais.map((candidato) =>
           candidato.id === pedidoId
@@ -376,21 +402,17 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
         ),
       );
     },
-    [pedidos],
+    [],
   );
 
   /**
    * RF0044, RF0045 e RF0054: ao confirmar o recebimento, o administrador diz se
-   * os itens voltam ao estoque, e o cliente ganha o cupom de troca do valor.
+   * os itens voltariam ao estoque, e o cliente ganha o cupom de troca do valor.
    */
   const receberItensDeTroca = useCallback(
     (pedidoId: string, retornarAoEstoque: boolean, cupom: Cupom) => {
       const pedido = pedidos.find((candidato) => candidato.id === pedidoId);
       if (!pedido?.troca) return;
-
-      if (retornarAoEstoque) {
-        setDiscos((atuais) => devolverAoEstoque(atuais, pedido.troca!.itens));
-      }
 
       setPedidos((atuais) =>
         atuais.map((candidato) =>
@@ -427,16 +449,22 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
       iniciarSessao,
       sairDaSessao,
       discos,
-      setDiscos,
-      entradas,
-      setEntradas,
+      carregandoDiscos,
+      erroDiscos,
+      recarregarDiscos,
       cupons,
       setCupons,
       pedidos,
       setPedidos,
-      registrarPedido,
+      meusPedidos: meusPedidos.itens,
+      carregandoMeusPedidos: meusPedidos.carregando,
+      erroMeusPedidos: meusPedidos.erro,
+      recarregarPedidos: meusPedidos.recarregar,
+      meusCupons: meusCupons.itens,
+      carregandoMeusCupons: meusCupons.carregando,
+      erroMeusCupons: meusCupons.erro,
+      recarregarCupons: meusCupons.recarregar,
       atualizarPedido,
-      cancelarPedido,
       resolverPagamento,
       receberItensDeTroca,
       carrinho,
@@ -465,12 +493,20 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
       iniciarSessao,
       sairDaSessao,
       discos,
-      entradas,
+      carregandoDiscos,
+      erroDiscos,
+      recarregarDiscos,
       cupons,
       pedidos,
-      registrarPedido,
+      meusPedidos.itens,
+      meusPedidos.carregando,
+      meusPedidos.erro,
+      meusPedidos.recarregar,
+      meusCupons.itens,
+      meusCupons.carregando,
+      meusCupons.erro,
+      meusCupons.recarregar,
       atualizarPedido,
-      cancelarPedido,
       resolverPagamento,
       receberItensDeTroca,
       carrinho,

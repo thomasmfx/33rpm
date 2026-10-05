@@ -1,6 +1,7 @@
 import styles from './Cupons.module.scss';
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
+import { Alert } from '@mantine/core';
 import { useLoja } from '../../contexts/loja';
 import EstadoVazio from '../../components/EstadoVazio/EstadoVazio';
 import { EsqueletoPagina } from '../../components/Esqueleto/Esqueleto';
@@ -18,7 +19,7 @@ const SECOES: { tipo: TipoCupom; titulo: string; descricao: string }[] = [
   {
     tipo: 'promocional',
     titulo: 'Promocionais',
-    descricao: 'Campanhas da loja. Valem para qualquer cliente, um por compra (RN0033).',
+    descricao: 'Campanhas da loja, emitidas para você. Vale um por compra (RN0033).',
   },
 ];
 
@@ -28,10 +29,11 @@ function origemDoCupom(cupom: Cupom): string {
 }
 
 function Cupons() {
-  const { clienteAtivo, carregandoClientes, cupons } = useLoja();
+  const { clienteAtivo, carregandoClientes, meusCupons, carregandoMeusCupons, erroMeusCupons } =
+    useLoja();
   const [copiado, setCopiado] = useState<string | null>(null);
 
-  if (carregandoClientes) {
+  if (carregandoClientes || carregandoMeusCupons) {
     return (
       <main className={styles.main}>
         <EsqueletoPagina blocos={[120, 120]} />
@@ -43,12 +45,18 @@ function Cupons() {
     return <Navigate to="/login" state={{ depois: '/cupons' }} replace />;
   }
 
-  const disponiveis = cuponsDisponiveis(cupons, clienteAtivo.id);
-  const utilizados = cupons.filter(
-    (cupom) =>
-      cupom.isUtilizado &&
-      (cupom.clienteId === null || cupom.clienteId === clienteAtivo.id),
-  );
+  if (erroMeusCupons) {
+    return (
+      <main className={styles.main}>
+        <Alert color="red" title="Não deu para carregar os cupons">
+          {erroMeusCupons}
+        </Alert>
+      </main>
+    );
+  }
+
+  const disponiveis = cuponsDisponiveis(meusCupons, clienteAtivo.id);
+  const utilizados = meusCupons.filter((cupom) => cupom.isUtilizado);
 
   if (disponiveis.length === 0 && utilizados.length === 0) {
     return (
@@ -90,7 +98,15 @@ function Cupons() {
 
   function renderCupom(cupom: Cupom) {
     return (
-      <div key={cupom.id} className={styles.cupom} data-usado={cupom.isUtilizado || undefined}>
+      <div
+        key={cupom.id}
+        className={styles.cupom}
+        data-usado={cupom.isUtilizado || undefined}
+        data-testid="cupom-cartao"
+        data-codigo={cupom.codigo}
+        data-tipo={cupom.tipo}
+        data-utilizado={String(cupom.isUtilizado)}
+      >
         <div className={styles.valor}>
           <strong>{formatarBRL(cupom.valor)}</strong>
           <span>{origemDoCupom(cupom)}</span>

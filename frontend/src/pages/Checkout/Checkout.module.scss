@@ -362,28 +362,12 @@
   }
 }
 
-.ajuste {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  max-width: 720px;
-
-  h1 {
-    @include h1;
-  }
-}
-
 .lista {
   padding-left: 18px;
   margin-top: 6px;
 }
 
-.acoes {
-  display: flex;
-  gap: 12px;
-}
-
-// linha de progresso logo abaixo do header enquanto o pagamento é processado
+// linha de progresso logo abaixo do header enquanto o pedido é registrado
 .barraProgresso {
   position: fixed;
   top: 64px;
@@ -392,6 +376,6 @@
   height: 3px;
   background: var(--cor-selo);
   transform-origin: left;
-  animation: progresso linear forwards;
+  animation: progresso 1.8s linear forwards;
   z-index: 200;
 }

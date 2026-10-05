@@ -1,19 +1,17 @@
 import painel from '../../pages/Curadoria/Painel.module.scss';
 import styles from './FormEntradaEstoque.module.scss';
-import { useState } from 'react';
-import { Button, NumberInput, Select } from '@mantine/core';
+import { useEffect, useMemo, useState } from 'react';
+import { Alert, Button, NumberInput, Select } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
+import { useDebouncedValue } from '@mantine/hooks';
 import type { Disco } from '../../types/disco';
-import type { EntradaEstoque } from '../../types/inventario';
-import { FORNECEDORES } from '../../types/inventario';
-import { precoAposEntrada, validarEntradaEstoque } from '../../utils/estoque';
+import { previaEntrada } from '../../services/estoqueService';
+import type { PreviaEntrada } from '../../services/estoqueService';
 import {
   formatarBRL,
-  maiorValorCusto,
   nomeGrupoPrecificacao,
   obterGrupoPrecificacao,
-  TOLERANCIA_PRECO,
 } from '../../utils/precificacao';
 
 export interface FormEntradaEstoqueValues {
@@ -25,22 +23,29 @@ export interface FormEntradaEstoqueValues {
 
 interface FormEntradaEstoqueProps {
   disco: Disco;
-  entradas: EntradaEstoque[];
+  /** RN0050: fornecedores registrados no servidor. */
+  fornecedores: string[];
+  /** Mensagens do servidor na última tentativa de registrar. */
+  erros: string[];
+  enviando: boolean;
   onClose?: () => void;
   onSubmit: (valores: FormEntradaEstoqueValues) => void;
 }
 
 export default function FormEntradaEstoque({
   disco,
-  entradas,
+  fornecedores,
+  erros,
+  enviando,
   onClose,
   onSubmit,
 }: Readonly<FormEntradaEstoqueProps>) {
-  // espelham os NumberInput só para a prévia reagir a cada tecla; o valor
+  // espelham os NumberInput só para a prévia reagir ao que se digita; o valor
   // que vale de verdade é sempre o do form, validado no submit
   const [quantidadePrevia, setQuantidadePrevia] = useState(1);
   const [custoPrevia, setCustoPrevia] = useState(0);
 
+  // repete o formato só para dar resposta imediata, com as mensagens do servidor
   const form = useForm<FormEntradaEstoqueValues>({
     mode: 'uncontrolled',
     initialValues: {
@@ -55,64 +60,63 @@ export default function FormEntradaEstoque({
       setCustoPrevia(Number(values.valorCusto) || 0);
     },
 
-    validate: (values) => {
-      const erros: Partial<Record<keyof FormEntradaEstoqueValues, string>> =
-        {};
-
-      // RN0061 + RN0062 + RNF0064: mesma regra usada no resto do estoque;
-      // aqui só decidimos em qual campo mostrar a mensagem que ela devolve
-      const mensagem = validarEntradaEstoque(values);
-      if (mensagem) {
-        if (!Number.isInteger(values.quantidade) || values.quantidade <= 0) {
-          erros.quantidade = mensagem;
-        } else if (!(values.valorCusto > 0)) {
-          erros.valorCusto = mensagem;
-        } else if (!values.fornecedor.trim()) {
-          erros.fornecedor = mensagem;
-        } else {
-          erros.dataEntrada = mensagem;
-        }
-      }
-
-      return erros;
+    validate: {
+      quantidade: (valor) =>
+        Number.isInteger(valor) && valor > 0
+          ? null
+          : 'A quantidade deve ser maior que zero (RN0061).',
+      valorCusto: (valor) =>
+        valor > 0 ? null : 'Informe um valor de custo maior que zero (RN0062).',
+      fornecedor: (valor) => (valor ? null : 'Informe o fornecedor da entrada (RN0050).'),
+      dataEntrada: (valor) => (valor ? null : 'Informe a data de entrada (RNF0064).'),
     },
   });
 
-  const maiorCustoRegistrado = maiorValorCusto(entradas, disco.id);
+  // RF0052 + RN0051: o preço resultante vem do servidor, a mesma conta da gravação
+  const consulta = useMemo(
+    () => ({ quantidade: quantidadePrevia, valorCusto: custoPrevia }),
+    [quantidadePrevia, custoPrevia],
+  );
+  const [consultaAdiada] = useDebouncedValue(consulta, 300);
+  const [previa, setPrevia] = useState<{
+    consulta: typeof consulta;
+    valores: PreviaEntrada;
+  } | null>(null);
+
+  useEffect(() => {
+    if (consultaAdiada.quantidade <= 0 || consultaAdiada.valorCusto <= 0) return;
+    let cancelado = false;
+    previaEntrada(disco.id, consultaAdiada.quantidade, consultaAdiada.valorCusto)
+      .then((valores) => {
+        if (!cancelado) setPrevia({ consulta: consultaAdiada, valores });
+      })
+      // a prévia só informa; o registro devolve as mensagens se algo estiver errado
+      .catch(() => undefined);
+    return () => {
+      cancelado = true;
+    };
+  }, [disco.id, consultaAdiada]);
+
+  // a prévia só vale para os números que estão na tela agora
+  const previaAtual = previa?.consulta === consulta ? previa.valores : null;
+  const precoMuda =
+    previaAtual !== null && previaAtual.precoResultante !== previaAtual.precoAtual;
+
   const grupoPrecificacao = obterGrupoPrecificacao(disco.grupoPrecificacaoId);
   const nomeGrupo = nomeGrupoPrecificacao(disco.grupoPrecificacaoId);
   const margem = grupoPrecificacao?.margemLucro ?? 0;
-
-  // a entrada que o usuário está digitando, para a prévia rodar a mesma conta
-  // que o painel vai rodar ao gravar
-  const entradasComPrevia = [
-    ...entradas,
-    {
-      id: 'previa',
-      discoId: disco.id,
-      quantidade: quantidadePrevia,
-      valorCusto: custoPrevia,
-      fornecedor: '',
-      dataEntrada: '',
-    },
-  ];
-  const precoDepois = precoAposEntrada(disco, entradasComPrevia);
-  const precoMuda = precoDepois > disco.price + TOLERANCIA_PRECO;
-  const maiorCustoComPrevia = maiorValorCusto(entradasComPrevia, disco.id);
 
   function explicacaoPreco(): string {
     if (disco.autorizacaoGerente !== null) {
       return `O preço foi baixado da margem com autorização de ${disco.autorizacaoGerente}, então a entrada não o reajusta (RN0014).`;
     }
+    if (!previaAtual) {
+      return `Informe a quantidade e o custo para ver o preço recalculado pelo grupo ${nomeGrupo} (+${margem}%).`;
+    }
     if (precoMuda) {
-      return `Recalculado pelo grupo ${nomeGrupo}: maior custo ${formatarBRL(maiorCustoComPrevia ?? 0)} + ${margem}% (RN0051).`;
+      return `Recalculado pelo grupo ${nomeGrupo}: maior custo em estoque + ${margem}% (RN0051).`;
     }
-    if (custoPrevia <= 0) {
-      return `Informe o custo para ver o preço recalculado pelo grupo ${nomeGrupo} (+${margem}%).`;
-    }
-    return `O valor só sobe quando a entrada custa mais que o maior custo já registrado${
-      maiorCustoRegistrado !== null ? `, ${formatarBRL(maiorCustoRegistrado)}` : ''
-    } (RN0051).`;
+    return 'O valor só sobe quando a entrada custa mais que o maior custo já registrado (RN0051).';
   }
 
   return (
@@ -129,6 +133,7 @@ export default function FormEntradaEstoque({
           step={1}
           allowDecimal={false}
           allowNegative={false}
+          data-testid="entrada-quantidade"
           key={form.key('quantidade')}
           {...form.getInputProps('quantidade')}
         />
@@ -143,6 +148,7 @@ export default function FormEntradaEstoque({
           thousandSeparator="."
           min={0.01}
           allowNegative={false}
+          data-testid="entrada-custo"
           key={form.key('valorCusto')}
           {...form.getInputProps('valorCusto')}
         />
@@ -151,8 +157,9 @@ export default function FormEntradaEstoque({
           label="Fornecedor"
           placeholder="Selecione"
           searchable
-          data={FORNECEDORES}
+          data={fornecedores}
           allowDeselect={false}
+          data-testid="entrada-fornecedor"
           key={form.key('fornecedor')}
           {...form.getInputProps('fornecedor')}
         />
@@ -162,6 +169,7 @@ export default function FormEntradaEstoque({
           placeholder="dd/mm/aaaa"
           valueFormat="DD/MM/YYYY"
           maxDate={new Date()}
+          data-testid="entrada-data"
           key={form.key('dataEntrada')}
           {...form.getInputProps('dataEntrada')}
         />
@@ -169,20 +177,37 @@ export default function FormEntradaEstoque({
         <div className={styles.previa} aria-live="polite">
           <div className={styles.previaValor}>
             <span>{precoMuda ? 'Novo valor de venda' : 'Valor de venda sem alteração'}</span>
-            <strong>{formatarBRL(precoDepois)}</strong>
+            <strong
+              {...(previaAtual
+                ? {
+                    'data-testid': 'entrada-previa-preco',
+                    'data-valor': String(previaAtual.precoResultante),
+                  }
+                : {})}
+            >
+              {formatarBRL(previaAtual?.precoResultante ?? disco.price)}
+            </strong>
           </div>
           <p>
-            {explicacaoPreco()} Com a entrada, o estoque vai para{' '}
-            {disco.estoque + quantidadePrevia}.
+            {explicacaoPreco()}
+            {previaAtual && ` Com a entrada, o estoque vai para ${previaAtual.estoqueResultante}.`}
           </p>
         </div>
       </div>
+
+      {erros.length > 0 && (
+        <Alert color="red" title="A entrada não foi registrada" data-testid="alerta-entrada">
+          {erros.map((mensagem) => (
+            <div key={mensagem}>{mensagem}</div>
+          ))}
+        </Alert>
+      )}
 
       <div className={styles.rodape}>
         <Button type="button" variant="default" size="sm" onClick={onClose}>
           Cancelar
         </Button>
-        <Button type="submit" size="sm">
+        <Button type="submit" size="sm" loading={enviando} data-testid="btn-salvar-entrada">
           Registrar entrada
         </Button>
       </div>

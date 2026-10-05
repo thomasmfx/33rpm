@@ -94,7 +94,7 @@ export function paraCliente(bruto: ClienteApi): Cliente {
   };
 }
 
-function enderecoParaApi(endereco: Endereco) {
+export function enderecoParaApi(endereco: Endereco) {
   return {
     nome: endereco.nome,
     tipo: endereco.tipo,

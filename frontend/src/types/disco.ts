@@ -25,8 +25,10 @@ export interface MotivoStatus {
 }
 
 export interface Disco {
-  /** RNF0021: código único do disco no sistema (master_id do Discogs nos mocks). */
+  /** Gerado pelo banco; nos mocks é o master_id do Discogs. */
   id: number;
+  /** RNF0021: código único do disco no sistema, no formato DSC-000001. */
+  codigo: string;
   title: string;
   artist: string;
   releaseYear: number;
@@ -73,4 +75,9 @@ export interface Disco {
   ultimaVendaEm: string | null;
   /** RN0014: preenchido quando o preço foi baixado da margem com aval do gerente. */
   autorizacaoGerente: string | null;
+  /** RF0052 + RN0051: maior custo + margem do grupo, calculado pelo servidor. null sem entrada. */
+  precoSugerido: number | null;
 }
+
+/** O acervo de demonstração: código e valor sugerido só nascem no cadastro do servidor. */
+export type DiscoMock = Omit<Disco, 'codigo' | 'precoSugerido'>;

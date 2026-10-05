@@ -1,4 +1,3 @@
-import type { Disco } from '../types/disco';
 import type { ItemPedido, Pedido, StatusPedido } from '../types/pedido';
 
 /** Cor do ponto de status: cinza espera, selo anda, verde fecha, vermelho barra. */
@@ -54,42 +53,9 @@ export function precisaDeAcao(pedido: Pedido): boolean {
   return proximosStatusAdmin(pedido.status).length > 0;
 }
 
-/** Cancelar só antes de despachar: depois disso vira troca, não cancelamento. */
-export function podeCancelar(status: StatusPedido): boolean {
-  return (
-    status === 'EM ABERTO' ||
-    status === 'EM PROCESSAMENTO' ||
-    status === 'PAGAMENTO REALIZADO'
-  );
-}
-
-export function podeConfirmarRecebimento(status: StatusPedido): boolean {
-  return status === 'EM TRÂNSITO';
-}
-
-/** RN0043: só pedido ENTREGUE aceita solicitação de troca. */
-export function podeSolicitarTroca(status: StatusPedido): boolean {
-  return status === 'ENTREGUE';
-}
-
 /** Aceita a troca, o cliente despacha o item de volta. */
 export function podeInformarDespacho(status: StatusPedido): boolean {
   return status === 'TROCA ACEITA';
-}
-
-/**
- * RN0028 e RF0054: itens que não seguiram venda voltam ao estoque — no
- * cancelamento sempre, na troca só quando o administrador confirma que os
- * itens chegaram em condição de revenda.
- */
-export function devolverAoEstoque(
-  discos: Disco[],
-  itens: { discoId: number; quantidade: number }[],
-): Disco[] {
-  return discos.map((disco) => {
-    const item = itens.find((candidato) => candidato.discoId === disco.id);
-    return item ? { ...disco, estoque: disco.estoque + item.quantidade } : disco;
-  });
 }
 
 export function valorDosItens(
@@ -124,21 +90,40 @@ export function pedidosDoCliente(pedidos: Pedido[], clienteId: string): Pedido[]
 
 export const PASSOS_PEDIDO = ['Recebido', 'Pagamento aprovado', 'Em trânsito', 'Entregue'];
 
+/** RF0038: status como o servidor grava, nos nomes do DRS (tabela status_pedido). */
+const CORES_STATUS_REGISTRADO: Record<string, string> = {
+  'EM PROCESSAMENTO': '#8F8C84',
+  APROVADA: '#D9501F',
+  REPROVADA: '#B83A2A',
+  'EM TRANSPORTE': '#D9501F',
+  ENTREGUE: '#2F7A4E',
+  'EM TROCA': '#D9501F',
+  'TROCA AUTORIZADA': '#D9501F',
+  TROCADO: '#2F7A4E',
+};
+
+export function corDoStatus(status: string): string {
+  return CORES_STATUS_REGISTRADO[status] ?? CORES_STATUS_REGISTRADO['EM PROCESSAMENTO'];
+}
+
+/** "EM PROCESSAMENTO" vira "Em processamento"; serve a todos os nomes do DRS. */
+export function rotuloDoStatus(status: string): string {
+  return status.charAt(0) + status.slice(1).toLowerCase();
+}
+
 /**
- * Até onde a linha do tempo do cliente anda. null quando o pedido saiu do
- * fluxo (cancelado ou recusado) e não há linha do tempo a mostrar.
+ * Até onde a linha do tempo do cliente anda. null quando o pedido saiu do fluxo
+ * (pagamento reprovado) e não há linha do tempo a mostrar.
  */
-export function passoDoPedido(status: StatusPedido): number | null {
+export function passoDoStatus(status: string): number | null {
   switch (status) {
-    case 'CANCELADO':
-    case 'PAGAMENTO RECUSADO':
+    case 'REPROVADA':
       return null;
-    case 'EM ABERTO':
     case 'EM PROCESSAMENTO':
       return 0;
-    case 'PAGAMENTO REALIZADO':
+    case 'APROVADA':
       return 1;
-    case 'EM TRÂNSITO':
+    case 'EM TRANSPORTE':
       return 2;
     default:
       return 3;

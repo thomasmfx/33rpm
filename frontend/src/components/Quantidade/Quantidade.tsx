@@ -26,17 +26,19 @@ export default function Quantidade({
       <button
         type="button"
         aria-label="Diminuir"
+        data-testid="quantidade-diminuir"
         disabled={disabled || valor <= minimo}
         onClick={() => onChange(valor - 1)}
       >
         <Subtract size={16} />
       </button>
-      <span className={styles.valor} aria-live="polite">
+      <span className={styles.valor} aria-live="polite" data-testid="quantidade-valor">
         {valor}
       </span>
       <button
         type="button"
         aria-label="Aumentar"
+        data-testid="quantidade-aumentar"
         disabled={disabled || valor >= maximo}
         onClick={() => onChange(valor + 1)}
       >

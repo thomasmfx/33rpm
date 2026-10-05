@@ -115,11 +115,3 @@ export function filtrarPorFormatos(discos: Disco[], formatoIds: string[]): Disco
     ? discos
     : discos.filter((disco) => formatoIds.includes(disco.formatoId));
 }
-
-/** Busca da curadoria: título, artista ou código de catálogo. */
-export function buscarNoInventario(discos: Disco[], termo: string): Disco[] {
-  if (!termo.trim()) return discos;
-  return discos.filter((disco) =>
-    [disco.title, disco.artist, disco.codigoCatalogo].some((campo) => contemTexto(campo, termo)),
-  );
-}

@@ -730,4 +730,28 @@ export const entradasEstoqueMock: EntradaEstoque[] = [
     fornecedor: 'Import LP Distribuidora',
     dataEntrada: '2026-09-02',
   },
+  {
+    id: 'ee-091',
+    discoId: 26124,
+    quantidade: 6,
+    valorCusto: 217.06,
+    fornecedor: 'Sony Music Entertainment',
+    dataEntrada: '2026-09-10',
+  },
+  {
+    id: 'ee-092',
+    discoId: 392093,
+    quantidade: 7,
+    valorCusto: 170.95,
+    fornecedor: 'Import LP Distribuidora',
+    dataEntrada: '2026-09-17',
+  },
+  {
+    id: 'ee-093',
+    discoId: 26124,
+    quantidade: 4,
+    valorCusto: 212.4,
+    fornecedor: 'Sony Music Entertainment',
+    dataEntrada: '2026-09-24',
+  },
 ];

@@ -10,6 +10,13 @@ $grupos-visiveis: 7;
   overflow: clip;
 }
 
+.esqueleto {
+  @include container;
+
+  padding-top: 56px;
+  padding-bottom: 120px;
+}
+
 .fundo {
   position: absolute;
   inset: 0;

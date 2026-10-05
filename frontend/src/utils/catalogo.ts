@@ -1,11 +1,23 @@
-import type { Disco, Faixa } from '../types/disco';
+import type { Disco, DiscoMock, Faixa } from '../types/disco';
 import type { FormatoDisco, TipoEdicao } from '../types/inventario';
-import { EDICOES, FORMATOS_DISCO, GENEROS, GRAVADORAS } from '../types/inventario';
+import { EDICOES, FORMATOS_DISCO, GRAVADORAS } from '../types/inventario';
 
+import { discosMock } from './discosMock';
 import { faixasPorDisco } from './faixasMock';
 
-export function faixasDoDisco(discoId: number): Faixa[] {
-  return faixasPorDisco[discoId] ?? [];
+const MOCK_POR_CATALOGO = new Map(discosMock.map((disco) => [disco.codigoCatalogo, disco]));
+
+/**
+ * Tracklist e números do Discogs ficaram no mock, indexados pelo id do Discogs; o
+ * disco do banco tem outro id e casa com eles pelo código de catálogo.
+ */
+export function discoDoMock(codigoCatalogo: string): DiscoMock | undefined {
+  return MOCK_POR_CATALOGO.get(codigoCatalogo);
+}
+
+export function faixasDoDisco(codigoCatalogo: string): Faixa[] {
+  const mock = discoDoMock(codigoCatalogo);
+  return mock ? (faixasPorDisco[mock.id] ?? []) : [];
 }
 
 export function obterFormato(id: string): FormatoDisco | undefined {
@@ -34,11 +46,18 @@ export interface SugestoesCadastro {
   estilos: string[];
 }
 
-export function sugestoesDeCadastro(discos: Disco[]): SugestoesCadastro {
+/**
+ * O servidor recusa gênero que não está registrado (RNF0013): a lista sai do
+ * domínio e do acervo, que também veio do banco.
+ */
+export function sugestoesDeCadastro(
+  discos: Disco[],
+  dominios: { generos: string[]; estilos: string[] },
+): SugestoesCadastro {
   return {
     gravadoras: unir(GRAVADORAS, discos.map((disco) => disco.gravadora)),
-    generos: unir(GENEROS, discos.flatMap((disco) => disco.genres)),
-    estilos: unir([], discos.flatMap((disco) => disco.styles)),
+    generos: unir(dominios.generos, discos.flatMap((disco) => disco.genres)),
+    estilos: unir(dominios.estilos, discos.flatMap((disco) => disco.styles)),
   };
 }
 
