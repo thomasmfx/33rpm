@@ -25,6 +25,13 @@ function fraseDoPainel(destino: string | undefined): string {
   return 'Seus pedidos, cupons e trocas num lugar só.';
 }
 
+// o administrador entra pela curadoria: as outras telas que pedem login são do
+// cliente (checkout, pedidos, cupons) e o mandariam de volta para cá
+function destinoAposEntrar(isAdministrador: boolean, destino: string | undefined): string {
+  if (isAdministrador) return destino?.startsWith('/curadoria') ? destino : '/curadoria';
+  return destino ?? '/';
+}
+
 function Login() {
   const { iniciarSessao } = useLoja();
   const navegar = useNavigate();
@@ -47,9 +54,7 @@ function Login() {
     try {
       const resposta = await entrar(valores.email, valores.senha);
       iniciarSessao(resposta);
-      // o administrador entra pela curadoria; o cliente volta para onde estava
-      const inicio = resposta.papel === 'administrador' ? '/curadoria' : '/';
-      navegar(destino ?? inicio, { replace: true });
+      navegar(destinoAposEntrar(resposta.papel === 'administrador', destino), { replace: true });
     } catch (erro) {
       setErros(erro instanceof ErroApi ? erro.mensagens : ['Falha ao entrar.']);
     } finally {
