@@ -96,11 +96,17 @@ export function buscarNoAcervo(discos: Disco[], termo: string): Disco[] {
   );
 }
 
-/** Gêneros marcados no acervo se somam: basta o disco ter um deles. Lista vazia não filtra. */
+/**
+ * Gêneros marcados no acervo se somam: basta o disco ter um deles. Lista vazia não filtra.
+ * Casa o nome inteiro, não um trecho como o `temCategoria`: "Pop" trazendo "Pop Rap"
+ * desmentiria a contagem que a Home e a lista de gêneros mostram.
+ */
 export function filtrarPorCategorias(discos: Disco[], categorias: string[]): Disco[] {
-  return categorias.length === 0
-    ? discos
-    : discos.filter((disco) => categorias.some((categoria) => temCategoria(disco, categoria)));
+  if (categorias.length === 0) return discos;
+  const alvos = categorias.map(normalizar);
+  return discos.filter((disco) =>
+    [...disco.genres, ...disco.styles].some((categoria) => alvos.includes(normalizar(categoria))),
+  );
 }
 
 /** O acervo deixa marcar mais de um formato; lista vazia não filtra. */

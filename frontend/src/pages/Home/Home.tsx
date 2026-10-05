@@ -10,7 +10,7 @@ import Forma, { Ondas } from '../../components/Forma/Forma';
 import Vinil from '../../components/Vinil/Vinil';
 import { ArrowDown, ArrowLeft, ArrowRight, Checkmark, Shuffle } from '@carbon/icons-react';
 import {
-  agruparCatalogo,
+  agruparSemRepetir,
   decadasDoAcervo,
   discosEmAlta,
   discosMaisVendidos,
@@ -21,10 +21,9 @@ import {
 import type { EixoCatalogo } from '../../utils/catalogo';
 import { formatarPrecoCurto } from '../../utils/precificacao';
 
-// estilo abre a lista: gênero repete demais os discos que a vitrine já mostrou
 const EIXOS: { eixo: EixoCatalogo; rotulo: string }[] = [
-  { eixo: 'estilo', rotulo: 'Estilo' },
   { eixo: 'genero', rotulo: 'Gênero' },
+  { eixo: 'estilo', rotulo: 'Estilo' },
   { eixo: 'decada', rotulo: 'Década' },
   { eixo: 'edicao', rotulo: 'Edição' },
   { eixo: 'formato', rotulo: 'Formato' },
@@ -58,22 +57,33 @@ function paraAcervo(filtro: Record<string, string>): string {
   return busca ? `/acervo?${busca}` : '/acervo';
 }
 
+function embaralhar<T>(itens: T[]): T[] {
+  const copia = [...itens];
+  for (let i = copia.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copia[i], copia[j]] = [copia[j], copia[i]];
+  }
+  return copia;
+}
+
 function Home() {
   const { discos, carrinho, adicionarAoCarrinho } = useLoja();
   const navegar = useNavigate();
   const categoriasRef = useRef<HTMLElement>(null);
   const novidadesRef = useRef<HTMLDivElement>(null);
   const [isLequeAberto, setIsLequeAberto] = useState(false);
-  const [eixo, setEixo] = useState<EixoCatalogo>('estilo');
+  const [eixo, setEixo] = useState<EixoCatalogo>('genero');
   const [grupoEmFoco, setGrupoEmFoco] = useState<string | null>(null);
-  // sorteado a cada visita: o garimpo não pode abrir sempre no mesmo disco
-  const [indiceGarimpo, setIndiceGarimpo] = useState(() => Math.floor(Math.random() * 1000));
 
   const vitrine = useMemo(() => discosNaVitrine(discos), [discos]);
+  // embaralhada a cada visita: o garimpo não abre sempre no mesmo disco e só
+  // repete um disco depois de passar por todos
+  const [filaGarimpo] = useState(() => embaralhar(vitrine));
+  const [posicaoGarimpo, setPosicaoGarimpo] = useState(0);
   const emAlta = useMemo(() => discosEmAlta(discos), [discos]);
   const maisVendidos = useMemo(() => discosMaisVendidos(discos).slice(0, 5), [discos]);
   const novidades = useMemo(() => discosNovidades(discos), [discos]);
-  const grupos = useMemo(() => agruparCatalogo(discos, eixo).slice(0, GRUPOS_VISIVEIS), [discos, eixo]);
+  const grupos = useMemo(() => agruparSemRepetir(discos, eixo, GRUPOS_VISIVEIS), [discos, eixo]);
 
   const artistas = useMemo(
     () => [...new Set(vitrine.map((disco) => disco.artist.toUpperCase()))],
@@ -87,18 +97,13 @@ function Home() {
 
   const [destaque, ...restoEmAlta] = emAlta;
   const capasHero = emAlta.slice(1, 4);
-  const garimpo = vitrine[indiceGarimpo % vitrine.length];
+  const garimpo = filaGarimpo[posicaoGarimpo];
   const grupoSelecionado =
     grupos.find((grupo) => grupo.nome === grupoEmFoco) ?? grupos[0];
   const leque = isLequeAberto ? LEQUE_ABERTO : LEQUE_FECHADO;
 
   function sortearGarimpo(): void {
-    const atual = indiceGarimpo % vitrine.length;
-    let proximo = atual;
-    while (vitrine.length > 1 && proximo === atual) {
-      proximo = Math.floor(Math.random() * vitrine.length);
-    }
-    setIndiceGarimpo(proximo);
+    setPosicaoGarimpo((posicao) => (posicao + 1) % filaGarimpo.length);
   }
 
   function rolarNovidades(sentido: 1 | -1): void {

@@ -88,7 +88,7 @@ export function decadaDe(ano: number): number {
 
 /** "Anos 80" até o fim do século; daí em diante "Anos 2010", sem ambiguidade. */
 export function rotuloDecada(decada: number): string {
-  return decada < 2000 ? `Anos ${String(decada).slice(2)}` : `Anos ${decada}`;
+  return `'${String(decada).slice(2)}`;
 }
 
 export interface DecadaDoAcervo {
@@ -162,6 +162,31 @@ export function agruparCatalogo(discos: Disco[], eixo: EixoCatalogo): GrupoCatal
   }
 
   return [...grupos.values()].sort(ORDEM_DO_EIXO[eixo]);
+}
+
+/**
+ * Categorias da Home: entre os `limite` primeiros grupos, cada disco abre a pilha
+ * de capas de um só, o menor dos que ele ocupa. Assim um disco de Hip Hop e Jazz
+ * vai para a frente do Jazz, e a pilha do Jazz não repete a do Hip Hop. Nenhum
+ * disco sai do grupo: a contagem tem de bater com o que o link abre no acervo.
+ */
+export function agruparSemRepetir(
+  discos: Disco[],
+  eixo: EixoCatalogo,
+  limite: number,
+): GrupoCatalogo[] {
+  const grupos = agruparCatalogo(discos, eixo).slice(0, limite);
+  const grupoDoDisco = new Map<number, string>();
+  for (const grupo of [...grupos].sort((a, b) => a.discos.length - b.discos.length)) {
+    for (const disco of grupo.discos) {
+      if (!grupoDoDisco.has(disco.id)) grupoDoDisco.set(disco.id, grupo.nome);
+    }
+  }
+  return grupos.map((grupo) => {
+    const proprios = grupo.discos.filter((disco) => grupoDoDisco.get(disco.id) === grupo.nome);
+    const repetidos = grupo.discos.filter((disco) => grupoDoDisco.get(disco.id) !== grupo.nome);
+    return { ...grupo, discos: [...proprios, ...repetidos] };
+  });
 }
 
 export type OrdemAcervo = 'relevancia' | 'menor-preco' | 'mais-recentes';
