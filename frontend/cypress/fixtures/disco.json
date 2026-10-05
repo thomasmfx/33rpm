@@ -1,0 +1,50 @@
+{
+  "takeCare": {
+    "titulo": "Take Care",
+    "artista": "Drake",
+    "ano": "2011",
+    "generos": ["Hip Hop", "Funk / Soul"],
+    "estilos": ["Contemporary R&B", "Pop Rap"],
+    "capa": "https://i.discogs.com/AXsHLi1NYQL0XfJ9KW0fHGeteMJP6TSj6iqb3EhJuPI/rs:fit/g:sm/q:90/h:600/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTM2Mzcz/OTEtMTQ1ODM3OTA2/NS03NjkzLmpwZWc.jpeg",
+    "gravadora": "Young Money / Cash Money",
+    "edicao": "Primeira Prensagem",
+    "codigoCatalogo": "B0016280-01",
+    "codigoBarras": "0602527867960",
+    "numeroFaixas": "17",
+    "duracao": "79:48",
+    "descricao": "Segundo álbum de Drake, gravado em Toronto com Noah \"40\" Shebib assinando a produção da maior parte das faixas.",
+    "formato": "2xLP",
+    "grupo": "Importado",
+    "peso": 480
+  },
+  "entradaTakeCare": {
+    "quantidade": "12",
+    "valorCusto": "179,90",
+    "fornecedor": "Import LP Distribuidora",
+    "data": "20/08/2026"
+  },
+  "autorizacao": "Marina Sales — Gerente de Vendas",
+  "semEstoque": {
+    "titulo": "Disco de Teste",
+    "artista": { "nome": "Drake" },
+    "gravadora": { "nome": "Young Money / Cash Money" },
+    "anoLancamento": "2011-01-01",
+    "categorias": [
+      { "desc": "Hip Hop", "tipo": "genero" },
+      { "desc": "Pop Rap", "tipo": "estilo" }
+    ],
+    "edicoes": [{ "nome": "Primeira Prensagem" }],
+    "formato": { "nome": "2xLP" },
+    "grupoPrecificacao": { "nome": "Importado" },
+    "codigoCatalogo": "TESTE-0001",
+    "codigoBarras": "0602527867960",
+    "numeroFaixas": 17,
+    "duracao": "79:48",
+    "descricao": "Disco cadastrado pelo teste, sem nenhuma entrada em estoque.",
+    "altura": 31.5,
+    "largura": 31.5,
+    "profundidade": 1,
+    "peso": 480,
+    "capaUrl": "/images/vinil.svg"
+  }
+}

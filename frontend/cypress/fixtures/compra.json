@@ -1,0 +1,19 @@
+{
+  "enderecoNovo": {
+    "nome": "Casa da Bahia",
+    "tipoResidencia": "Casa",
+    "tipoLogradouro": "Rua",
+    "logradouro": "da Paciência",
+    "numero": "88",
+    "bairro": "Rio Vermelho",
+    "cep": "41940-050",
+    "cidade": "Salvador",
+    "estado": "BA"
+  },
+  "cartaoNovo": {
+    "numero": "5555 4444 3333 2222",
+    "nomeImpresso": "ANA P RIBEIRO",
+    "bandeira": "Mastercard",
+    "cvv": "456"
+  }
+}
