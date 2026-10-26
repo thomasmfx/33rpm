@@ -41,6 +41,10 @@ public class Cupom extends EntidadeDominio {
   @Column(name = "pedido_origem_id")
   private Long pedidoOrigemId;
 
+  /** RF0045: troca cujos itens chegaram e geraram este cupom de troca. */
+  @Column(name = "troca_origem_id")
+  private Long trocaOrigemId;
+
   public Cliente getCliente() {
     return cliente;
   }
@@ -95,5 +99,13 @@ public class Cupom extends EntidadeDominio {
 
   public void setPedidoOrigemId(Long pedidoOrigemId) {
     this.pedidoOrigemId = pedidoOrigemId;
+  }
+
+  public Long getTrocaOrigemId() {
+    return trocaOrigemId;
+  }
+
+  public void setTrocaOrigemId(Long trocaOrigemId) {
+    this.trocaOrigemId = trocaOrigemId;
   }
 }

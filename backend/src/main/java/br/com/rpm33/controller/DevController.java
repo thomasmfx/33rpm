@@ -13,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -33,6 +34,7 @@ import br.com.rpm33.model.Telefone;
 import br.com.rpm33.model.TipoCupom;
 import br.com.rpm33.model.TipoTelefone;
 import br.com.rpm33.repository.CupomRepository;
+import br.com.rpm33.repository.ItemCarrinhoRepository;
 import br.com.rpm33.repository.LogRepository;
 import br.com.rpm33.repository.TipoCupomRepository;
 import br.com.rpm33.service.IFachada;
@@ -54,17 +56,20 @@ public class DevController {
   private final CargaAcervo cargaAcervo;
   private final CupomRepository cupomRepository;
   private final TipoCupomRepository tipoCupomRepository;
+  private final ItemCarrinhoRepository itemCarrinhoRepository;
   private final LogRepository logRepository;
   private final ObjectMapper objectMapper;
   private final EntityManager entityManager;
 
   public DevController(IFachada fachada, CargaAcervo cargaAcervo,
       CupomRepository cupomRepository, TipoCupomRepository tipoCupomRepository,
-      LogRepository logRepository, ObjectMapper objectMapper, EntityManager entityManager) {
+      ItemCarrinhoRepository itemCarrinhoRepository, LogRepository logRepository,
+      ObjectMapper objectMapper, EntityManager entityManager) {
     this.fachada = fachada;
     this.cargaAcervo = cargaAcervo;
     this.cupomRepository = cupomRepository;
     this.tipoCupomRepository = tipoCupomRepository;
+    this.itemCarrinhoRepository = itemCarrinhoRepository;
     this.logRepository = logRepository;
     this.objectMapper = objectMapper;
     this.entityManager = entityManager;
@@ -92,6 +97,17 @@ public class DevController {
     }
     inserirCupons(ana, bruno);
     return ResponseEntity.ok(List.of("CLI-000001", "CLI-000002", "CLI-000003"));
+  }
+
+  /**
+   * RN0044: o carrinho do cliente fica como se os minutos tivessem passado desde cada
+   * inclusão, para a expiração ser demonstrada sem esperar o prazo.
+   */
+  @PostMapping("/carrinhos/{clienteId}/envelhecer")
+  @Transactional
+  public ResponseEntity<Object> envelhecerCarrinho(@PathVariable Long clienteId,
+      @RequestParam int minutos) {
+    return ResponseEntity.ok(Map.of("itens", itemCarrinhoRepository.envelhecer(clienteId, minutos)));
   }
 
   /** RNF0012: o log de transações, do mais recente para o mais antigo. */
@@ -133,8 +149,9 @@ public class DevController {
   }
 
   /**
-   * Única carga direta de dado de negócio, a mesma de db/cupons.sql: a geração de
-   * cupons de troca por devolução (RF0045) está fora do escopo desta fase.
+   * Única carga direta de dado de negócio, a mesma de db/cupons.sql: os cupons com que a
+   * demonstração começa. Os gerados pela troca (RF0045) e pela sobra (RN0036) nascem das
+   * próprias operações.
    */
   private void inserirCupons(Cliente ana, Cliente bruno) {
     TipoCupom troca = tipoCupomRepository.findByDescIgnoreCase(TipoCupom.TROCA).orElseThrow();
@@ -146,7 +163,8 @@ public class DevController {
         cupom(ana, promocional, "PROMO-AP-20", "20.00"),
         cupom(ana, promocional, "PROMO-AP-50", "50.00"),
         cupom(bruno, troca, "TROCA-BT-120", "120.00"),
-        cupom(bruno, promocional, "PROMO-BT-30", "30.00")));
+        cupom(bruno, promocional, "PROMO-BT-30", "30.00"),
+        cupom(bruno, promocional, "PROMO-BT-280", "280.00")));
   }
 
   private Cupom cupom(Cliente cliente, TipoCupom tipo, String codigo, String valor) {

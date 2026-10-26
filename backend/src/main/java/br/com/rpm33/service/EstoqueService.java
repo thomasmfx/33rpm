@@ -2,7 +2,10 @@ package br.com.rpm33.service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +14,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,15 +24,18 @@ import br.com.rpm33.model.EntidadeDominio;
 import br.com.rpm33.model.EntradaEstoque;
 import br.com.rpm33.model.Fornecedor;
 import br.com.rpm33.model.ItemPedido;
+import br.com.rpm33.model.MovimentoEstoque;
 import br.com.rpm33.model.OperacaoLog;
 import br.com.rpm33.model.PreviaEntrada;
 import br.com.rpm33.repository.DiscoRepository;
 import br.com.rpm33.repository.EntradaEstoqueRepository;
 import br.com.rpm33.repository.FornecedorRepository;
+import br.com.rpm33.repository.ItemCarrinhoRepository;
+import br.com.rpm33.repository.PedidoRepository;
 
 /**
- * Entrada em estoque (RF0051, RF0052) e disponibilidade para a compra (RN0031). A
- * baixa em estoque (RF0053) está fora do escopo desta fase.
+ * Entrada em estoque (RF0051, RF0052), disponibilidade para a compra (RN0031, RN0044),
+ * baixa da venda aprovada (RF0053) e reentrada da troca (RF0054).
  */
 @Service(EntradaEstoque.NOME_ENTIDADE)
 public class EstoqueService implements IService {
@@ -36,15 +43,23 @@ public class EstoqueService implements IService {
   private final EntradaEstoqueRepository entradaEstoqueRepository;
   private final DiscoRepository discoRepository;
   private final FornecedorRepository fornecedorRepository;
+  private final ItemCarrinhoRepository itemCarrinhoRepository;
+  private final PedidoRepository pedidoRepository;
   private final RegistradorLog registradorLog;
+  private final int prazoCarrinhoMinutos;
 
   public EstoqueService(EntradaEstoqueRepository entradaEstoqueRepository,
       DiscoRepository discoRepository, FornecedorRepository fornecedorRepository,
-      RegistradorLog registradorLog) {
+      ItemCarrinhoRepository itemCarrinhoRepository, PedidoRepository pedidoRepository,
+      RegistradorLog registradorLog,
+      @Value("${app.carrinho.prazo-minutos}") int prazoCarrinhoMinutos) {
     this.entradaEstoqueRepository = entradaEstoqueRepository;
     this.discoRepository = discoRepository;
     this.fornecedorRepository = fornecedorRepository;
+    this.itemCarrinhoRepository = itemCarrinhoRepository;
+    this.pedidoRepository = pedidoRepository;
     this.registradorLog = registradorLog;
+    this.prazoCarrinhoMinutos = prazoCarrinhoMinutos;
   }
 
   /** RF0051 e RN0050: a entrada soma ao estoque e pode reajustar o preço (RF0052). */
@@ -89,8 +104,13 @@ public class EstoqueService implements IService {
     return Resultado.com(salva);
   }
 
+  /** RF0053 e RF0054, quando a entidade é um movimento; a entrada em si não muda. */
   @Override
+  @Transactional
   public Resultado alterar(EntidadeDominio entidade) {
+    if (entidade instanceof MovimentoEstoque movimento) {
+      return movimentar(movimento);
+    }
     return Resultado.erro("A entrada em estoque não é alterada: registre uma nova entrada.");
   }
 
@@ -117,9 +137,11 @@ public class EstoqueService implements IService {
   }
 
   /**
-   * RN0031: cada disco existe, está ativo e tem estoque para a quantidade pedida. A
-   * consulta volta com os itens agrupados por disco e com o disco de cada um, mesmo
-   * quando há pendência, para o pedido calcular o que der.
+   * RN0031 e RN0044: cada disco existe, está ativo e tem estoque livre para a quantidade
+   * pedida. Livre é o estoque menos o que outros carrinhos ainda no prazo bloqueiam e o
+   * que as compras EM PROCESSAMENTO reservam (RN0028). A consulta volta com os itens
+   * agrupados por disco e com o disco de cada um, mesmo quando há pendência, para o
+   * pedido calcular o que der.
    */
   private Resultado validarDisponibilidade(ConsultaDisponibilidade consulta) {
     if (consulta.getItens() == null || consulta.getItens().isEmpty()) {
@@ -140,9 +162,10 @@ public class EstoqueService implements IService {
       }
     }
 
-    Map<Long, Disco> discos = discoRepository
-        .findAllById(porDisco.keySet().stream().filter(Objects::nonNull).toList()).stream()
+    List<Long> ids = porDisco.keySet().stream().filter(Objects::nonNull).toList();
+    Map<Long, Disco> discos = discoRepository.findAllById(ids).stream()
         .collect(Collectors.toMap(Disco::getId, Function.identity()));
+    Map<Long, Integer> reservados = reservados(ids, consulta.getClienteId());
     for (ItemPedido item : porDisco.values()) {
       Disco disco = discos.get(item.getDiscoId());
       if (disco == null) {
@@ -150,15 +173,73 @@ public class EstoqueService implements IService {
         continue;
       }
       item.setDisco(disco);
+      int reservado = reservados.getOrDefault(disco.getId(), 0);
+      int livre = Math.max(0, disco.getEstoque() - reservado);
+      consulta.getLivres().put(disco.getId(), Boolean.TRUE.equals(disco.getIsAtivo()) ? livre : 0);
       if (!Boolean.TRUE.equals(disco.getIsAtivo())) {
         erros.add("RN0031: " + disco.getTitulo() + " não está disponível.");
-      } else if (item.getQuantidade() > disco.getEstoque()) {
+      } else if (item.getQuantidade() > livre && reservado == 0) {
         erros.add("RN0031: só há " + disco.getEstoque() + " unidade(s) de " + disco.getTitulo()
             + " em estoque.");
+      } else if (item.getQuantidade() > livre) {
+        erros.add("RN0044: só há " + livre + " unidade(s) livre(s) de " + disco.getTitulo()
+            + "; as demais estão reservadas em outras compras.");
       }
     }
     consulta.setItens(new ArrayList<>(porDisco.values()));
     return erros.isEmpty() ? Resultado.com(consulta) : Resultado.erro(erros);
+  }
+
+  /**
+   * RN0044 e RN0028: unidades de cada disco presas em carrinhos de outros clientes, ainda
+   * no prazo, e em compras EM PROCESSAMENTO, inclusive as do próprio cliente.
+   */
+  private Map<Long, Integer> reservados(Collection<Long> discoIds, Long clienteId) {
+    Map<Long, Integer> reservados = new HashMap<>();
+    if (discoIds.isEmpty()) {
+      return reservados;
+    }
+    LocalDateTime limite = LocalDateTime.now().minusMinutes(prazoCarrinhoMinutos);
+    // sem cliente, como na consulta avulsa de disponibilidade, todo carrinho conta
+    Long dono = clienteId == null ? -1L : clienteId;
+    List<Object[]> somas =
+        new ArrayList<>(itemCarrinhoRepository.bloqueadosPorOutros(discoIds, dono, limite));
+    somas.addAll(pedidoRepository.reservadosEmProcessamento(discoIds));
+    for (Object[] soma : somas) {
+      reservados.merge((Long) soma[0], ((Number) soma[1]).intValue(), Integer::sum);
+    }
+    return reservados;
+  }
+
+  /**
+   * RF0053: a venda aprovada sai do estoque. RF0054: o item trocado volta. O pedido já
+   * reservava as unidades da baixa, então faltar estoque aqui é defeito, não regra.
+   */
+  private Resultado movimentar(MovimentoEstoque movimento) {
+    boolean baixa = MovimentoEstoque.BAIXA.equals(movimento.getTipo());
+    List<Disco> movimentados = new ArrayList<>();
+    for (ItemPedido item : movimento.getItens()) {
+      Disco disco = discoRepository.findById(item.getDiscoId()).orElseThrow(
+          () -> new IllegalStateException("Disco " + item.getDiscoId() + " ausente."));
+      int saldo = disco.getEstoque() + (baixa ? -item.getQuantidade() : item.getQuantidade());
+      if (saldo < 0) {
+        throw new IllegalStateException(
+            "Baixa de " + item.getQuantidade() + " em " + disco.getTitulo() + " sem estoque.");
+      }
+      disco.setEstoque(saldo);
+
+      Map<String, Object> dados = new LinkedHashMap<>();
+      dados.put("codigo", disco.getCodigo());
+      dados.put("titulo", disco.getTitulo());
+      dados.put("movimento", movimento.getTipo());
+      dados.put("quantidade", item.getQuantidade());
+      dados.put("estoque", saldo);
+      dados.put("origem", movimento.getOrigem());
+      registradorLog.registrar(OperacaoLog.ALTERAR, Disco.class.getSimpleName(), disco.getId(),
+          dados, movimento.getUsuario());
+      movimentados.add(disco);
+    }
+    return Resultado.de(movimentados);
   }
 
   /** RF0052: o preço e o estoque que a entrada produziria, sem gravar nada. */

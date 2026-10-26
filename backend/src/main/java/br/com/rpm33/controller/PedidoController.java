@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import br.com.rpm33.model.CotacaoPedido;
 import br.com.rpm33.model.Pedido;
 import br.com.rpm33.model.PedidoFiltro;
+import br.com.rpm33.model.ProcessamentoPagamentos;
 import br.com.rpm33.service.IFachada;
 import br.com.rpm33.service.Resultado;
 
@@ -51,10 +53,24 @@ public class PedidoController {
         : ResponseEntity.ok(resultado.primeira());
   }
 
-  /** Meus pedidos */
+  /** Meus pedidos, com clienteId; sem ele, todos, para a curadoria. */
   @GetMapping
   public ResponseEntity<Object> consultar(@ModelAttribute PedidoFiltro filtro) {
     Resultado resultado = fachada.consultar(filtro);
+    return resultado.temErro() ? erro(resultado) : ResponseEntity.ok(resultado.getEntidades());
+  }
+
+  /** RN0039 (EM TRANSPORTE) e RN0040 (ENTREGUE), pelo administrador. */
+  @PutMapping("/{id}/status")
+  public ResponseEntity<Object> avancar(@PathVariable Long id, @RequestBody Pedido pedido) {
+    pedido.setId(id);
+    return resposta(fachada.alterar(pedido), HttpStatus.OK);
+  }
+
+  /** RN0037 e RN0038: valida agora os pagamentos pendentes, sem esperar a operadora. */
+  @PostMapping("/validacao-pagamento")
+  public ResponseEntity<Object> validarPagamentos() {
+    Resultado resultado = fachada.alterar(new ProcessamentoPagamentos());
     return resultado.temErro() ? erro(resultado) : ResponseEntity.ok(resultado.getEntidades());
   }
 

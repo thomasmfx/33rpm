@@ -36,3 +36,17 @@ app:
   inativacao-automatica:
     cron: "0 0 3 * * *"
     dias-sem-venda: 90
+  # RN0044: o bloqueio do carrinho vence prazo-minutos depois da última inclusão, com
+  # aviso aviso-minutos antes; a rotina derruba os vencidos a cada intervalo-expiracao
+  carrinho:
+    prazo-minutos: 15
+    aviso-minutos: 5
+    intervalo-expiracao: 15s
+  # RN0037 e RN0038: a operadora simulada responde depois de espera; a rotina confere os
+  # pedidos EM PROCESSAMENTO a cada intervalo
+  validacao-pagamento:
+    espera: 30s
+    intervalo: 10s
+  # decisão do grupo, como nos sandboxes de pagamento: estes números são sempre recusados
+  operadora:
+    cartoes-recusados: "4000000000000002"

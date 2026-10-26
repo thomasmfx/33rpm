@@ -20,6 +20,16 @@ public interface CupomRepository extends JpaRepository<Cupom, Long> {
 
   List<Cupom> findByPedidoOrigemIdIn(Collection<Long> pedidoIds);
 
+  List<Cupom> findByTrocaOrigemIdIn(Collection<Long> trocaIds);
+
+  /**
+   * RN0037: um cupom verdadeiro foi usado por uma compra só. A reprovada devolve o cupom
+   * e não conta.
+   */
+  @Query("select count(p) from Pedido p join p.cupons c where c.id = :cupomId "
+      + "and p.status.descricao <> 'REPROVADA'")
+  long comprasQueUsaram(@Param("cupomId") Long cupomId);
+
   boolean existsByCodigoIgnoreCase(String codigo);
 
   /** Devolve 0 quando outro pedido já consumiu o cupom: a trava fica na própria linha. */

@@ -25,9 +25,10 @@ public interface DiscoRepository
       + "where e.disco.id in :ids group by e.disco.id")
   List<Object[]> maioresCustos(@Param("ids") Collection<Long> ids);
 
-  /** RF0013: a data do pedido mais recente de cada disco. */
+  /** RF0013: a data do pedido mais recente de cada disco; compra reprovada não é venda. */
   @Query("select i.disco.id, max(i.pedido.dataCadastro) from ItemPedido i "
-      + "where i.disco.id in :ids group by i.disco.id")
+      + "where i.disco.id in :ids and i.pedido.status.descricao <> 'REPROVADA' "
+      + "group by i.disco.id")
   List<Object[]> ultimasVendas(@Param("ids") Collection<Long> ids);
 
   @Query("select m from MotivoStatus m where m.disco.id in :ids order by m.data desc, m.id desc")

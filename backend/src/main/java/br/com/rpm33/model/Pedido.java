@@ -1,7 +1,9 @@
 package br.com.rpm33.model;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.hibernate.annotations.Fetch;
@@ -67,6 +69,10 @@ public class Pedido extends EntidadeDominio {
   @Column(precision = 10, scale = 2)
   private BigDecimal total;
 
+  /** RN0036: a diferença dos cupons, emitida como cupom de troca na aprovação. */
+  @Column(precision = 10, scale = 2)
+  private BigDecimal troco;
+
   @Embedded
   private EnderecoEntrega enderecoEntrega;
 
@@ -102,9 +108,17 @@ public class Pedido extends EntidadeDominio {
   @JsonProperty(access = Access.WRITE_ONLY)
   private Boolean salvarEnderecoNoPerfil;
 
-  /** RN0036: cupom de troca com o que os cupons passaram do total. */
+  /** RN0036: cupom de troca com o que os cupons passaram do total; nulo até a aprovação. */
   @Transient
   private Cupom cupomGerado;
+
+  /** RN0037 e RN0038: nulo enquanto o pedido está EM PROCESSAMENTO. */
+  @Transient
+  private ValidacaoPagamento validacao;
+
+  /** RF0041: os pedidos de troca desta compra. */
+  @Transient
+  private List<Troca> trocas = new ArrayList<>();
 
   public Cliente getCliente() {
     return cliente;
@@ -170,6 +184,14 @@ public class Pedido extends EntidadeDominio {
     this.total = total;
   }
 
+  public BigDecimal getTroco() {
+    return troco;
+  }
+
+  public void setTroco(BigDecimal troco) {
+    this.troco = troco;
+  }
+
   public EnderecoEntrega getEnderecoEntrega() {
     return enderecoEntrega;
   }
@@ -224,5 +246,21 @@ public class Pedido extends EntidadeDominio {
 
   public void setCupomGerado(Cupom cupomGerado) {
     this.cupomGerado = cupomGerado;
+  }
+
+  public ValidacaoPagamento getValidacao() {
+    return validacao;
+  }
+
+  public void setValidacao(ValidacaoPagamento validacao) {
+    this.validacao = validacao;
+  }
+
+  public List<Troca> getTrocas() {
+    return trocas;
+  }
+
+  public void setTrocas(List<Troca> trocas) {
+    this.trocas = trocas;
   }
 }

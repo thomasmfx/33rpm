@@ -22,8 +22,9 @@ import br.com.rpm33.repository.TipoCupomRepository;
 
 /**
  * Cupons do cliente: consulta para o checkout e para Meus cupons, geração do cupom de
- * troca (RN0036) e consumo na compra. Toda escrita aqui nasce de um pedido do cliente,
- * por isso o log leva o e-mail dele.
+ * troca (RN0036, RF0045) e consumo na compra. O consumo leva o e-mail do cliente no log;
+ * o cupom gerado leva quem o gerou: a validação do pagamento (RN0036) ou a curadoria, ao
+ * receber a troca (RF0045).
  */
 @Service("Cupom")
 public class CupomService implements IService {
@@ -41,7 +42,10 @@ public class CupomService implements IService {
     this.registradorLog = registradorLog;
   }
 
-  /** RN0036: o cupom de troca gerado pelo que os cupons passaram do total. */
+  /**
+   * O cupom de troca gerado pelo que os cupons passaram do total (RN0036) ou pelos itens
+   * de uma troca recebidos (RF0045).
+   */
   @Override
   @Transactional
   public Resultado salvar(EntidadeDominio entidade) {
@@ -78,8 +82,10 @@ public class CupomService implements IService {
     novo.setValor(entrada.getValor().setScale(2, RoundingMode.HALF_UP));
     novo.setIsUtilizado(false);
     novo.setPedidoOrigemId(entrada.getPedidoOrigemId());
+    novo.setTrocaOrigemId(entrada.getTrocaOrigemId());
     Cupom salvo = cupomRepository.save(novo);
-    registrar(OperacaoLog.INSERIR, salvo);
+    registrar(OperacaoLog.INSERIR, salvo, salvo.getTrocaOrigemId() == null
+        ? RegistradorLog.ROTINA_AUTOMATICA : RegistradorLog.CURADORIA);
     return Resultado.com(salvo);
   }
 
@@ -102,7 +108,7 @@ public class CupomService implements IService {
       return Resultado.erro("O cupom " + atual.getCodigo() + " já foi utilizado.");
     }
     atual.setIsUtilizado(entrada.getIsUtilizado());
-    registrar(OperacaoLog.ALTERAR, atual);
+    registrar(OperacaoLog.ALTERAR, atual, atual.getCliente().getEmail());
     return Resultado.com(atual);
   }
 
@@ -141,7 +147,7 @@ public class CupomService implements IService {
         : tipoCupomRepository.findByDescIgnoreCase(informado.getDesc().trim()).orElse(null);
   }
 
-  private void registrar(String operacao, Cupom cupom) {
+  private void registrar(String operacao, Cupom cupom, String usuario) {
     Map<String, Object> dados = new LinkedHashMap<>();
     dados.put("codigo", cupom.getCodigo());
     dados.put("tipo", cupom.getTipo().getDesc());
@@ -151,8 +157,11 @@ public class CupomService implements IService {
     if (cupom.getPedidoOrigemId() != null) {
       dados.put("pedidoOrigemId", cupom.getPedidoOrigemId());
     }
+    if (cupom.getTrocaOrigemId() != null) {
+      dados.put("trocaOrigemId", cupom.getTrocaOrigemId());
+    }
     registradorLog.registrar(operacao, Cupom.class.getSimpleName(), cupom.getId(), dados,
-        cupom.getCliente().getEmail());
+        usuario);
   }
 
   private static boolean vazio(String valor) {

@@ -9,7 +9,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-/** @EnableScheduling liga a inativação automática da RF0013 (DiscoService). */
+/**
+ * @EnableScheduling liga as rotinas: inativação automática (RF0013, DiscoService),
+ * expiração do carrinho (RN0044, CarrinhoService) e validação do pagamento (RN0037,
+ * PedidoService).
+ */
 @Configuration
 @EnableScheduling
 public class ConfiguracaoApp implements WebMvcConfigurer {

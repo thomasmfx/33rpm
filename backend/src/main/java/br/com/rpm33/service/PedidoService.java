@@ -2,6 +2,8 @@ package br.com.rpm33.service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -13,6 +15,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -28,23 +32,31 @@ import br.com.rpm33.model.Endereco;
 import br.com.rpm33.model.EnderecoEntrega;
 import br.com.rpm33.model.EntidadeDominio;
 import br.com.rpm33.model.Estado;
+import br.com.rpm33.model.ItemCarrinho;
 import br.com.rpm33.model.ItemPedido;
+import br.com.rpm33.model.MovimentoEstoque;
 import br.com.rpm33.model.OperacaoLog;
 import br.com.rpm33.model.PagamentoCartao;
 import br.com.rpm33.model.Pedido;
 import br.com.rpm33.model.PedidoFiltro;
+import br.com.rpm33.model.ProcessamentoPagamentos;
 import br.com.rpm33.model.StatusPedido;
 import br.com.rpm33.model.TipoCupom;
+import br.com.rpm33.model.Troca;
+import br.com.rpm33.model.ValidacaoPagamento;
 import br.com.rpm33.repository.ClienteRepository;
 import br.com.rpm33.repository.CupomRepository;
 import br.com.rpm33.repository.PedidoRepository;
 import br.com.rpm33.repository.StatusPedidoRepository;
+import br.com.rpm33.repository.TrocaRepository;
+import br.com.rpm33.repository.ValidacaoPagamentoRepository;
 import jakarta.persistence.EntityManager;
 
 /**
- * Criação do pedido (RF0033 a RF0038). A cotação do checkout e a gravação passam pela
- * mesma conferência; só a gravação escreve, e só depois de tudo conferido, porque
- * Resultado.erro não desfaz o que já tivesse sido gravado.
+ * Criação do pedido (RF0033 a RF0038), validação do pagamento (RN0037, RN0038) e as
+ * mudanças de status do administrador (RN0039, RN0040). A cotação do checkout e a
+ * gravação passam pela mesma conferência; só a gravação escreve, e só depois de tudo
+ * conferido, porque Resultado.erro não desfaz o que já tivesse sido gravado.
  */
 @Service("Pedido")
 public class PedidoService implements IService {
@@ -52,38 +64,56 @@ public class PedidoService implements IService {
   private static final BigDecimal ZERO = BigDecimal.ZERO.setScale(2);
   private static final BigDecimal FRETE_POR_QUILO = new BigDecimal("8.00");
 
+  /** RN0039 e RN0040: o único passo que o administrador dá a partir de cada status. */
+  private static final Map<String, String> AVANCO_ADMINISTRADOR = Map.of(
+      StatusPedido.APROVADA, StatusPedido.EM_TRANSPORTE,
+      StatusPedido.EM_TRANSPORTE, StatusPedido.ENTREGUE);
+
   private final ClienteRepository clienteRepository;
   private final PedidoRepository pedidoRepository;
   private final StatusPedidoRepository statusPedidoRepository;
   private final CupomRepository cupomRepository;
+  private final ValidacaoPagamentoRepository validacaoPagamentoRepository;
+  private final TrocaRepository trocaRepository;
   private final RegrasEndereco regrasEndereco;
   private final RegrasCartao regrasCartao;
   private final IService estoque;
   private final IService pagamento;
   private final IService cupons;
+  private final IService carrinho;
   private final RegistradorLog registradorLog;
   private final EntityManager entityManager;
+  private final Duration esperaOperadora;
 
   public PedidoService(ClienteRepository clienteRepository, PedidoRepository pedidoRepository,
       StatusPedidoRepository statusPedidoRepository, CupomRepository cupomRepository,
-      RegrasEndereco regrasEndereco, RegrasCartao regrasCartao,
+      ValidacaoPagamentoRepository validacaoPagamentoRepository,
+      TrocaRepository trocaRepository, RegrasEndereco regrasEndereco, RegrasCartao regrasCartao,
       @Qualifier("Estoque") IService estoque, @Qualifier("Pagamento") IService pagamento,
-      @Qualifier("Cupom") IService cupons, RegistradorLog registradorLog,
-      EntityManager entityManager) {
+      @Qualifier("Cupom") IService cupons, @Qualifier("Carrinho") IService carrinho,
+      RegistradorLog registradorLog, EntityManager entityManager,
+      @Value("${app.validacao-pagamento.espera}") Duration esperaOperadora) {
     this.clienteRepository = clienteRepository;
     this.pedidoRepository = pedidoRepository;
     this.statusPedidoRepository = statusPedidoRepository;
     this.cupomRepository = cupomRepository;
+    this.validacaoPagamentoRepository = validacaoPagamentoRepository;
+    this.trocaRepository = trocaRepository;
     this.regrasEndereco = regrasEndereco;
     this.regrasCartao = regrasCartao;
     this.estoque = estoque;
     this.pagamento = pagamento;
     this.cupons = cupons;
+    this.carrinho = carrinho;
     this.registradorLog = registradorLog;
     this.entityManager = entityManager;
+    this.esperaOperadora = esperaOperadora;
   }
 
-  /** RF0033, RF0036 e RF0038: grava o pedido EM PROCESSAMENTO, já conferido por inteiro. */
+  /**
+   * RF0033, RF0036 e RF0038: grava o pedido EM PROCESSAMENTO, já conferido por inteiro.
+   * RN0044: a partir daqui é o pedido que reserva os itens, e o carrinho se esvazia deles.
+   */
   @Override
   @Transactional
   public Resultado salvar(EntidadeDominio entidade) {
@@ -92,10 +122,7 @@ public class PedidoService implements IService {
     if (!conferencia.pendencias.isEmpty()) {
       return Resultado.erro(conferencia.pendencias);
     }
-    StatusPedido emProcessamento = statusPedidoRepository
-        .findByDescricao(StatusPedido.EM_PROCESSAMENTO)
-        .orElseThrow(() -> new IllegalStateException(
-            "Status EM PROCESSAMENTO ausente. Rode db/seed.sql."));
+    StatusPedido emProcessamento = status(StatusPedido.EM_PROCESSAMENTO);
     Cliente cliente = conferencia.cliente;
     String usuario = cliente.getEmail();
     Endereco enderecoDoPedido = incorporarAoPerfil(entrada, conferencia, usuario);
@@ -109,6 +136,8 @@ public class PedidoService implements IService {
     pedido.setSubtotal(conferencia.subtotal);
     pedido.setFrete(conferencia.frete);
     pedido.setTotal(conferencia.total);
+    // RN0036: só o valor; o cupom sai na aprovação (CDU03 P8.2 e O13)
+    pedido.setTroco(conferencia.composicao.getTroco());
     pedido.setEnderecoEntrega(fotografar(conferencia));
     for (ItemPedido conferido : conferencia.itens) {
       ItemPedido item = new ItemPedido();
@@ -146,20 +175,51 @@ public class PedidoService implements IService {
         return consumido;
       }
     }
-    Cupom cupomGerado = gerarCupomDeTroca(conferencia, pedido);
+    for (ItemPedido item : pedido.getItens()) {
+      ItemCarrinho comprado = new ItemCarrinho();
+      comprado.setClienteId(cliente.getId());
+      comprado.setDiscoId(item.getDiscoId());
+      exigir(carrinho.excluir(comprado));
+    }
 
     registradorLog.registrar(OperacaoLog.INSERIR, Pedido.class.getSimpleName(), pedido.getId(),
-        dadosDoLog(pedido, cupomGerado), usuario);
-    pedido.setCupomGerado(cupomGerado);
+        dadosDoLog(pedido), usuario);
     return Resultado.com(pedido);
   }
 
+  /**
+   * RN0039 e RN0040: o administrador despacha a compra aprovada e confirma a entrega. Com
+   * o pedido de processamento, a rotina da RN0037 roda na hora, sem esperar a operadora.
+   */
   @Override
+  @Transactional
   public Resultado alterar(EntidadeDominio entidade) {
-    return Resultado.erro("O pedido só é criado e consultado nesta fase.");
+    if (entidade instanceof ProcessamentoPagamentos) {
+      return Resultado.de(processarPagamentos(null));
+    }
+    Pedido entrada = (Pedido) entidade;
+    Pedido pedido =
+        entrada.getId() == null ? null : pedidoRepository.findById(entrada.getId()).orElse(null);
+    if (pedido == null) {
+      return Resultado.erro("Pedido não encontrado.");
+    }
+    String atual = pedido.getStatus().getDescricao();
+    String destino = entrada.getStatus() == null ? null : entrada.getStatus().getDescricao();
+    if (destino == null || !destino.equals(AVANCO_ADMINISTRADOR.get(atual))) {
+      return Resultado.erro(recusaDoAvanco(atual, destino));
+    }
+
+    pedido.setStatus(status(destino));
+    Map<String, Object> dados = new LinkedHashMap<>();
+    dados.put("statusAnterior", atual);
+    dados.put("status", destino);
+    registradorLog.registrar(OperacaoLog.ALTERAR, Pedido.class.getSimpleName(), pedido.getId(),
+        dados, RegistradorLog.CURADORIA);
+    preencher(List.of(pedido));
+    return Resultado.com(pedido);
   }
 
-  /** A cotação do checkout, a confirmação pelo id e Meus pedidos pelo cliente. */
+  /** A cotação do checkout, a confirmação pelo id, Meus pedidos e a curadoria. */
   @Override
   @Transactional(readOnly = true)
   public Resultado consultar(EntidadeDominio entidade) {
@@ -170,7 +230,7 @@ public class PedidoService implements IService {
       List<Pedido> pedidos = filtro.getClienteId() == null
           ? pedidoRepository.findAllByOrderByDataCadastroDescIdDesc()
           : pedidoRepository.findByClienteIdOrderByDataCadastroDescIdDesc(filtro.getClienteId());
-      preencherCuponsGerados(pedidos);
+      preencher(pedidos);
       return Resultado.de(pedidos);
     }
     Pedido pedido = (Pedido) entidade;
@@ -179,13 +239,104 @@ public class PedidoService implements IService {
     if (encontrado == null) {
       return Resultado.erro("Pedido não encontrado.");
     }
-    preencherCuponsGerados(List.of(encontrado));
+    preencher(List.of(encontrado));
     return Resultado.com(encontrado);
   }
 
   @Override
   public Resultado excluir(EntidadeDominio entidade) {
-    return Resultado.erro("O pedido só é criado e consultado nesta fase.");
+    return Resultado.erro("O pedido não é excluído: aprovado ou não, ele fica no histórico.");
+  }
+
+  /** RN0037 e RN0038: a operadora simulada responde aos pedidos que já esperaram o bastante. */
+  @Scheduled(fixedDelayString = "${app.validacao-pagamento.intervalo}")
+  @Transactional
+  public void validarPagamentosPendentes() {
+    processarPagamentos(LocalDateTime.now().minus(esperaOperadora));
+  }
+
+  // ------------------------------------------------------------------
+  // Validação do pagamento e status
+  // ------------------------------------------------------------------
+
+  /**
+   * Sem limite, todos os pendentes. A data do pedido vem do relógio do banco, então
+   * comparar com o da aplicação deixaria de fora o pedido gravado há um instante.
+   */
+  private List<Pedido> processarPagamentos(LocalDateTime feitosAte) {
+    List<Pedido> pendentes = feitosAte == null
+        ? pedidoRepository.findByStatusDescricaoOrderByIdAsc(StatusPedido.EM_PROCESSAMENTO)
+        : pedidoRepository.findByStatusDescricaoAndDataCadastroLessThanEqualOrderByIdAsc(
+            StatusPedido.EM_PROCESSAMENTO, feitosAte);
+    if (pendentes.isEmpty()) {
+      return pendentes;
+    }
+    StatusPedido aprovada = status(StatusPedido.APROVADA);
+    StatusPedido reprovada = status(StatusPedido.REPROVADA);
+    for (Pedido pedido : pendentes) {
+      validarPagamento(pedido, aprovada, reprovada);
+    }
+    preencher(pendentes);
+    return pendentes;
+  }
+
+  /**
+   * RN0037: cupons e operadora, pelo PagamentoService. RN0038: APROVADA ou REPROVADA.
+   * RF0053, RN0028 e RN0036 (CDU03 P8.2): só a aprovada baixa o estoque e emite o cupom
+   * da diferença; na reprovada, sair de EM PROCESSAMENTO já desbloqueia os itens, que
+   * nunca saíram do estoque, e os cupons voltam ao cliente, porque a compra não aconteceu.
+   */
+  private void validarPagamento(Pedido pedido, StatusPedido aprovada, StatusPedido reprovada) {
+    ValidacaoPagamento validacao = new ValidacaoPagamento();
+    validacao.setPedido(pedido);
+    validacao.setPedidoId(pedido.getId());
+    exigir(pagamento.consultar(validacao));
+    validacaoPagamentoRepository.save(validacao);
+
+    boolean aprovado = Boolean.TRUE.equals(validacao.getAprovado());
+    pedido.setStatus(aprovado ? aprovada : reprovada);
+    pedido.setValidacao(validacao);
+    String origem = "Pedido " + pedido.getId();
+    if (aprovado) {
+      exigir(estoque.alterar(MovimentoEstoque.de(MovimentoEstoque.BAIXA,
+          new ArrayList<>(pedido.getItens()), origem, RegistradorLog.ROTINA_AUTOMATICA)));
+      pedido.setCupomGerado(gerarCupomDeTroca(pedido));
+    } else {
+      for (Cupom usado : pedido.getCupons()) {
+        Cupom devolvido = new Cupom();
+        devolvido.setId(usado.getId());
+        devolvido.setIsUtilizado(false);
+        exigir(cupons.alterar(devolvido));
+      }
+    }
+
+    Map<String, Object> dados = new LinkedHashMap<>();
+    dados.put("statusAnterior", StatusPedido.EM_PROCESSAMENTO);
+    dados.put("status", pedido.getStatus().getDescricao());
+    if (!aprovado) {
+      dados.put("motivo", validacao.getMotivo());
+    }
+    if (pedido.getCupomGerado() != null) {
+      dados.put("cupomGerado", pedido.getCupomGerado().getCodigo());
+    }
+    registradorLog.registrar(OperacaoLog.ALTERAR, Pedido.class.getSimpleName(), pedido.getId(),
+        dados, RegistradorLog.ROTINA_AUTOMATICA);
+  }
+
+  private static String recusaDoAvanco(String atual, String destino) {
+    if (StatusPedido.EM_TRANSPORTE.equals(destino)) {
+      return "RN0039: só compras APROVADA seguem para EM TRANSPORTE; esta está " + atual + ".";
+    }
+    if (StatusPedido.ENTREGUE.equals(destino)) {
+      return "RN0040: só compras EM TRANSPORTE podem ser entregues; esta está " + atual + ".";
+    }
+    return "O administrador só despacha compras APROVADA e confirma a entrega das que estão "
+        + "EM TRANSPORTE.";
+  }
+
+  private StatusPedido status(String descricao) {
+    return statusPedidoRepository.findByDescricao(descricao).orElseThrow(
+        () -> new IllegalStateException("Status " + descricao + " ausente. Rode db/seed.sql."));
   }
 
   // ------------------------------------------------------------------
@@ -251,9 +402,13 @@ public class PedidoService implements IService {
     return conferencia;
   }
 
-  /** RN0031 (fig11 1.1.1.1.1), pelo EstoqueService; o subtotal usa o preço atual do banco. */
+  /**
+   * RN0031 e RN0044 (fig11 1.1.1.1.1), pelo EstoqueService; o subtotal usa o preço atual
+   * do banco. O carrinho do próprio cliente não conta contra a compra dele.
+   */
   private void conferirItens(Pedido entrada, Conferencia conferencia) {
     ConsultaDisponibilidade consulta = new ConsultaDisponibilidade();
+    consulta.setClienteId(entrada.getClienteId());
     consulta.setItens(new ArrayList<>(naoNulo(entrada.getItens())));
     conferencia.pendencias.addAll(estoque.consultar(consulta).getMensagens());
 
@@ -476,23 +631,22 @@ public class PedidoService implements IService {
   }
 
   /** RN0036: o que os cupons passaram do total volta ao cliente como cupom de troca. */
-  private Cupom gerarCupomDeTroca(Conferencia conferencia, Pedido pedido) {
-    BigDecimal troco = conferencia.composicao.getTroco();
-    if (troco.signum() == 0) {
+  private Cupom gerarCupomDeTroca(Pedido pedido) {
+    if (pedido.getTroco().signum() == 0) {
       return null;
     }
     TipoCupom troca = new TipoCupom();
     troca.setDesc(TipoCupom.TROCA);
     Cupom cupom = new Cupom();
-    cupom.setCliente(conferencia.cliente);
+    cupom.setCliente(pedido.getCliente());
     cupom.setTipo(troca);
     cupom.setCodigo("TROCA-P%06d".formatted(pedido.getId()));
-    cupom.setValor(troco);
+    cupom.setValor(pedido.getTroco());
     cupom.setPedidoOrigemId(pedido.getId());
     return (Cupom) exigir(cupons.salvar(cupom)).primeira();
   }
 
-  private Map<String, Object> dadosDoLog(Pedido pedido, Cupom cupomGerado) {
+  private Map<String, Object> dadosDoLog(Pedido pedido) {
     Map<String, Object> dados = new LinkedHashMap<>();
     dados.put("status", pedido.getStatus().getDescricao());
     dados.put("itens", pedido.getItens().stream()
@@ -507,23 +661,42 @@ public class PedidoService implements IService {
             "finalNumero", pago.getFinalNumero(), "valor", pago.getValor()))
         .toList());
     dados.put("cupons", pedido.getCupons().stream().map(Cupom::getCodigo).toList());
-    if (cupomGerado != null) {
-      dados.put("cupomGerado", cupomGerado.getCodigo());
-    }
+    dados.put("troco", pedido.getTroco());
     EnderecoEntrega entrega = pedido.getEnderecoEntrega();
     dados.put("endereco", entrega.getTipoLogradouro() + " " + entrega.getLogradouro() + ", "
         + entrega.getNumero() + " — " + entrega.getCidade() + "/" + entrega.getUf());
     return dados;
   }
 
-  private void preencherCuponsGerados(List<Pedido> pedidos) {
+  /** O cupom da RN0036, a validação da RN0037 e as trocas da RF0041 de cada pedido. */
+  private void preencher(List<Pedido> pedidos) {
     if (pedidos.isEmpty()) {
       return;
     }
-    Map<Long, Cupom> porPedido = cupomRepository
-        .findByPedidoOrigemIdIn(pedidos.stream().map(Pedido::getId).toList()).stream()
+    List<Long> ids = pedidos.stream().map(Pedido::getId).toList();
+    Map<Long, Cupom> cuponsGerados = cupomRepository.findByPedidoOrigemIdIn(ids).stream()
         .collect(Collectors.toMap(Cupom::getPedidoOrigemId, Function.identity()));
-    pedidos.forEach(pedido -> pedido.setCupomGerado(porPedido.get(pedido.getId())));
+    Map<Long, ValidacaoPagamento> validacoes = validacaoPagamentoRepository.findByPedidoIdIn(ids)
+        .stream().collect(Collectors.toMap(ValidacaoPagamento::getPedidoId, Function.identity()));
+    List<Troca> trocas = trocaRepository.findByPedidoIdInOrderByIdAsc(ids);
+    Map<Long, Cupom> cuponsDasTrocas = trocas.isEmpty() ? Map.of()
+        : cupomRepository.findByTrocaOrigemIdIn(trocas.stream().map(Troca::getId).toList())
+            .stream().collect(Collectors.toMap(Cupom::getTrocaOrigemId, Function.identity()));
+    Map<Long, List<Troca>> trocasPorPedido =
+        trocas.stream().collect(Collectors.groupingBy(Troca::getPedidoId));
+
+    for (Pedido pedido : pedidos) {
+      pedido.setCupomGerado(cuponsGerados.get(pedido.getId()));
+      if (pedido.getValidacao() == null) {
+        pedido.setValidacao(validacoes.get(pedido.getId()));
+      }
+      List<Troca> daCompra = trocasPorPedido.getOrDefault(pedido.getId(), List.of());
+      daCompra.forEach(troca -> {
+        troca.setClienteId(pedido.getClienteId());
+        troca.setCupomGerado(cuponsDasTrocas.get(troca.getId()));
+      });
+      pedido.setTrocas(daCompra);
+    }
   }
 
   /** As escritas internas já foram conferidas; uma recusa aqui é defeito, não regra. */

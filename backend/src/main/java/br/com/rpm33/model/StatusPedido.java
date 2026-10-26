@@ -13,6 +13,15 @@ public class StatusPedido {
 
   /** RF0038: todo pedido nasce neste status. */
   public static final String EM_PROCESSAMENTO = "EM PROCESSAMENTO";
+  /** RN0038: o resultado da validação do pagamento. */
+  public static final String APROVADA = "APROVADA";
+  public static final String REPROVADA = "REPROVADA";
+  public static final String EM_TRANSPORTE = "EM TRANSPORTE";
+  public static final String ENTREGUE = "ENTREGUE";
+  /** RN0041 a RN0042: valem para o pedido de troca e para a compra trocada inteira. */
+  public static final String EM_TROCA = "EM TROCA";
+  public static final String TROCA_AUTORIZADA = "TROCA AUTORIZADA";
+  public static final String TROCADO = "TROCADO";
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

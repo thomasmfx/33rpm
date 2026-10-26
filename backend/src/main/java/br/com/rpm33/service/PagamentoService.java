@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,12 +22,15 @@ import br.com.rpm33.model.ComposicaoPagamento;
 import br.com.rpm33.model.Cupom;
 import br.com.rpm33.model.EntidadeDominio;
 import br.com.rpm33.model.PagamentoCartao;
+import br.com.rpm33.model.Pedido;
 import br.com.rpm33.model.TipoCupom;
+import br.com.rpm33.model.ValidacaoPagamento;
 import br.com.rpm33.repository.CupomRepository;
 
 /**
  * Composição do pagamento (fig11, compor): cupons e cartões contra o total da compra,
- * pelas RN0033 a RN0036. Não grava nada; quem grava é o PedidoService.
+ * pelas RN0033 a RN0036. Validação depois da finalização (RN0037), com a operadora de
+ * cartão simulada. Não grava nada; quem grava é o PedidoService.
  */
 @Service("Pagamento")
 public class PagamentoService implements IService {
@@ -35,9 +39,12 @@ public class PagamentoService implements IService {
   private static final BigDecimal MINIMO_POR_CARTAO = new BigDecimal("10.00");
 
   private final CupomRepository cupomRepository;
+  private final List<String> cartoesRecusados;
 
-  public PagamentoService(CupomRepository cupomRepository) {
+  public PagamentoService(CupomRepository cupomRepository,
+      @Value("${app.operadora.cartoes-recusados}") List<String> cartoesRecusados) {
     this.cupomRepository = cupomRepository;
+    this.cartoesRecusados = cartoesRecusados;
   }
 
   @Override
@@ -57,6 +64,9 @@ public class PagamentoService implements IService {
   @Override
   @Transactional(readOnly = true)
   public Resultado consultar(EntidadeDominio entidade) {
+    if (entidade instanceof ValidacaoPagamento validacao) {
+      return validar(validacao);
+    }
     ComposicaoPagamento composicao = (ComposicaoPagamento) entidade;
     List<String> erros = new ArrayList<>();
     List<Cupom> cupons = conferirCupons(composicao, erros);
@@ -89,6 +99,44 @@ public class PagamentoService implements IService {
   @Override
   public Resultado excluir(EntidadeDominio entidade) {
     return Resultado.erro("O pagamento só é composto, dentro do pedido.");
+  }
+
+  /**
+   * RN0037: depois da finalização, cada cupom é conferido de novo — do cliente, consumido
+   * e usado só por esta compra —, cupons e cartões fecham o total, e cada cartão passa
+   * pelo aceite da operadora simulada, que recusa os números de app.operadora. A
+   * validação volta preenchida; reprovar não é erro da operação.
+   */
+  private Resultado validar(ValidacaoPagamento validacao) {
+    Pedido pedido = validacao.getPedido();
+    List<String> motivos = new ArrayList<>();
+    for (Cupom cupom : pedido.getCupons()) {
+      if (!cupom.getClienteId().equals(pedido.getClienteId())) {
+        motivos.add("O cupom " + cupom.getCodigo() + " não é do cliente.");
+      } else if (!Boolean.TRUE.equals(cupom.getIsUtilizado())
+          || cupomRepository.comprasQueUsaram(cupom.getId()) > 1) {
+        motivos.add("O cupom " + cupom.getCodigo() + " não vale para esta compra.");
+      }
+    }
+
+    // RN0036: a diferença guardada na finalização; o cupom dela só nasce se a compra passar
+    BigDecimal pago = pedido.getCupons().stream().map(Cupom::getValor).reduce(ZERO, BigDecimal::add)
+        .subtract(pedido.getTroco())
+        .add(pedido.getPagamentos().stream().map(PagamentoCartao::getValor)
+            .reduce(ZERO, BigDecimal::add));
+    if (pago.compareTo(pedido.getTotal()) != 0) {
+      motivos.add("Os pagamentos somam " + reais(pago) + " e a compra, " + reais(pedido.getTotal())
+          + ".");
+    }
+
+    for (PagamentoCartao cartao : pedido.getPagamentos()) {
+      if (cartoesRecusados.contains(cartao.getNumero())) {
+        motivos.add("A operadora recusou o cartão final " + cartao.getFinalNumero() + ".");
+      }
+    }
+    validacao.setAprovado(motivos.isEmpty());
+    validacao.setMotivo(motivos.isEmpty() ? null : String.join(" ", motivos));
+    return Resultado.com(validacao);
   }
 
   /** Cada cupom existe, é do cliente, não foi usado e aparece uma vez só. */
