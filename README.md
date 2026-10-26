@@ -16,12 +16,12 @@ discos por sonoridade, clima, estética e subgênero detalhado — "rap psicodé
 | Cadastro de clientes | **Completo de ponta a ponta**: React → API Spring Boot → PostgreSQL, com 44 testes Cypress. Inclui o auto-cadastro, a área "Minha conta" e o login do administrador, que guarda a curadoria |
 | Cadastro de discos e estoque | **Completo de ponta a ponta**, com 16 testes Cypress: cadastro, alteração, consulta com filtros, inativação manual e automática, ativação, entrada em estoque e preço pela margem do grupo. A vitrine e a Curadoria › Inventário leem da API |
 | Carrinho e criação de pedido | **Completo de ponta a ponta**, com 19 testes Cypress: carrinho com estoque decidido no servidor, checkout dirigido pela cotação do servidor (frete, cupons, vários cartões), pedido em EM PROCESSAMENTO, Meus pedidos e Meus cupons |
-| Pós-venda (status, trocas) e análise gerencial | Interface pronta, rodando sobre pedidos mockados em `localStorage` |
+| Vendas eletrônicas: bloqueio, status e trocas | **Completo de ponta a ponta**, com 32 testes Cypress: carrinho no servidor com bloqueio e expiração, validação do pagamento com operadora simulada, baixa em estoque, despacho e entrega pela curadoria, troca de item ou da compra inteira, notificação, cupom de troca e reentrada em estoque |
+| Análise gerencial | Interface pronta, rodando sobre pedidos mockados em `localStorage` |
 | Assistente de recomendação | Funciona local; com as chaves do Dify.ai preenchidas, passa a conversar pelo serviço |
 
-O backend cobre Cliente, Administrador, Disco, Estoque, Pedido, Pagamento e Cupom, todos
-atrás da mesma Fachada. Validação do pagamento, baixa em estoque, bloqueio do carrinho e
-trocas ficam para a próxima fase.
+O backend cobre Cliente, Administrador, Disco, Estoque, Carrinho, Pedido, Pagamento, Cupom,
+Troca e Notificação, todos atrás da mesma Fachada.
 
 ## Stack
 
@@ -74,11 +74,11 @@ Sobe o contêiner `33rpm-db` com PostgreSQL 16 + pgvector, publicado em **localh
 
 | Script | O que faz |
 |---|---|
-| [db/schema.sql](db/schema.sql) | o DDL, 34 tabelas |
+| [db/schema.sql](db/schema.sql) | o DDL, 37 tabelas |
 | [db/seed.sql](db/seed.sql) | tabelas de domínio do RNF0013: gênero, tipo de telefone, bandeira, as 27 unidades federativas, operações de log, status do pedido, tipos de cupom, grupos de precificação, fornecedores, formatos, edições, categorias de status, artistas, gravadoras, gêneros e estilos |
 | [db/clientes.sql](db/clientes.sql) | cinco clientes de demonstração, com telefone, endereço e cartão |
 | [db/administradores.sql](db/administradores.sql) | o administrador da demonstração |
-| [db/cupons.sql](db/cupons.sql) | cupons de troca e promocionais dos clientes — a única carga direta de dado de negócio, liberada porque a geração de cupons de troca está fora desta fase |
+| [db/cupons.sql](db/cupons.sql) | cupons de troca e promocionais com que a demonstração começa — a única carga direta de dado de negócio, liberada pelo professor; os gerados pela troca e pela sobra de cupons nascem das operações |
 
 Os discos **não** entram por SQL: na primeira subida do backend com o acervo vazio, a
 `CargaAcervo` cadastra os 69 discos e as entradas em estoque de
@@ -127,8 +127,8 @@ Carla é a inativa de propósito: é com ela que se demonstra o bloqueio de aces
 Diego é o caso de cobrança e entrega em endereços distintos (RN0021 e RN0022) e de cartão
 preferencial entre dois (RF0027).
 
-Os cupons da Ana fecham os cenários de pagamento com um disco entregue em São Paulo,
-onde o frete fica em R$ 28,00:
+Os cupons da Ana fecham os cenários de pagamento com um disco entregue em São Paulo, e
+o do Bruno, com um entregue no Rio de Janeiro; nos dois, o frete fica em R$ 28,00:
 
 | Cupom | Tipo | Valor | Cenário |
 |---|---|---:|---|
@@ -136,6 +136,7 @@ onde o frete fica em R$ 28,00:
 | `TROCA-AP-045` | troca | 45,00 | somado ao `TROCA-AP-300`, torna o `PROMO-AP-20` dispensável num total de R$ 327,00 (RN0036) |
 | `PROMO-AP-20` | promocional | 20,00 | com o `PROMO-AP-50`, são dois promocionais (RN0033) |
 | `PROMO-AP-50` | promocional | 50,00 | com o `TROCA-AP-300`, passa de R$ 327,00 e gera R$ 23,00 de troca (RN0036) |
+| `PROMO-BT-280` | promocional | 280,00 | do Bruno: sozinho, deixa R$ 7,00 para um cartão num total de R$ 287,00 no Rio de Janeiro (RN0035) |
 
 Frete (RF0034): tarifa da região da UF de destino — Sudeste 20, Sul 25, Centro-Oeste 30,
 Nordeste 35, Norte 45 — mais R$ 8,00 por quilo iniciado do peso dos discos.
@@ -147,7 +148,7 @@ curl -X POST http://localhost:8080/api/dev/reset      # PowerShell: curl.exe -X 
 ```
 
 Esse endpoint, que só existe no perfil `dev`, é o que os testes usam: ele limpa clientes,
-pedidos, cupons, discos e log, deixa **apenas os três primeiros** clientes, recadastra o
+carrinhos, pedidos, trocas, notificações, cupons, discos e log, deixa **apenas os três primeiros** clientes, recadastra o
 acervo pela Fachada e recria os cupons da Ana e do Bruno — leva cerca de 1,5 s. O
 administrador não é tocado. Para ter os cinco clientes de volta, recrie o volume
 com `docker compose down -v && docker compose up -d`.
@@ -167,7 +168,7 @@ Loja em **localhost:3300** (porta fixa, definida em `frontend/vite.config.ts`).
 
 Clientes e discos são buscados quando a página abre. Se você rodou o `dev/reset` ou
 recriou o banco com a loja aberta, recarregue a página: os ids de disco e os pedidos mock
-da curadoria são derivados do que veio da API.
+do dashboard são derivados do que veio da API.
 
 ### Encerrar
 
@@ -224,9 +225,11 @@ Com os três serviços no ar e a massa carregada:
 | `/cadastro` | auto-cadastro em três etapas (Conta, Dados pessoais, Endereço), com o CEP preenchendo o endereço pelo ViaCEP; o cliente já entra na loja ao concluir |
 | `/perfil` | o próprio cliente altera dados, endereços (cobrança e entrega), cartões e senha, gravando na API |
 | `/curadoria/inventario` | cadastrar disco (RF0011), consultar com filtros (RF0015), alterar e baixar o preço com aval (RF0014, RN0014), entrada em estoque com prévia do preço (RF0051, RF0052, RN0051), inativar e reativar com motivo (RF0012, RF0016), inativação automática (RF0013) |
-| `/disco/:id` → `/carrinho` → `/checkout` | como a Ana: quantidade na inclusão e no carrinho (RF0031, RF0032), teto do estoque (RN0031), endereço e cartão do perfil ou novos (RF0035, RF0036), frete (RF0034), cupons e vários cartões (RN0033 a RN0036) |
-| `/pedidos` e `/cupons` | o pedido em EM PROCESSAMENTO (RF0038) e o cupom de troca gerado pela sobra dos cupons |
-| terminal | `npm run demo` — o roteiro do professor no Cypress, passo a passo; `npm run e2e` — os 86 testes contra a pilha real |
+| `/disco/:id` → `/carrinho` → `/checkout` | como a Ana: quantidade na inclusão e no carrinho (RF0031, RF0032), teto do estoque (RN0031), bloqueio com contador e aviso 5 minutos antes do fim (RN0044), endereço e cartão do perfil ou novos (RF0035, RF0036), frete (RF0034), cupons e vários cartões (RN0033 a RN0036) |
+| `/pedidos` e `/cupons` | o pedido em EM PROCESSAMENTO (RF0038), depois APROVADA ou REPROVADA com o motivo (RN0038); a troca de itens ou da compra inteira de um pedido ENTREGUE (RF0041, RN0041, RN0043); os cupons de troca da sobra (RN0036) e da troca recebida (RF0045) |
+| sino no cabeçalho | a notificação da troca autorizada (RN0046) |
+| `/curadoria/pedidos` | validar os pagamentos pendentes na hora (RN0037), despachar e confirmar a entrega (RF0039, RF0040), o chip **Trocas** com os pedidos EM TROCA (RF0043), autorizar (RF0042) e confirmar o recebimento informando se os itens voltam ao estoque (RF0044, RF0054) |
+| terminal | `npm run demo` — o roteiro do professor no Cypress, passo a passo; `npm run e2e` — os 118 testes contra a pilha real |
 | banco | `docker compose exec db psql -U 33rpm -d 33rpm -c "SELECT codigo, nome, is_ativo FROM cliente;"` — a prova de que a tela escreveu no PostgreSQL |
 
 ## Testes de interface
@@ -260,15 +263,20 @@ npm run demo:lento              # a mesma suíte, sem pausas e devagar
 | `pedido/compra.cy.ts` | 4 | RF0033 a RF0036, RF0038, RN0023 a RN0025 |
 | `pedido/pagamento.cy.ts` | 7 | RF0036, RF0037, RN0033 a RN0036 |
 | `pedido/finalizacao.cy.ts` | 3 | RF0038, RNF0011, RNF0012 |
+| `pedido/bloqueio.cy.ts` | 6 | RN0032, RN0044, RN0045, RNF0042 |
+| `pedido/validacao.cy.ts` | 5 | RN0028, RN0036, RN0037, RN0038, RF0053, RNF0012 |
+| `pedido/status.cy.ts` | 3 | RF0039, RF0040, RN0039, RN0040, RNF0011 |
+| `pedido/troca.cy.ts` | 7 | RF0041 a RF0045, RF0054, RN0041, RN0042, RN0046, RNF0012 |
 | `demonstracao/criacao-de-pedido/` | 7 | o roteiro mínimo do professor, um spec por item |
+| `demonstracao/vendas-eletronicas/` | 11 | o roteiro mínimo do professor da fase de vendas, um spec por item |
 
 ### Suíte de demonstração
 
 `cypress/e2e/demonstracao/` guarda, por fase entregue, um spec para cada item do roteiro do
 professor, com o texto do roteiro como nome do teste ("livro" lido como "disco"). Os testes
 são divididos em etapas com o requisito que cada uma mostra, e cada um usa discos que a
-suíte de regressão não usa. A próxima fase entra numa pasta nova ao lado de
-`criacao-de-pedido/`.
+suíte de regressão não usa. Cada fase tem a sua pasta: `criacao-de-pedido/` e
+`vendas-eletronicas/`.
 
 No Cypress a unidade de execução é o arquivo: clicar num spec roda todos os testes dele, e
 não há botão para rodar um teste só. Por isso a demonstração tem um teste por arquivo, e o
@@ -352,12 +360,24 @@ Todas as escritas passam pela Fachada e devolvem a entidade afetada, ou `400` co
 | `POST` | `/api/estoque/entradas` | registrar entrada em estoque (RF0051, RF0052, RN0051) |
 | `GET` | `/api/estoque/entradas?discoId=` | histórico de entradas |
 | `POST` | `/api/estoque/entradas/previa` | prévia do preço e do estoque, sem gravar |
-| `POST` | `/api/estoque/disponibilidade` | confere quantidades contra o estoque (RN0031) |
+| `POST` | `/api/estoque/disponibilidade` | confere quantidades contra o estoque livre, descontado o que está bloqueado (RN0031, RN0044) |
+| `GET` | `/api/carrinhos/{clienteId}` | o carrinho: itens, expirados e segundos até o bloqueio vencer (RN0044, RNF0042) |
+| `POST` | `/api/carrinhos/{clienteId}/itens` | incluir `{ discoId, quantidade }`, somando e renovando o prazo (RF0031, RF0032, RN0044) |
+| `PUT` · `DELETE` | `/api/carrinhos/{clienteId}/itens/{discoId}` | alterar a quantidade, renovando o prazo só quando ela aumenta · tirar o disco |
+| `DELETE` | `/api/carrinhos/{clienteId}` · `/api/carrinhos/{clienteId}/expirados` | esvaziar · dispensar os expirados (RNF0042) |
+| `POST` | `/api/carrinhos/{clienteId}/revalidacao` | ajusta o carrinho ao estoque e devolve os `ajustes` (RN0032) |
 | `POST` | `/api/pedidos/cotacao` | subtotal, frete, total, restante, troco e pendências da compra, sem gravar |
 | `POST` | `/api/pedidos` | criar o pedido em EM PROCESSAMENTO (RF0033, RF0038) |
-| `GET` | `/api/pedidos/{id}` · `/api/pedidos?clienteId=` | carregar um pedido · pedidos do cliente |
+| `GET` | `/api/pedidos/{id}` · `/api/pedidos?clienteId=` · `/api/pedidos` | carregar um pedido · pedidos do cliente · todos, para a curadoria; com `validacao` e `trocas` |
+| `POST` | `/api/pedidos/validacao-pagamento` | valida agora os pagamentos EM PROCESSAMENTO, sem esperar a operadora (RN0037, RN0038) |
+| `PUT` | `/api/pedidos/{id}/status` | `{ status: { descricao } }`: EM TRANSPORTE (RN0039) ou ENTREGUE (RN0040) |
+| `POST` | `/api/trocas` | pedir a troca de `itens` (`itemPedidoId`, `quantidade`) ou da `compraInteira` (RF0041, RN0041, RN0043) |
+| `GET` | `/api/trocas?status=&clienteId=&pedidoId=` | pedidos de troca (RF0043) |
+| `PUT` | `/api/trocas/{id}/status` | TROCA AUTORIZADA (RF0042) ou TROCADO com `retornoEstoque` (RF0044, RF0045, RF0054) |
+| `GET` | `/api/notificacoes?clienteId=` · `PUT /api/notificacoes/{id}/leitura` | notificações do cliente · marcar como lida (RN0046) |
 | `GET` | `/api/cupons?clienteId=` | cupons do cliente |
 | `POST` | `/api/dev/reset` | recarrega a massa de teste (só no perfil `dev`) |
+| `POST` | `/api/dev/carrinhos/{clienteId}/envelhecer?minutos=` | o carrinho fica como se os minutos tivessem passado, para mostrar a expiração (só no perfil `dev`) |
 | `GET` | `/api/dev/logs?entidade=&entidadeId=` | registros do RNF0012 (só no perfil `dev`) |
 
 Exemplo de cadastro. Os domínios trafegam como objeto — `genero`, `tipo` do telefone,
@@ -431,12 +451,30 @@ db/          schema.sql, seed.sql e as cargas de demonstração do PostgreSQL
 frontend/    aplicação React, com a suíte Cypress em frontend/cypress
 ```
 
-Os documentos da disciplina (DRS, DVP, backlog, rastreabilidade e diagramas) são entregues à
-parte e não ficam no repositório. Os IDs de requisito citados no código e nos testes vêm do
-DRS (Documento de Requisitos do Sistema).
+Os documentos da disciplina (DRS, DVP, casos de uso, backlog, rastreabilidade e diagramas)
+são entregues à parte e não ficam no repositório. Os IDs de requisito citados no código e
+nos testes vêm do DRS (Documento de Requisitos do Sistema). Nas vendas eletrônicas, o caso
+de uso CDU03 – Gestão de Vendas é a fonte da verdade: onde o DRS é ambíguo, vale a leitura
+registrada nas observações dele.
 
 O DRS foi escrito para um e-commerce de livros; a adaptação para discos preserva a
 numeração original dos requisitos. Onde o documento diz "livro", leia "disco".
+
+A atividade de vendas eletrônicas cita os requisitos com outra numeração a partir da
+finalização da compra. O código e os testes seguem o DRS do projeto; a correspondência:
+
+| Atividade | DRS do projeto | Requisito |
+|---|---|---|
+| RF0037 | RF0038 | finalizar a compra em EM PROCESSAMENTO |
+| RF0038 | RF0039 | despachar: EM TRANSPORTE |
+| RF0039 | RF0040 | confirmar a entrega: ENTREGUE |
+| RF0040 | RF0041 | solicitar troca |
+| RF0041 | RF0042 | autorizar troca |
+| RF0042 | RF0043 | visualizar trocas |
+| RF0043 | RF0044 | confirmar o recebimento |
+| RF0044 | RF0045 | gerar o cupom de troca |
+| RNF0045 | RN0045 | retirar do carrinho os itens desbloqueados |
+| RNF0046 | RN0046 | notificar a troca autorizada |
 
 ## Arquitetura
 
@@ -464,10 +502,24 @@ resposta imediata, mas quem decide é sempre o servidor.
   `/curadoria` fica só no React: a API continua aberta, sem JWT nem sessão no servidor.
 - **Cliente não é excluído, é inativado.** O DRS só prevê a inativação (RF0023), e as
   chaves estrangeiras de `pedido` e `cupom` impedem o delete físico de quem tem histórico.
-- **Testes automatizados cobrem cliente, disco, estoque e criação de pedido.**
-- **Fora desta fase:** validação do pagamento e status seguintes, baixa em estoque, bloqueio
-  e expiração do carrinho e trocas. O pós-venda da curadoria e o dashboard seguem sobre
-  pedidos mockados.
+- **Testes automatizados cobrem cliente, disco, estoque, criação de pedido e vendas
+  eletrônicas.**
+- **O carrinho mora no servidor e exige sessão de cliente.** O bloqueio da RN0044 é de um
+  cliente: sem sessão, incluir um disco leva ao login. O prazo (15 min) e o aviso (5 min
+  antes) ficam em `app.carrinho` no `application.yml`; uma rotina derruba os carrinhos
+  vencidos a cada 15 s, e toda leitura do carrinho já considera o prazo. Incluir um disco
+  ou aumentar a quantidade renova o prazo; reduzir não (CDU03 A1.3).
+- **A operadora de cartão é simulada (decisão do grupo).** Como nos sandboxes de
+  pagamento, os números de `app.operadora.cartoes-recusados` (padrão
+  `4000 0000 0000 0002`) são recusados e qualquer outro é aceito. A rotina da RN0037
+  valida a cada 10 s os pedidos com 30 s ou mais; a Curadoria › Pedidos valida na hora.
+- **Compra reprovada devolve os cupons usados nela.** O DRS fala só dos itens (RN0028);
+  como a compra não aconteceu, os cupons voltam ao cliente (decisão do grupo).
+- **O cupom da diferença (RN0036) é emitido na aprovação.** A finalização só guarda o
+  valor em `pedido.troco`; a compra reprovada não deixa crédito (CDU03 P8.2 e O13).
+- **A troca não é recusada nem estornada.** O DRS só prevê a autorização (RF0042); o
+  administrador informa no recebimento se os itens voltam ao estoque (RF0044).
+- **O dashboard e a recomendação seguem sobre pedidos mockados**, fora desta fase.
 - **Deploy não foi definido.** O `docker-compose.yml` da raiz sobe a pilha inteira em
   contêiner, mas só para demonstração local: não há registro de imagens, TLS, segredos
   fora do arquivo nem servidor de destino.
