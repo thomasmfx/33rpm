@@ -8,6 +8,8 @@ export interface CupomApi {
   tipo: { id?: number; desc: string };
   valor: number;
   isUtilizado: boolean;
+  pedidoOrigemId?: number | null;
+  trocaOrigemId?: number | null;
 }
 
 export function paraCupom(bruto: CupomApi): Cupom {
@@ -18,6 +20,8 @@ export function paraCupom(bruto: CupomApi): Cupom {
     valor: bruto.valor,
     clienteId: String(bruto.clienteId),
     isUtilizado: bruto.isUtilizado,
+    pedidoOrigemId: bruto.pedidoOrigemId ? String(bruto.pedidoOrigemId) : null,
+    trocaOrigemId: bruto.trocaOrigemId ? String(bruto.trocaOrigemId) : null,
   };
 }
 

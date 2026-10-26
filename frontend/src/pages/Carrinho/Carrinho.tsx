@@ -1,6 +1,6 @@
 import styles from './Carrinho.module.scss';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { Alert, Button } from '@mantine/core';
 import { useLoja } from '../../contexts/loja';
 import EstadoVazio from '../../components/EstadoVazio/EstadoVazio';
@@ -8,7 +8,6 @@ import AvisoReserva from '../../components/AvisoReserva/AvisoReserva';
 import Capa from '../../components/Capa/Capa';
 import Quantidade from '../../components/Quantidade/Quantidade';
 import { EsqueletoPagina } from '../../components/Esqueleto/Esqueleto';
-import type { AjusteCarrinho } from '../../utils/carrinho';
 import { formatarBRL } from '../../utils/precificacao';
 import { nomeFormato } from '../../utils/catalogo';
 import { estoqueAcabando } from '../../utils/estoque';
@@ -20,22 +19,26 @@ function Carrinho() {
     discos,
     carregandoDiscos,
     carregandoSessao,
+    carregandoCarrinho,
+    clienteAtivo,
     itensNoCarrinho,
     alterarQuantidade,
     removerDoCarrinho,
     limparCarrinho,
     itensExpirados,
+    prazoReservaMinutos,
+    readicionarExpirados,
     descartarItensExpirados,
-    sincronizarCarrinho,
-    adicionarAoCarrinho,
+    revalidarCarrinho,
   } = useLoja();
   const navegar = useNavigate();
 
-  const [ajustes, setAjustes] = useState<AjusteCarrinho[]>([]);
+  const [ajustes, setAjustes] = useState<string[]>([]);
   const [recusa, setRecusa] = useState<string[]>([]);
+  const [isConferindo, setIsConferindo] = useState(false);
 
-  // o carrinho é de quem está na sessão: antes dela chegar, seria o do admin
-  if (carregandoDiscos || carregandoSessao) {
+  // o carrinho é do cliente da sessão e vem do servidor
+  if (carregandoDiscos || carregandoSessao || carregandoCarrinho) {
     return (
       <main className={styles.main}>
         <EsqueletoPagina comAside blocos={[120, 120]} />
@@ -43,15 +46,21 @@ function Carrinho() {
     );
   }
 
+  if (!clienteAtivo) {
+    return <Navigate to="/login" state={{ depois: '/carrinho' }} replace />;
+  }
+
   const itens = itensDoCarrinho(carrinho, discos);
   const subtotal = calcularSubtotal(itens);
+  // RNF0042: com itens expirados à espera, comprar fica desabilitado
+  const compraBloqueada = itensExpirados.length > 0;
 
   async function handleReadicionarExpirados(): Promise<void> {
-    const recusas = await Promise.all(
-      itensExpirados.map((item) => adicionarAoCarrinho(item.discoId, item.quantidade)),
-    );
-    setRecusa(recusas.flat());
-    descartarItensExpirados();
+    setRecusa(await readicionarExpirados());
+  }
+
+  async function handleDispensarExpirados(): Promise<void> {
+    setRecusa(await descartarItensExpirados());
   }
 
   // RN0031: a quantidade nova só vale depois que o servidor aceita
@@ -59,9 +68,19 @@ function Carrinho() {
     setRecusa(await alterarQuantidade(discoId, quantidade));
   }
 
-  // RN0032: o estoque pode ter mudado; ajusta e avisa antes de seguir
-  function handleFinalizarCompra(): void {
-    const novosAjustes = sincronizarCarrinho();
+  async function handleRemover(discoId: number): Promise<void> {
+    setRecusa(await removerDoCarrinho(discoId));
+  }
+
+  async function handleEsvaziar(): Promise<void> {
+    setRecusa(await limparCarrinho());
+  }
+
+  // RN0032: o estoque pode ter mudado; o servidor ajusta e a tela avisa antes de seguir
+  async function handleFinalizarCompra(): Promise<void> {
+    setIsConferindo(true);
+    const novosAjustes = await revalidarCarrinho();
+    setIsConferindo(false);
     if (novosAjustes.length > 0) {
       setAjustes(novosAjustes);
       return;
@@ -69,26 +88,38 @@ function Carrinho() {
     navegar('/checkout');
   }
 
-  // RN0045: o que caiu por expiração pode voltar com um clique
+  // RN0045 e RNF0042: o que caiu por expiração aparece aqui e volta com um clique
   const alertaExpirados = itensExpirados.length > 0 && (
     <Alert color="red" title="Itens removidos por expiração" data-testid="alerta-expirados">
       <div className={styles.alertaCorpo}>
-        <span>O prazo de reserva acabou e estes discos saíram do seu carrinho:</span>
+        <span>
+          O prazo de reserva de {prazoReservaMinutos} minutos acabou e estes discos saíram do
+          seu carrinho. Para comprar, inclua-os de novo ou dispense-os:
+        </span>
         <ul>
           {itensExpirados.map((item) => {
             const disco = discos.find((candidato) => candidato.id === item.discoId);
             return (
-              <li key={item.discoId}>
+              <li key={item.discoId} data-testid="item-expirado" data-disco-id={item.discoId}>
                 {disco?.title ?? 'Disco indisponível'} · {item.quantidade}×
               </li>
             );
           })}
         </ul>
         <div className={styles.alertaAcoes}>
-          <Button size="xs" onClick={() => void handleReadicionarExpirados()}>
+          <Button
+            size="xs"
+            data-testid="btn-readicionar-expirados"
+            onClick={() => void handleReadicionarExpirados()}
+          >
             Adicionar novamente
           </Button>
-          <Button size="xs" variant="default" onClick={descartarItensExpirados}>
+          <Button
+            size="xs"
+            variant="default"
+            data-testid="btn-dispensar-expirados"
+            onClick={() => void handleDispensarExpirados()}
+          >
             Dispensar
           </Button>
         </div>
@@ -129,7 +160,7 @@ function Carrinho() {
               type="button"
               className={styles.esvaziar}
               data-testid="btn-esvaziar-carrinho"
-              onClick={limparCarrinho}
+              onClick={() => void handleEsvaziar()}
             >
               Esvaziar
             </button>
@@ -139,13 +170,9 @@ function Carrinho() {
           {alertaRecusa}
 
           {ajustes.length > 0 && (
-            <Alert color="orange" title="Carrinho ajustado ao estoque">
+            <Alert color="orange" title="Carrinho ajustado ao estoque" data-testid="alerta-ajustes">
               {ajustes.map((ajuste) => (
-                <div key={ajuste.discoId}>
-                  {ajuste.quantidadeNova > 0
-                    ? `${ajuste.titulo}: ${ajuste.quantidadeAnterior} → ${ajuste.quantidadeNova} unidade(s)`
-                    : `${ajuste.titulo}: removido, sem estoque`}
-                </div>
+                <div key={ajuste}>{ajuste}</div>
               ))}
             </Alert>
           )}
@@ -198,7 +225,7 @@ function Carrinho() {
                     className={styles.remover}
                     aria-label={`Remover ${disco.title}`}
                     data-testid="btn-remover-item"
-                    onClick={() => removerDoCarrinho(disco.id)}
+                    onClick={() => void handleRemover(disco.id)}
                   >
                     Remover
                   </button>
@@ -229,11 +256,18 @@ function Carrinho() {
           <Button
             size="lg"
             fullWidth
+            disabled={compraBloqueada}
+            loading={isConferindo}
             data-testid="btn-finalizar-compra"
-            onClick={handleFinalizarCompra}
+            onClick={() => void handleFinalizarCompra()}
           >
             Finalizar compra
           </Button>
+          {compraBloqueada && (
+            <span className={styles.apagado} data-testid="motivo-compra-bloqueada">
+              Inclua de novo ou dispense os itens expirados para comprar (RNF0042).
+            </span>
+          )}
           <Button variant="default" fullWidth component={Link} to="/acervo">
             Continuar explorando
           </Button>

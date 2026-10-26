@@ -175,6 +175,46 @@
   }
 }
 
+.notificacoes {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border: 0;
+  background: none;
+  color: var(--cor-papel);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--cor-selo-claro);
+  }
+
+  .contador {
+    position: absolute;
+    top: -8px;
+    right: -10px;
+  }
+}
+
+.notificacao {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  white-space: normal;
+  font-weight: 500;
+
+  &[data-lida] {
+    font-weight: 400;
+    opacity: 0.7;
+  }
+}
+
+.notificacaoData {
+  font-family: var(--fonte-mono);
+  font-size: 11px;
+  opacity: 0.7;
+}
+
 .contador {
   min-width: 22px;
   height: 22px;

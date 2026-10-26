@@ -1,16 +1,18 @@
 import styles from './Curadoria.module.scss';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useLoja } from '../../contexts/loja';
-import { precisaDeAcao } from '../../utils/pedido';
+import { pedidoPrecisaDeAcao, trocaPrecisaDeAcao } from '../../utils/pedido';
 import { ArrowLeft, ChartLine, Delivery, Catalog, Logout, UserMultiple } from '@carbon/icons-react';
 
 function Curadoria() {
   const {
     clientes,
     discos,
-    pedidos,
+    pedidosCuradoria,
+    trocasCuradoria,
     carregandoClientes,
     carregandoDiscos,
+    carregandoCuradoria,
     administradorAtivo,
     sairDaSessao,
   } = useLoja();
@@ -38,9 +40,11 @@ function Curadoria() {
       rota: 'pedidos',
       rotulo: 'Pedidos',
       icone: <Delivery size={20} />,
-      // os pedidos de demonstração nascem dos clientes e dos discos, então esperam por eles
-      contagem:
-        carregandoClientes || carregandoDiscos ? null : pedidos.filter(precisaDeAcao).length,
+      // compras a despachar ou entregar e trocas a autorizar ou receber
+      contagem: carregandoCuradoria
+        ? null
+        : pedidosCuradoria.filter(pedidoPrecisaDeAcao).length +
+          trocasCuradoria.filter(trocaPrecisaDeAcao).length,
     },
     { rota: 'dashboard', rotulo: 'Dashboard', icone: <ChartLine size={20} />, contagem: null },
   ];

@@ -103,8 +103,8 @@ function PedidoConfirmado({ id, cliente }: Readonly<{ id: string; cliente: Clien
           </span>
           <h1>Pedido recebido, {primeiroNome}.</h1>
           <p>
-            O pagamento passa agora pela conferência da curadoria. Você acompanha cada etapa em
-            Meus pedidos.
+            Agora a loja confere os cupons e aguarda o aceite da operadora do cartão. Você
+            acompanha cada etapa em Meus pedidos.
           </p>
           <span data-testid="pedido-status" data-status={pedido.status}>
             <StatusPonto cor={corDoStatus(pedido.status)}>
@@ -117,16 +117,16 @@ function PedidoConfirmado({ id, cliente }: Readonly<{ id: string; cliente: Clien
         </div>
       </div>
 
-      {pedido.cupomGerado && (
+      {/* RN0036: o cupom da diferença sai na aprovação; aqui a compra ainda está em processamento */}
+      {pedido.troco > 0 && (
         <Alert
           color="green"
-          title="Sobrou crédito"
-          data-testid="cupom-gerado"
-          data-codigo={pedido.cupomGerado.codigo}
-          data-valor={String(pedido.cupomGerado.valor)}
+          title="Sobra crédito"
+          data-testid="aviso-diferenca"
+          data-valor={String(pedido.troco)}
         >
-          A diferença dos cupons virou o cupom {pedido.cupomGerado.codigo}, no valor de{' '}
-          {formatarBRL(pedido.cupomGerado.valor)} (RN0036). Ele já está em Meus cupons.
+          A diferença de {formatarBRL(pedido.troco)} entre os cupons e o total volta como cupom
+          de troca assim que o pagamento for aprovado (RN0036).
         </Alert>
       )}
 

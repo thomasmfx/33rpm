@@ -81,9 +81,16 @@ function EtapaCheckout({ numero, atual, titulo, resumo, onAlterar, children }: R
 }
 
 function Checkout() {
-  const { clienteAtivo, carregandoClientes, carregandoDiscos, carrinho } = useLoja();
+  const {
+    clienteAtivo,
+    carregandoClientes,
+    carregandoDiscos,
+    carregandoCarrinho,
+    carrinho,
+    itensExpirados,
+  } = useLoja();
 
-  if (carregandoClientes || carregandoDiscos) {
+  if (carregandoClientes || carregandoDiscos || carregandoCarrinho) {
     return (
       <main className={styles.main}>
         <EsqueletoPagina comAside blocos={[72, 72, 72]} />
@@ -93,6 +100,20 @@ function Checkout() {
 
   if (!clienteAtivo) {
     return <Navigate to="/login" state={{ depois: '/checkout' }} replace />;
+  }
+
+  // RNF0042: a reserva venceu durante o checkout; os itens esperam no carrinho
+  if (itensExpirados.length > 0) {
+    return (
+      <main className={styles.main}>
+        <EstadoVazio
+          titulo="A reserva do carrinho expirou"
+          descricao="Os discos saíram do carrinho pelo prazo. Inclua-os de novo no carrinho para finalizar a compra."
+          rotuloAcao="Ver o carrinho"
+          paraAcao="/carrinho"
+        />
+      </main>
+    );
   }
 
   if (carrinho.length === 0) {
@@ -121,7 +142,7 @@ function PaginaCheckout({ cliente }: Readonly<{ cliente: Cliente }>) {
     discos,
     meusCupons,
     itensNoCarrinho,
-    limparCarrinho,
+    recarregarCarrinho,
     recarregarClientes,
     recarregarCupons,
     recarregarPedidos,
@@ -323,11 +344,16 @@ function PaginaCheckout({ cliente }: Readonly<{ cliente: Cliente }>) {
     setErrosPedido([]);
     try {
       const pedido = await criarPedido(corpo);
-      // sai do checkout antes de esvaziar o carrinho, senão o "carrinho vazio" pisca no caminho
+      // sai do checkout antes de o carrinho chegar vazio, senão o "carrinho vazio" pisca
       await navegar(`/pedidos/${pedido.id}/confirmacao`, { flushSync: true });
-      limparCarrinho();
-      // RF0035 e RF0036: endereço e cartão incorporados e cupons gastos vêm do servidor
-      void Promise.all([recarregarClientes(), recarregarCupons(), recarregarPedidos()]);
+      // RN0044: o servidor tirou do carrinho o que agora o pedido reserva. RF0035 e RF0036:
+      // endereço e cartão incorporados e cupons gastos também vêm do servidor
+      void Promise.all([
+        recarregarCarrinho(),
+        recarregarClientes(),
+        recarregarCupons(),
+        recarregarPedidos(),
+      ]);
     } catch (erro) {
       setErrosPedido(erro instanceof ErroApi ? erro.mensagens : ['Falha ao registrar o pedido.']);
       setIsEnviando(false);

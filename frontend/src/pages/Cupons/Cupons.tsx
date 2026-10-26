@@ -1,5 +1,5 @@
 import styles from './Cupons.module.scss';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Alert } from '@mantine/core';
 import { useLoja } from '../../contexts/loja';
@@ -25,13 +25,26 @@ const SECOES: { tipo: TipoCupom; titulo: string; descricao: string }[] = [
 
 function origemDoCupom(cupom: Cupom): string {
   if (cupom.isUtilizado) return 'Já utilizado em uma compra';
-  return cupom.tipo === 'troca' ? 'Crédito de troca ou sobra de cupons' : 'Campanha da loja';
+  if (cupom.trocaOrigemId) return `Troca #${cupom.trocaOrigemId} recebida pela loja`;
+  if (cupom.pedidoOrigemId) return `Sobra dos cupons do pedido #${cupom.pedidoOrigemId}`;
+  return cupom.tipo === 'troca' ? 'Crédito de troca' : 'Campanha da loja';
 }
 
 function Cupons() {
-  const { clienteAtivo, carregandoClientes, meusCupons, carregandoMeusCupons, erroMeusCupons } =
-    useLoja();
+  const {
+    clienteAtivo,
+    carregandoClientes,
+    meusCupons,
+    carregandoMeusCupons,
+    erroMeusCupons,
+    recarregarCupons,
+  } = useLoja();
   const [copiado, setCopiado] = useState<string | null>(null);
+
+  // RF0045: o cupom da troca nasce quando a curadoria confirma o recebimento, fora desta tela
+  useEffect(() => {
+    void recarregarCupons();
+  }, [recarregarCupons]);
 
   if (carregandoClientes || carregandoMeusCupons) {
     return (

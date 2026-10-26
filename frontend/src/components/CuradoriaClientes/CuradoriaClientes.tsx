@@ -33,9 +33,9 @@ import {
 } from '../../utils/perfilCliente';
 import { mascararCpf } from '../../utils/texto';
 import { formatarDataBR } from '../../utils/estoque';
-import { CORES_STATUS, pedidosDoCliente, ROTULOS_STATUS } from '../../utils/pedido';
+import { corDoStatus, rotuloDoStatus } from '../../utils/pedido';
 import { formatarBRL } from '../../utils/precificacao';
-import type { Pedido } from '../../types/pedido';
+import type { PedidoCliente } from '../../types/pedido';
 import type { EstadoPedidos } from '../CuradoriaPedidos/CuradoriaPedidos';
 import { ErroApi } from '../../services/api';
 import {
@@ -73,7 +73,7 @@ function Ranking({ valor }: Readonly<{ valor: number }>) {
 interface DetalhesClienteProps {
   cliente: Cliente;
   /** Do mais recente ao mais antigo. */
-  pedidos: Pedido[];
+  pedidos: PedidoCliente[];
   onFechar: () => void;
   onEditar: () => void;
   onNavegarComo: () => void;
@@ -171,8 +171,8 @@ function DetalhesCliente({
               >
                 <span className={styles.pedidoNumero}>{pedido.id}</span>
                 <span className={styles.numero}>{FORMATO_DATA.format(new Date(pedido.data))}</span>
-                <StatusPonto cor={CORES_STATUS[pedido.status]}>
-                  {ROTULOS_STATUS[pedido.status]}
+                <StatusPonto cor={corDoStatus(pedido.status)}>
+                  {rotuloDoStatus(pedido.status)}
                 </StatusPonto>
                 <span className={`${styles.preco} ${styles.direita}`}>
                   {formatarBRL(pedido.total)}
@@ -218,7 +218,7 @@ function DetalhesCliente({
 function CuradoriaClientes() {
   const {
     clientes: todosClientes,
-    pedidos,
+    pedidosCuradoria,
     carregandoClientes,
     recarregarClientes,
     entrarComoCliente,
@@ -515,7 +515,7 @@ function CuradoriaClientes() {
         {clienteEmDetalhe && (
           <DetalhesCliente
             cliente={clienteEmDetalhe}
-            pedidos={pedidosDoCliente(pedidos, clienteEmDetalhe.id)}
+            pedidos={pedidosCuradoria.filter((pedido) => pedido.clienteId === clienteEmDetalhe.id)}
             onFechar={() => setClienteEmDetalhe(null)}
             onEditar={() => handleAbrirEdicaoCliente(clienteEmDetalhe)}
             onNavegarComo={() => void handleEntrarComoCliente(clienteEmDetalhe.id)}

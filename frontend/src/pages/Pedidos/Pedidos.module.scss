@@ -189,6 +189,65 @@
   }
 }
 
+.statusLinha {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nota {
+  font-size: 13px;
+  color: var(--cor-auxiliar);
+}
+
+.troca {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid var(--cor-divisoria);
+  font-size: 14px;
+}
+
+.trocaTopo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.trocaBloqueada {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.formTroca {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 560px;
+  padding: 20px;
+  border: 1px solid var(--cor-vinil);
+}
+
+.modosTroca {
+  display: flex;
+  gap: 24px;
+}
+
+.itemTroca {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.acoesTroca {
+  display: flex;
+  gap: 12px;
+}
+
 .total {
   display: flex;
   justify-content: space-between;

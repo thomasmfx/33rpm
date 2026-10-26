@@ -5,6 +5,8 @@ import { ErroApi, requisitar } from './api';
 import { enderecoParaApi } from './clientesService';
 import { paraCupom } from './cuponsService';
 import type { CupomApi } from './cuponsService';
+import { paraTroca } from './trocasService';
+import type { TrocaApi } from './trocasService';
 
 /** O que o cliente escolheu no checkout, no vocabulário da tela. */
 export interface EscolhaPedido {
@@ -58,6 +60,7 @@ interface PedidoApi {
   subtotal: number;
   frete: number;
   total: number;
+  troco: number;
   enderecoId?: number | null;
   enderecoEntrega: {
     nome: string;
@@ -73,6 +76,7 @@ interface PedidoApi {
     observacoes?: string | null;
   };
   itens: {
+    id: number;
     discoId: number;
     titulo: string;
     artista: string;
@@ -90,6 +94,8 @@ interface PedidoApi {
   }[];
   cupons: CupomApi[];
   cupomGerado?: CupomApi | null;
+  validacao?: { aprovado: boolean; motivo?: string | null; dataCadastro: string } | null;
+  trocas?: TrocaApi[];
 }
 
 function paraPedidoCliente(bruto: PedidoApi): PedidoCliente {
@@ -101,6 +107,7 @@ function paraPedidoCliente(bruto: PedidoApi): PedidoCliente {
     data: bruto.dataCadastro,
     status: bruto.status.descricao,
     itens: bruto.itens.map((item) => ({
+      id: String(item.id),
       discoId: item.discoId,
       titulo: item.titulo,
       artista: item.artista,
@@ -138,7 +145,16 @@ function paraPedidoCliente(bruto: PedidoApi): PedidoCliente {
       ultimosDigitos: pagamento.finalNumero,
       valor: pagamento.valor,
     })),
+    troco: bruto.troco,
     cupomGerado: bruto.cupomGerado ? paraCupom(bruto.cupomGerado) : null,
+    validacao: bruto.validacao
+      ? {
+          aprovado: bruto.validacao.aprovado,
+          motivo: bruto.validacao.motivo ?? null,
+          data: bruto.validacao.dataCadastro,
+        }
+      : null,
+    trocas: (bruto.trocas ?? []).map(paraTroca),
   };
 }
 
@@ -172,5 +188,31 @@ export async function buscarPedido(id: string): Promise<PedidoCliente | null> {
 /** Mais recente primeiro. */
 export async function listarPedidos(clienteId: string): Promise<PedidoCliente[]> {
   const brutos = await requisitar<PedidoApi[]>(`/pedidos?clienteId=${clienteId}`);
+  return brutos.map(paraPedidoCliente);
+}
+
+/** A curadoria: os pedidos de todos os clientes, mais recente primeiro. */
+export async function listarTodosPedidos(): Promise<PedidoCliente[]> {
+  const brutos = await requisitar<PedidoApi[]>('/pedidos');
+  return brutos.map(paraPedidoCliente);
+}
+
+/** RN0039 (EM TRANSPORTE) e RN0040 (ENTREGUE); a recusa vem como ErroApi. */
+export async function avancarPedido(
+  id: string,
+  status: 'EM TRANSPORTE' | 'ENTREGUE',
+): Promise<PedidoCliente> {
+  const bruto = await requisitar<PedidoApi>(`/pedidos/${id}/status`, {
+    method: 'PUT',
+    body: JSON.stringify({ status: { descricao: status } }),
+  });
+  return paraPedidoCliente(bruto);
+}
+
+/** RN0037 e RN0038: valida agora os pedidos EM PROCESSAMENTO; devolve os que mudaram. */
+export async function validarPagamentosPendentes(): Promise<PedidoCliente[]> {
+  const brutos = await requisitar<PedidoApi[]>('/pedidos/validacao-pagamento', {
+    method: 'POST',
+  });
   return brutos.map(paraPedidoCliente);
 }

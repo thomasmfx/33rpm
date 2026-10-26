@@ -220,7 +220,7 @@
   color: var(--cor-selo);
 }
 
-// Caixa de decisão: conferência de pagamento, troca e recebimento. O CSS do
+// Caixa de decisão: validação do pagamento, troca e recebimento. O CSS do
 // tema entra depois dos módulos das telas e vence no empate de especificidade,
 // por isso as sobreposições de componente Mantine vão aninhadas
 .caixa {
@@ -264,67 +264,6 @@
   color: var(--cor-auxiliar);
 }
 
-.verificacao {
-  display: grid;
-  grid-template-columns: 20px minmax(0, 1fr);
-  gap: 12px;
-  align-items: start;
-}
-
-.marca {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--cor-sucesso);
-  color: var(--cor-branco);
-  font-size: 11px;
-  line-height: 1;
-
-  &[data-falhou] {
-    background: var(--cor-erro);
-  }
-}
-
-.verificacaoTexto {
-  display: flex;
-  flex-direction: column;
-
-  strong {
-    font-size: 14px;
-  }
-
-  span {
-    font-size: 13px;
-    color: var(--cor-auxiliar);
-  }
-}
-
-.botoesCaixa {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding-top: 6px;
-
-  .botaoRecusa[data-variant='default'] {
-    color: var(--cor-erro);
-    border-color: var(--cor-erro-borda);
-    font-weight: 400;
-
-    &:hover:not(:disabled, [data-disabled]) {
-      color: var(--cor-erro-texto);
-      border-color: var(--cor-erro);
-    }
-
-    &:disabled,
-    &[data-disabled] {
-      color: var(--mantine-color-disabled-color);
-    }
-  }
-}
-
 .botaoSozinho {
   align-self: flex-start;
 }
@@ -333,16 +272,4 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
-
-.evento {
-  display: grid;
-  grid-template-columns: 90px minmax(0, 1fr);
-  gap: 12px;
-  font-size: 13px;
-
-  > :first-child {
-    font-family: var(--fonte-mono);
-    color: var(--cor-auxiliar);
-  }
 }

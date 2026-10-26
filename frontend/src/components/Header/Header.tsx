@@ -2,8 +2,16 @@ import styles from "./Header.module.scss";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Menu, Skeleton } from "@mantine/core";
-import { Dashboard, Login, Logout, Search, ShoppingCart, User, UserFollow } from "@carbon/icons-react";
+import { Dashboard, Login, Logout, Notification, Search, ShoppingCart, User, UserFollow } from "@carbon/icons-react";
 import { useLoja } from "../../contexts/loja";
+import type { Notificacao } from "../../types/notificacao";
+
+const FORMATO_DATA_NOTIFICACAO = new Intl.DateTimeFormat('pt-BR', {
+  day: '2-digit',
+  month: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+});
 
 function Header() {
   const {
@@ -13,6 +21,8 @@ function Header() {
     carregandoClientes,
     carregandoSessao,
     sairDaSessao,
+    minhasNotificacoes,
+    marcarNotificacaoComoLida,
   } = useLoja();
   // quem está na sessão, seja cliente ou administrador
   const usuario = clienteAtivo ?? administradorAtivo;
@@ -23,6 +33,54 @@ function Header() {
     evento.preventDefault();
     const termo = busca.trim();
     navegar(termo ? `/acervo?busca=${encodeURIComponent(termo)}` : '/acervo');
+  }
+
+  // RN0046: abrir a notificação marca como lida e leva à compra de que ela fala
+  function handleAbrirNotificacao(notificacao: Notificacao) {
+    if (!notificacao.isLida) void marcarNotificacaoComoLida(notificacao.id);
+    navegar('/pedidos', { state: { abrir: notificacao.pedidoId } });
+  }
+
+  function renderNotificacoes() {
+    const naoLidas = minhasNotificacoes.filter((notificacao) => !notificacao.isLida).length;
+
+    return (
+      <Menu width={320} position="bottom-end">
+        <Menu.Target>
+          <button
+            type="button"
+            className={styles.notificacoes}
+            aria-label="Notificações"
+            data-testid="btn-notificacoes"
+          >
+            <Notification size={20} />
+            {naoLidas > 0 && (
+              <span className={styles.contador} data-testid="contador-notificacoes">
+                {naoLidas}
+              </span>
+            )}
+          </button>
+        </Menu.Target>
+        <Menu.Dropdown>
+          {minhasNotificacoes.length === 0 && <Menu.Label>Nenhuma notificação por enquanto.</Menu.Label>}
+          {minhasNotificacoes.map((notificacao) => (
+            <Menu.Item
+              key={notificacao.id}
+              data-testid="notificacao-item"
+              data-lida={String(notificacao.isLida)}
+              onClick={() => handleAbrirNotificacao(notificacao)}
+            >
+              <span className={styles.notificacao} data-lida={notificacao.isLida || undefined}>
+                <span>{notificacao.mensagem}</span>
+                <span className={styles.notificacaoData}>
+                  {FORMATO_DATA_NOTIFICACAO.format(new Date(notificacao.data))}
+                </span>
+              </span>
+            </Menu.Item>
+          ))}
+        </Menu.Dropdown>
+      </Menu>
+    );
   }
 
   function renderSessao() {
@@ -142,6 +200,7 @@ function Header() {
         </form>
 
         <div className={styles.acoes}>
+          {clienteAtivo && renderNotificacoes()}
           {renderSessao()}
           <Link
             to="/carrinho"

@@ -2,26 +2,42 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Cliente } from '../types/cliente';
 import type { Disco } from '../types/disco';
-import type { ItemCarrinho } from '../types/carrinho';
-import type { Cupom } from '../types/cupom';
-import type { Pedido, ValidacaoPagamento } from '../types/pedido';
+import type { Carrinho } from '../types/carrinho';
+import type { Pedido, PedidoCliente, TrocaPedido } from '../types/pedido';
 import type { Administrador, RespostaSessao, Sessao } from '../types/sessao';
-import { gerarCupons } from '../utils/cuponsMock';
 import { gerarPedidos } from '../utils/pedidosMock';
 import { FILTROS_VAZIOS } from '../utils/filtrarClientes';
 import { ErroApi } from '../services/api';
 import { listarClientes } from '../services/clientesService';
 import { buscarAdministrador } from '../services/administradoresService';
 import { listarDiscos } from '../services/discosService';
-import { consultarDisponibilidade } from '../services/estoqueService';
-import { listarPedidos } from '../services/pedidosService';
+import { listarPedidos, listarTodosPedidos } from '../services/pedidosService';
 import { listarCupons } from '../services/cuponsService';
+import { listarTrocas } from '../services/trocasService';
+import { listarNotificacoes, marcarComoLida } from '../services/notificacoesService';
 import {
-  ajustarAoEstoque,
-  estaExpirado,
-  minutosRestantes,
-} from '../utils/carrinho';
+  alterarItemDoCarrinho,
+  buscarCarrinho,
+  dispensarExpirados,
+  esvaziarCarrinho,
+  incluirNoCarrinho,
+  revalidarCarrinho as revalidarNoServidor,
+  tirarDoCarrinho,
+} from '../services/carrinhoService';
 import { LojaContext } from './loja';
+
+// carrinho, notificações e a fila da curadoria mudam no servidor (a expiração da RN0044,
+// a validação da RN0037, a autorização da troca): a loja confere de tempos em tempos
+const INTERVALO_ATUALIZACAO_MS = 15_000;
+
+/** Até a primeira resposta do servidor; os prazos reais vêm com o carrinho. */
+const CARRINHO_VAZIO: Carrinho = {
+  itens: [],
+  expirados: [],
+  expiraEm: null,
+  prazoMinutos: 15,
+  avisoMinutos: 5,
+};
 
 function ler<T>(nome: string, padrao: T): T {
   try {
@@ -47,14 +63,8 @@ function mensagemDe(erro: unknown, padrao: string): string {
   return erro instanceof Error ? erro.message : padrao;
 }
 
-/** RN0031: o servidor decide se a quantidade total do disco cabe no estoque. */
-async function recusaDoEstoque(discoId: number, quantidade: number): Promise<string[] | null> {
-  try {
-    await consultarDisponibilidade([{ discoId, quantidade }]);
-    return null;
-  } catch (erro) {
-    return erro instanceof ErroApi ? erro.mensagens : ['Falha ao consultar o estoque.'];
-  }
+function mensagensDe(erro: unknown, padrao: string): string[] {
+  return erro instanceof ErroApi ? erro.mensagens : [padrao];
 }
 
 /**
@@ -110,16 +120,16 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
     id: string;
     dados: Administrador | null;
   } | null>(null);
-  // um carrinho por cliente, mais o do admin quando nenhum perfil está simulado
-  const [carrinhos, setCarrinhos] = useState<Record<string, ItemCarrinho[]>>(() =>
-    ler('carrinhos', {}),
-  );
-  const [cupons, setCupons] = useState<Cupom[]>(() => ler('cupons', []));
-  const [carrinhoAtualizadoEm, setCarrinhoAtualizadoEm] = useState<string | null>(
-    () => ler('carrinhoAtualizadoEm', null),
-  );
-  const [itensExpirados, setItensExpirados] = useState<ItemCarrinho[]>([]);
-  const [agora, setAgora] = useState(() => Date.now());
+  // de quem é o carrinho que chegou, como nas listas do cliente
+  const [carrinhoCarregado, setCarrinhoCarregado] = useState<{
+    clienteId: string;
+    dados: Carrinho;
+  } | null>(null);
+  const [curadoria, setCuradoria] = useState<{
+    pedidos: PedidoCliente[];
+    trocas: TrocaPedido[];
+    erro: string | null;
+  } | null>(null);
   const [pedidos, setPedidos] = useState<Pedido[]>(() => ler('pedidos', []));
 
   // RF0023: inativar o cliente derruba a sessão dele na hora
@@ -142,21 +152,19 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
     'Falha ao carregar os pedidos.',
   );
   const meusCupons = useDoCliente(clienteAtivoId, listarCupons, 'Falha ao carregar os cupons.');
-  const chaveCarrinho = clienteAtivo?.id ?? 'admin';
-  const carrinho = useMemo(
-    () => carrinhos[chaveCarrinho] ?? [],
-    [carrinhos, chaveCarrinho],
+  const minhasNotificacoes = useDoCliente(
+    clienteAtivoId,
+    listarNotificacoes,
+    'Falha ao carregar as notificações.',
   );
 
-  const setCarrinho = useCallback(
-    (atualizar: (itens: ItemCarrinho[]) => ItemCarrinho[]) => {
-      setCarrinhos((todos) => ({
-        ...todos,
-        [chaveCarrinho]: atualizar(todos[chaveCarrinho] ?? []),
-      }));
-    },
-    [chaveCarrinho],
-  );
+  const carrinhoDoCliente =
+    clienteAtivoId !== null && carrinhoCarregado?.clienteId === clienteAtivoId
+      ? carrinhoCarregado.dados
+      : null;
+  const carrinho = useMemo(() => carrinhoDoCliente?.itens ?? [], [carrinhoDoCliente]);
+  const itensExpirados = useMemo(() => carrinhoDoCliente?.expirados ?? [], [carrinhoDoCliente]);
+  const carrinhoExpiraEm = carrinhoDoCliente?.expiraEm ?? null;
 
   // RF0023: cliente inativo perde o acesso à loja. Usado pela curadoria: o
   // administrador deixa a própria sessão e passa a navegar como o cliente.
@@ -246,9 +254,8 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
   }, [recarregarDiscos]);
 
   /**
-   * A massa de demonstração da curadoria continua mockada, mas aponta para
-   * clientes e discos do banco: se os ids não baterem — banco recriado, por
-   * exemplo — ela é regerada.
+   * A massa de demonstração do Dashboard continua mockada, mas aponta para clientes e
+   * discos do banco: se os ids não baterem — banco recriado, por exemplo — ela é regerada.
    */
   useEffect(() => {
     if (clientes.length === 0 || discos.length === 0) return;
@@ -265,173 +272,139 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
         ? atuais
         : gerarPedidos(clientes, discos),
     );
-    setCupons((atuais) =>
-      atuais.length > 0 &&
-      atuais.every((cupom) => cupom.clienteId === null || ids.has(cupom.clienteId))
-        ? atuais
-        : gerarCupons(clientes),
-    );
   }, [clientes, discos]);
 
-  useEffect(() => gravar('carrinhos', carrinhos), [carrinhos]);
   useEffect(() => gravar('sessao', sessao), [sessao]);
-  useEffect(() => gravar('cupons', cupons), [cupons]);
-  useEffect(
-    () => gravar('carrinhoAtualizadoEm', carrinhoAtualizadoEm),
-    [carrinhoAtualizadoEm],
-  );
-
-  /**
-   * Um relógio só para toda a árvore: faz a contagem do bloqueio andar e, no
-   * mesmo tique, derruba o carrinho vencido (RN0044) guardando o que saiu para
-   * a tela poder reoferecer (RN0045 e RNF0042).
-   *
-   * A verificação mora no callback do timer, não no corpo do efeito: setState
-   * síncrono em efeito encadeia renders, e aqui a fonte da mudança é externa.
-   */
-  useEffect(() => {
-    const intervalo = setInterval(() => {
-      const momento = Date.now();
-      setAgora(momento);
-
-      if (carrinho.length > 0 && estaExpirado(carrinhoAtualizadoEm, momento)) {
-        setItensExpirados(carrinho);
-        setCarrinho(() => []);
-        setCarrinhoAtualizadoEm(null);
-      }
-    }, 15_000);
-
-    return () => clearInterval(intervalo);
-  }, [carrinho, carrinhoAtualizadoEm, setCarrinho]);
   useEffect(() => gravar('pedidos', pedidos), [pedidos]);
 
+  const recarregarCarrinho = useCallback(async () => {
+    if (!clienteAtivoId) return;
+    try {
+      setCarrinhoCarregado({ clienteId: clienteAtivoId, dados: await buscarCarrinho(clienteAtivoId) });
+    } catch {
+      // sem o servidor, o carrinho que já estava na tela fica; vazio só na primeira carga
+      setCarrinhoCarregado((atual) =>
+        atual?.clienteId === clienteAtivoId ? atual : { clienteId: clienteAtivoId, dados: CARRINHO_VAZIO },
+      );
+    }
+  }, [clienteAtivoId]);
+
+  const recarregarCuradoria = useCallback(async () => {
+    try {
+      const [todos, trocas] = await Promise.all([listarTodosPedidos(), listarTrocas()]);
+      setCuradoria({ pedidos: todos, trocas, erro: null });
+    } catch (erro) {
+      const mensagem = mensagemDe(erro, 'Falha ao carregar os pedidos.');
+      setCuradoria((atual) => ({
+        pedidos: atual?.pedidos ?? [],
+        trocas: atual?.trocas ?? [],
+        erro: mensagem,
+      }));
+    }
+  }, []);
+
+  const recarregarNotificacoes = minhasNotificacoes.recarregar;
+  useEffect(() => {
+    if (!clienteAtivoId && !isSessaoDeAdministrador) return;
+    // as notificações já carregam com a sessão; o carrinho e a curadoria, aqui
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void (clienteAtivoId ? recarregarCarrinho() : recarregarCuradoria());
+    const intervalo = setInterval(() => {
+      if (clienteAtivoId) {
+        void recarregarCarrinho();
+        void recarregarNotificacoes();
+      } else {
+        void recarregarCuradoria();
+      }
+    }, INTERVALO_ATUALIZACAO_MS);
+    return () => clearInterval(intervalo);
+  }, [
+    clienteAtivoId,
+    isSessaoDeAdministrador,
+    recarregarCarrinho,
+    recarregarNotificacoes,
+    recarregarCuradoria,
+  ]);
+
+  // RN0044: no fim do prazo o servidor já derrubou o carrinho; busca sem esperar o tique
+  useEffect(() => {
+    if (carrinhoExpiraEm === null) return;
+    const espera = setTimeout(
+      () => void recarregarCarrinho(),
+      Math.max(0, carrinhoExpiraEm - Date.now()) + 1000,
+    );
+    return () => clearTimeout(espera);
+  }, [carrinhoExpiraEm, recarregarCarrinho]);
+
+  /** Toda escrita no carrinho devolve o carrinho inteiro, que substitui o da tela. */
+  const mudarCarrinho = useCallback(
+    async (mudanca: (clienteId: string) => Promise<Carrinho>): Promise<string[]> => {
+      if (!clienteAtivoId) return ['Entre com uma conta de cliente para usar o carrinho.'];
+      try {
+        const dados = await mudanca(clienteAtivoId);
+        setCarrinhoCarregado({ clienteId: clienteAtivoId, dados });
+        return [];
+      } catch (erro) {
+        return mensagensDe(erro, 'Falha ao atualizar o carrinho.');
+      }
+    },
+    [clienteAtivoId],
+  );
 
   const adicionarAoCarrinho = useCallback(
-    async (discoId: number, quantidade: number) => {
-      const total =
-        (carrinho.find((item) => item.discoId === discoId)?.quantidade ?? 0) + quantidade;
-      const recusa = await recusaDoEstoque(discoId, total);
-      if (recusa) return recusa;
-
-      // o relógio precisa acompanhar, senão a primeira contagem sai defasada
-      setAgora(Date.now());
-      setCarrinhoAtualizadoEm(new Date().toISOString());
-      setCarrinho((itens) =>
-        itens.some((item) => item.discoId === discoId)
-          ? itens.map((item) =>
-              item.discoId === discoId ? { ...item, quantidade: total } : item,
-            )
-          : [...itens, { discoId, quantidade: total }],
-      );
-      return [];
-    },
-    [carrinho, setCarrinho],
+    (discoId: number, quantidade: number) =>
+      mudarCarrinho((clienteId) => incluirNoCarrinho(clienteId, discoId, quantidade)),
+    [mudarCarrinho],
   );
 
   const alterarQuantidade = useCallback(
-    async (discoId: number, quantidade: number) => {
-      if (quantidade <= 0) {
-        setCarrinho((itens) => itens.filter((item) => item.discoId !== discoId));
-        return [];
-      }
-
-      const recusa = await recusaDoEstoque(discoId, quantidade);
-      if (recusa) return recusa;
-
-      setCarrinho((itens) =>
-        itens.map((item) => (item.discoId === discoId ? { ...item, quantidade } : item)),
-      );
-      return [];
-    },
-    [setCarrinho],
+    (discoId: number, quantidade: number) =>
+      mudarCarrinho((clienteId) =>
+        quantidade <= 0
+          ? tirarDoCarrinho(clienteId, discoId)
+          : alterarItemDoCarrinho(clienteId, discoId, quantidade),
+      ),
+    [mudarCarrinho],
   );
 
   const removerDoCarrinho = useCallback(
-    (discoId: number) => {
-      setCarrinho((itens) => itens.filter((item) => item.discoId !== discoId));
-    },
-    [setCarrinho],
+    (discoId: number) => mudarCarrinho((clienteId) => tirarDoCarrinho(clienteId, discoId)),
+    [mudarCarrinho],
   );
 
-  const limparCarrinho = useCallback(() => setCarrinho(() => []), [setCarrinho]);
+  const limparCarrinho = useCallback(() => mudarCarrinho(esvaziarCarrinho), [mudarCarrinho]);
 
-  const sincronizarCarrinho = useCallback(() => {
-    const resultado = ajustarAoEstoque(carrinho, discos);
-    if (resultado.ajustes.length > 0) {
-      setCarrinho(() => resultado.carrinho);
+  const descartarItensExpirados = useCallback(
+    () => mudarCarrinho(dispensarExpirados),
+    [mudarCarrinho],
+  );
+
+  // RNF0042: um por vez, porque cada inclusão confere o estoque livre de novo
+  const readicionarExpirados = useCallback(async () => {
+    const recusas: string[] = [];
+    for (const item of itensExpirados) {
+      recusas.push(...(await adicionarAoCarrinho(item.discoId, item.quantidade)));
     }
-    return resultado.ajustes;
-  }, [carrinho, discos, setCarrinho]);
+    return recusas;
+  }, [itensExpirados, adicionarAoCarrinho]);
 
-  const descartarItensExpirados = useCallback(() => setItensExpirados([]), []);
+  const revalidarCarrinho = useCallback(async () => {
+    if (!clienteAtivoId) return [];
+    try {
+      const { carrinho: dados, ajustes } = await revalidarNoServidor(clienteAtivoId);
+      setCarrinhoCarregado({ clienteId: clienteAtivoId, dados });
+      return ajustes;
+    } catch (erro) {
+      return mensagensDe(erro, 'Falha ao conferir o carrinho com o estoque.');
+    }
+  }, [clienteAtivoId]);
 
-  const minutosParaExpirar =
-    carrinho.length > 0 ? minutosRestantes(carrinhoAtualizadoEm, agora) : null;
-
-
-
-  const atualizarPedido = useCallback(
-    (pedidoId: string, mudanca: Partial<Pedido>) => {
-      setPedidos((atuais) =>
-        atuais.map((pedido) =>
-          pedido.id === pedidoId ? { ...pedido, ...mudanca } : pedido,
-        ),
-      );
+  const marcarNotificacaoComoLida = useCallback(
+    async (id: string) => {
+      await marcarComoLida(id);
+      await recarregarNotificacoes();
     },
-    [],
-  );
-
-  /**
-   * RN0037 e RN0038: validada a forma de pagamento, a compra de demonstração vira
-   * PAGAMENTO REALIZADO ou PAGAMENTO RECUSADO. O estoque agora é do servidor e
-   * não acompanha a massa de demonstração.
-   */
-  const resolverPagamento = useCallback(
-    (pedidoId: string, validacao: ValidacaoPagamento) => {
-      setPedidos((atuais) =>
-        atuais.map((candidato) =>
-          candidato.id === pedidoId
-            ? {
-                ...candidato,
-                status: validacao.aprovado
-                  ? ('PAGAMENTO REALIZADO' as const)
-                  : ('PAGAMENTO RECUSADO' as const),
-                validacaoPagamento: validacao,
-              }
-            : candidato,
-        ),
-      );
-    },
-    [],
-  );
-
-  /**
-   * RF0044, RF0045 e RF0054: ao confirmar o recebimento, o administrador diz se
-   * os itens voltariam ao estoque, e o cliente ganha o cupom de troca do valor.
-   */
-  const receberItensDeTroca = useCallback(
-    (pedidoId: string, retornarAoEstoque: boolean, cupom: Cupom) => {
-      const pedido = pedidos.find((candidato) => candidato.id === pedidoId);
-      if (!pedido?.troca) return;
-
-      setPedidos((atuais) =>
-        atuais.map((candidato) =>
-          candidato.id === pedidoId && candidato.troca
-            ? {
-                ...candidato,
-                status: 'ITEM RECEBIDO' as const,
-                troca: {
-                  ...candidato.troca,
-                  retornouAoEstoque: retornarAoEstoque,
-                  cupomGeradoId: cupom.id,
-                },
-              }
-            : candidato,
-        ),
-      );
-      setCupons((atuais) => [...atuais, cupom]);
-    },
-    [pedidos],
+    [recarregarNotificacoes],
   );
 
   const valor = useMemo(
@@ -452,8 +425,6 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
       carregandoDiscos,
       erroDiscos,
       recarregarDiscos,
-      cupons,
-      setCupons,
       pedidos,
       setPedidos,
       meusPedidos: meusPedidos.itens,
@@ -464,16 +435,24 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
       carregandoMeusCupons: meusCupons.carregando,
       erroMeusCupons: meusCupons.erro,
       recarregarCupons: meusCupons.recarregar,
-      atualizarPedido,
-      resolverPagamento,
-      receberItensDeTroca,
+      minhasNotificacoes: minhasNotificacoes.itens,
+      marcarNotificacaoComoLida,
+      pedidosCuradoria: curadoria?.pedidos ?? [],
+      trocasCuradoria: curadoria?.trocas ?? [],
+      carregandoCuradoria: isSessaoDeAdministrador && curadoria === null,
+      erroCuradoria: curadoria?.erro ?? null,
+      recarregarCuradoria,
       carrinho,
       itensNoCarrinho: carrinho.reduce((total, item) => total + item.quantidade, 0),
-      carrinhoAtualizadoEm,
-      minutosParaExpirar,
+      carregandoCarrinho: clienteAtivoId !== null && carrinhoDoCliente === null,
+      carrinhoExpiraEm,
+      prazoReservaMinutos: (carrinhoDoCliente ?? CARRINHO_VAZIO).prazoMinutos,
+      avisoReservaMinutos: (carrinhoDoCliente ?? CARRINHO_VAZIO).avisoMinutos,
       itensExpirados,
+      readicionarExpirados,
       descartarItensExpirados,
-      sincronizarCarrinho,
+      revalidarCarrinho,
+      recarregarCarrinho,
       adicionarAoCarrinho,
       alterarQuantidade,
       removerDoCarrinho,
@@ -496,7 +475,6 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
       carregandoDiscos,
       erroDiscos,
       recarregarDiscos,
-      cupons,
       pedidos,
       meusPedidos.itens,
       meusPedidos.carregando,
@@ -506,15 +484,20 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
       meusCupons.carregando,
       meusCupons.erro,
       meusCupons.recarregar,
-      atualizarPedido,
-      resolverPagamento,
-      receberItensDeTroca,
+      minhasNotificacoes.itens,
+      marcarNotificacaoComoLida,
+      curadoria,
+      isSessaoDeAdministrador,
+      recarregarCuradoria,
       carrinho,
-      carrinhoAtualizadoEm,
-      minutosParaExpirar,
+      clienteAtivoId,
+      carrinhoDoCliente,
+      carrinhoExpiraEm,
       itensExpirados,
+      readicionarExpirados,
       descartarItensExpirados,
-      sincronizarCarrinho,
+      revalidarCarrinho,
+      recarregarCarrinho,
       adicionarAoCarrinho,
       alterarQuantidade,
       removerDoCarrinho,

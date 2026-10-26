@@ -1,6 +1,6 @@
 import styles from './Disco.module.scss';
 import { useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Alert, Button, Skeleton, Tooltip } from '@mantine/core';
 import { formatarBRL } from '../../utils/precificacao';
 import { faixasDoDisco, nomeFormato, obterEdicao } from '../../utils/catalogo';
@@ -40,7 +40,8 @@ function Disco() {
 }
 
 function PaginaDisco({ id }: Readonly<{ id: string | undefined }>) {
-  const { discos, adicionarAoCarrinho } = useLoja();
+  const { discos, adicionarAoCarrinho, sessao } = useLoja();
+  const navegar = useNavigate();
   const [quantidade, setQuantidade] = useState<number>(1);
   const [adicionadas, setAdicionadas] = useState<number | null>(null);
   const [recusa, setRecusa] = useState<string[]>([]);
@@ -101,8 +102,13 @@ function PaginaDisco({ id }: Readonly<{ id: string | undefined }>) {
     ['Peso', `${disco.dimensoes.peso} g`],
   ];
 
-  // RN0031: quem decide é o servidor, com o que já está no carrinho somado
+  // RN0031 e RN0044: quem decide é o servidor, com o que já está no carrinho somado.
+  // O bloqueio é de um cliente, então sem sessão o cliente entra antes de incluir
   async function handleAdicionar(discoId: number): Promise<void> {
+    if (!sessao) {
+      navegar('/login', { state: { depois: `/disco/${discoId}` } });
+      return;
+    }
     setIsAdicionando(true);
     const mensagens = await adicionarAoCarrinho(discoId, quantidade);
     setIsAdicionando(false);

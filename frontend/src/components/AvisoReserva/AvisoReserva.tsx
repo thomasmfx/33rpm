@@ -1,10 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLoja } from '../../contexts/loja';
-import {
-  AVISO_ANTES_MINUTOS,
-  formatarContagem,
-  segundosRestantes,
-} from '../../utils/carrinho';
+import { formatarContagem, segundosRestantes } from '../../utils/carrinho';
 import styles from './AvisoReserva.module.scss';
 
 interface AvisoReservaProps {
@@ -12,11 +8,11 @@ interface AvisoReservaProps {
 }
 
 /**
- * RN0044: relógio da reserva do carrinho. O provider anda de 15 em 15 segundos
- * para derrubar o carrinho vencido; aqui o tique é de 1s só para o mostrador.
+ * RN0044: relógio da reserva do carrinho. Quem derruba o carrinho vencido é o servidor;
+ * aqui o tique de 1s só anda o mostrador e avisa perto do fim.
  */
 export default function AvisoReserva({ texto }: Readonly<AvisoReservaProps>) {
-  const { carrinhoAtualizadoEm } = useLoja();
+  const { carrinhoExpiraEm, avisoReservaMinutos } = useLoja();
   const [agora, setAgora] = useState(() => Date.now());
 
   useEffect(() => {
@@ -24,14 +20,14 @@ export default function AvisoReserva({ texto }: Readonly<AvisoReservaProps>) {
     return () => clearInterval(intervalo);
   }, []);
 
-  const segundos = segundosRestantes(carrinhoAtualizadoEm, agora);
+  const segundos = segundosRestantes(carrinhoExpiraEm, agora);
   if (segundos === null) return null;
 
-  // RN0044: aviso 5 minutos antes de a reserva cair
-  const acabando = segundos <= AVISO_ANTES_MINUTOS * 60;
+  // RN0044: o cliente é avisado minutos antes de a reserva cair
+  const acabando = segundos <= avisoReservaMinutos * 60;
 
   return (
-    <div className={styles.aviso} data-testid="aviso-reserva">
+    <div className={styles.aviso} data-testid="aviso-reserva" data-acabando={acabando || undefined}>
       <span className={styles.tempo} data-acabando={acabando || undefined}>
         {formatarContagem(segundos)}
       </span>

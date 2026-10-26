@@ -1,5 +1,5 @@
 import styles from './Pedidos.module.scss';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { Alert } from '@mantine/core';
 import { useLoja } from '../../contexts/loja';
@@ -7,6 +7,7 @@ import EstadoVazio from '../../components/EstadoVazio/EstadoVazio';
 import StatusPonto from '../../components/StatusPonto/StatusPonto';
 import LinhaDoTempo from '../../components/LinhaDoTempo/LinhaDoTempo';
 import { EsqueletoPagina } from '../../components/Esqueleto/Esqueleto';
+import SolicitarTroca from './SolicitarTroca';
 import type { PedidoCliente } from '../../types/pedido';
 import { corDoStatus, passoDoStatus, rotuloDoStatus } from '../../utils/pedido';
 import { formatarBRL } from '../../utils/precificacao';
@@ -19,11 +20,17 @@ export default function Pedidos() {
     meusPedidos,
     carregandoMeusPedidos,
     erroMeusPedidos,
+    recarregarPedidos,
   } = useLoja();
   const { state } = useLocation();
   const [pedidoAbertoId, setPedidoAbertoId] = useState<string | null>(
     () => (state as { abrir?: string } | null)?.abrir ?? null,
   );
+
+  // a validação do pagamento e os passos da curadoria mudam o status fora desta tela
+  useEffect(() => {
+    void recarregarPedidos();
+  }, [recarregarPedidos]);
 
   if (carregandoClientes || carregandoMeusPedidos) {
     return (
@@ -73,12 +80,59 @@ export default function Pedidos() {
       <div className={styles.detalhe}>
         {passo !== null && <LinhaDoTempo passo={passo} />}
 
+        {pedido.status === 'REPROVADA' && pedido.validacao && (
+          <Alert color="red" title="Pagamento reprovado" data-testid="motivo-reprovacao">
+            {pedido.validacao.motivo} Os discos não foram cobrados e voltaram ao estoque
+            {pedido.cupons.length > 0 && ', e os cupons usados voltaram para Meus cupons'} (RN0028).
+          </Alert>
+        )}
+
         {pedido.cupomGerado && (
           <Alert color="green" title="Sobrou crédito">
             A diferença dos cupons virou o cupom {pedido.cupomGerado.codigo}, no valor de{' '}
             {formatarBRL(pedido.cupomGerado.valor)} (RN0036).
           </Alert>
         )}
+        {pedido.status === 'EM PROCESSAMENTO' && pedido.troco > 0 && (
+          <Alert color="green" title="Sobra crédito">
+            A diferença de {formatarBRL(pedido.troco)} volta como cupom de troca assim que o
+            pagamento for aprovado (RN0036).
+          </Alert>
+        )}
+
+        {pedido.trocas.map((troca) => (
+          <div
+            key={troca.id}
+            className={styles.troca}
+            data-testid="troca-pedido"
+            data-troca-id={troca.id}
+            data-status={troca.status}
+          >
+            <div className={styles.trocaTopo}>
+              <span className={styles.rotulo}>
+                Troca #{troca.id} · {troca.compraInteira ? 'compra inteira' : 'itens escolhidos'}
+              </span>
+              <StatusPonto cor={corDoStatus(troca.status)}>{rotuloDoStatus(troca.status)}</StatusPonto>
+            </div>
+            <span>
+              {troca.itens.map((item) => `${item.titulo} · ${item.quantidade}×`).join(', ')}
+            </span>
+            <span className={styles.nota}>“{troca.motivo}”</span>
+            {troca.status === 'TROCA AUTORIZADA' && (
+              <span className={styles.nota}>
+                Autorizada: envie os discos para a 33rpm. O cupom de troca sai quando eles chegarem.
+              </span>
+            )}
+            {troca.cupomGerado && (
+              <span className={styles.nota} data-testid="troca-cupom" data-codigo={troca.cupomGerado.codigo}>
+                Cupom {troca.cupomGerado.codigo} de {formatarBRL(troca.cupomGerado.valor)} em Meus
+                cupons (RF0045).
+              </span>
+            )}
+          </div>
+        ))}
+
+        <SolicitarTroca pedido={pedido} onSolicitada={() => void recarregarPedidos()} />
 
         <div className={styles.colunas}>
           <div className={styles.coluna}>
@@ -180,10 +234,18 @@ export default function Pedidos() {
                   </span>
                 </span>
                 <span className={styles.totalLinha}>{formatarBRL(pedido.total)}</span>
-                <span data-testid="pedido-status" data-status={pedido.status}>
-                  <StatusPonto cor={corDoStatus(pedido.status)}>
-                    {rotuloDoStatus(pedido.status)}
-                  </StatusPonto>
+                <span className={styles.statusLinha}>
+                  <span data-testid="pedido-status" data-status={pedido.status}>
+                    <StatusPonto cor={corDoStatus(pedido.status)}>
+                      {rotuloDoStatus(pedido.status)}
+                    </StatusPonto>
+                  </span>
+                  {/* RN0041: a troca de itens não muda o status da compra */}
+                  {pedido.trocas.some((troca) => !troca.compraInteira && troca.status !== 'TROCADO') && (
+                    <span className={styles.nota} data-testid="pedido-troca-andamento">
+                      Troca em andamento
+                    </span>
+                  )}
                 </span>
                 <span className={styles.abrir}>{aberto ? 'Fechar' : 'Detalhes'}</span>
               </button>

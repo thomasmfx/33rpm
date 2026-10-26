@@ -1,87 +1,6 @@
-import type { ItemPedido, Pedido, StatusPedido } from '../types/pedido';
+import type { Pedido, PedidoCliente, TrocaPedido } from '../types/pedido';
 
-/** Cor do ponto de status: cinza espera, selo anda, verde fecha, vermelho barra. */
-export const CORES_STATUS: Record<StatusPedido, string> = {
-  'EM ABERTO': '#8F8C84',
-  'EM PROCESSAMENTO': '#8F8C84',
-  'PAGAMENTO REALIZADO': '#D9501F',
-  'PAGAMENTO RECUSADO': '#B83A2A',
-  'EM TRÂNSITO': '#D9501F',
-  ENTREGUE: '#2F7A4E',
-  CANCELADO: '#B83A2A',
-  'TROCA SOLICITADA': '#D9501F',
-  'TROCA ACEITA': '#D9501F',
-  'TROCA NEGADA': '#B83A2A',
-  'ITEM ENVIADO': '#D9501F',
-  'ITEM RECEBIDO': '#2F7A4E',
-};
-
-export const ROTULOS_STATUS: Record<StatusPedido, string> = {
-  'EM ABERTO': 'Em aberto',
-  'EM PROCESSAMENTO': 'Em processamento',
-  'PAGAMENTO REALIZADO': 'Pagamento realizado',
-  'PAGAMENTO RECUSADO': 'Pagamento recusado',
-  'EM TRÂNSITO': 'Em trânsito',
-  ENTREGUE: 'Entregue',
-  CANCELADO: 'Cancelado',
-  'TROCA SOLICITADA': 'Troca solicitada',
-  'TROCA ACEITA': 'Troca aceita',
-  'TROCA NEGADA': 'Troca negada',
-  'ITEM ENVIADO': 'Item a caminho',
-  'ITEM RECEBIDO': 'Troca concluída',
-};
-
-/**
- * Transições que o administrador executa, na ordem da lista da entrega.
- * O cliente tem as suas próprias, mais abaixo.
- */
-const AVANCO_ADMIN: Partial<Record<StatusPedido, StatusPedido[]>> = {
-  'EM ABERTO': ['EM PROCESSAMENTO'],
-  'EM PROCESSAMENTO': ['PAGAMENTO REALIZADO'],
-  'PAGAMENTO REALIZADO': ['EM TRÂNSITO'],
-  'EM TRÂNSITO': ['ENTREGUE'],
-  'TROCA SOLICITADA': ['TROCA ACEITA', 'TROCA NEGADA'],
-  'ITEM ENVIADO': ['ITEM RECEBIDO'],
-};
-
-export function proximosStatusAdmin(status: StatusPedido): StatusPedido[] {
-  return AVANCO_ADMIN[status] ?? [];
-}
-
-/** O pedido está parado esperando um passo da curadoria. */
-export function precisaDeAcao(pedido: Pedido): boolean {
-  return proximosStatusAdmin(pedido.status).length > 0;
-}
-
-/** Aceita a troca, o cliente despacha o item de volta. */
-export function podeInformarDespacho(status: StatusPedido): boolean {
-  return status === 'TROCA ACEITA';
-}
-
-export function valorDosItens(
-  pedido: Pedido,
-  itens: { discoId: number; quantidade: number }[],
-): number {
-  const total = itens.reduce((soma, item) => {
-    const original = pedido.itens.find(
-      (candidato) => candidato.discoId === item.discoId,
-    );
-    return soma + (original ? original.precoUnitario * item.quantidade : 0);
-  }, 0);
-
-  return Math.round(total * 100) / 100;
-}
-
-export function itensDaTroca(pedido: Pedido): ItemPedido[] {
-  if (!pedido.troca) return [];
-  return pedido.troca.itens.flatMap((item) => {
-    const original = pedido.itens.find(
-      (candidato) => candidato.discoId === item.discoId,
-    );
-    return original ? [{ ...original, quantidade: item.quantidade }] : [];
-  });
-}
-
+/** Massa de demonstração da recomendação: os pedidos de um cliente, o mais recente primeiro. */
 export function pedidosDoCliente(pedidos: Pedido[], clienteId: string): Pedido[] {
   return pedidos
     .filter((pedido) => pedido.clienteId === clienteId)
@@ -90,7 +9,7 @@ export function pedidosDoCliente(pedidos: Pedido[], clienteId: string): Pedido[]
 
 export const PASSOS_PEDIDO = ['Recebido', 'Pagamento aprovado', 'Em trânsito', 'Entregue'];
 
-/** RF0038: status como o servidor grava, nos nomes do DRS (tabela status_pedido). */
+/** Cor do ponto de status: cinza espera, selo anda, verde fecha, vermelho barra. */
 const CORES_STATUS_REGISTRADO: Record<string, string> = {
   'EM PROCESSAMENTO': '#8F8C84',
   APROVADA: '#D9501F',
@@ -101,6 +20,26 @@ const CORES_STATUS_REGISTRADO: Record<string, string> = {
   'TROCA AUTORIZADA': '#D9501F',
   TROCADO: '#2F7A4E',
 };
+
+/** RN0039 e RN0040: o passo do administrador em cada status da compra. */
+export const AVANCO_DO_PEDIDO: Partial<Record<string, 'EM TRANSPORTE' | 'ENTREGUE'>> = {
+  APROVADA: 'EM TRANSPORTE',
+  'EM TRANSPORTE': 'ENTREGUE',
+};
+
+/** RF0042 e RF0044: o passo do administrador em cada status da troca. */
+export const AVANCO_DA_TROCA: Partial<Record<string, 'TROCA AUTORIZADA' | 'TROCADO'>> = {
+  'EM TROCA': 'TROCA AUTORIZADA',
+  'TROCA AUTORIZADA': 'TROCADO',
+};
+
+export function pedidoPrecisaDeAcao(pedido: PedidoCliente): boolean {
+  return AVANCO_DO_PEDIDO[pedido.status] !== undefined;
+}
+
+export function trocaPrecisaDeAcao(troca: TrocaPedido): boolean {
+  return AVANCO_DA_TROCA[troca.status] !== undefined;
+}
 
 export function corDoStatus(status: string): string {
   return CORES_STATUS_REGISTRADO[status] ?? CORES_STATUS_REGISTRADO['EM PROCESSAMENTO'];
