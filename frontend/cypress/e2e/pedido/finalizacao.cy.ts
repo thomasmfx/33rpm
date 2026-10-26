@@ -57,11 +57,18 @@ describe('Finalização da compra (RF0038, RNF0011, RNF0012)', () => {
         cy.request<LogApi[]>(`${API()}/dev/logs?entidade=Cupom`)
           .its('body')
           .then((logs) => {
-            const daCliente = logs.filter((log) => log.usuario === 'ana.ribeiro@email.com');
-            const operacoes = daCliente.map((log) => log.operacao).sort();
-            // dois cupons consumidos e o de troca gerado (RN0036)
-            expect(operacoes).to.deep.eq(['ALTERAR', 'ALTERAR', 'INSERIR']);
+            // os dois cupons consumidos pela cliente; o de troca só nasce na aprovação
+            expect(logs.map((log) => `${log.operacao} ${log.usuario}`)).to.deep.eq([
+              'ALTERAR ana.ribeiro@email.com',
+              'ALTERAR ana.ribeiro@email.com',
+            ]);
           });
+
+        // RN0036 (CDU03 P8.2): a rotina que aprova emite o cupom da diferença e registra
+        cy.validarPagamentos();
+        cy.request<LogApi[]>(`${API()}/dev/logs?entidade=Cupom`)
+          .its('body.0')
+          .should('include', { operacao: 'INSERIR', usuario: 'rotina-automatica' });
       });
     });
   });

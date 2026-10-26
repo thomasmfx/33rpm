@@ -74,7 +74,7 @@ describe('Carrinho de compra (RF0031, RF0032, RN0031)', () => {
     cy.discoPorTitulo('Heroes & Villains').then((disco) => {
       cy.visit(`/disco/${disco.id}`);
     });
-    cy.intercept('POST', '**/api/estoque/disponibilidade').as('disponibilidade');
+    cy.intercept('POST', '**/api/carrinhos/*/itens').as('disponibilidade');
     cy.get('[data-testid="disco-compra"] [data-testid="btn-adicionar-carrinho"]').click();
 
     cy.wait('@disponibilidade').its('response.statusCode').should('eq', 400);

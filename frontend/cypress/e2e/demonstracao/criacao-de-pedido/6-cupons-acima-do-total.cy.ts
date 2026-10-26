@@ -21,12 +21,13 @@ describe('Demonstração · Criação de pedido', () => {
     cy.get('[data-testid="pendencias-pagamento"]').should('not.exist');
     cy.get('[data-testid="cartao-opcao"]').should('not.exist');
 
-    cy.etapa('Finaliza sem cartão: a confirmação mostra o cupom de troca de R$ 8,00');
+    cy.etapa('Finaliza sem cartão: a confirmação avisa que os R$ 8,00 voltam como cupom de troca');
     cy.finalizarPedido().then((id) => {
       const codigo = `TROCA-P${String(id).padStart(6, '0')}`;
-      cy.get('[data-testid="cupom-gerado"]').should('have.attr', 'data-codigo', codigo);
-      cy.conferirValor('cupom-gerado', 8);
+      cy.conferirValor('aviso-diferenca', 8);
 
+      cy.etapa('RN0036 (CDU03 P8.2): o cupom da diferença é emitido quando o pagamento é aprovado');
+      cy.validarPagamentos();
       cy.request(`${API()}/pedidos/${id}`)
         .its('body.cupomGerado')
         .should('include', { codigo, valor: 8, isUtilizado: false });

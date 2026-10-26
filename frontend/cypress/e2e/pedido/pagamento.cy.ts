@@ -127,7 +127,7 @@ describe('Pagamento com cartões e cupons (RF0036, RF0037, RN0033 a RN0036)', ()
     );
   });
 
-  it('RN0036 - cupons acima do total geram um cupom de troca com a diferença', () => {
+  it('RN0036 - cupons acima do total geram, na aprovação, um cupom de troca com a diferença', () => {
     cy.entrarComoCliente('/');
     irAoPagamento('The Dark Side Of The Moon', 327);
 
@@ -140,15 +140,19 @@ describe('Pagamento com cartões e cupons (RF0036, RF0037, RN0033 a RN0036)', ()
 
     cy.finalizarPedido().then((id) => {
       const codigo = `TROCA-P${String(id).padStart(6, '0')}`;
-      cy.get('[data-testid="cupom-gerado"]').should('have.attr', 'data-codigo', codigo);
-      cy.conferirValor('cupom-gerado', 23);
-
+      cy.conferirValor('aviso-diferenca', 23);
       cy.request(`${API()}/pedidos/${id}`)
         .its('body')
         .then((pedido) => {
           expect(pedido.pagamentos).to.have.length(0);
-          expect(pedido.cupomGerado).to.include({ codigo, valor: 23, isUtilizado: false });
+          expect(pedido.troco).to.eq(23);
+          expect(pedido.cupomGerado, 'antes da aprovação').to.eq(undefined);
         });
+
+      cy.validarPagamentos();
+      cy.request(`${API()}/pedidos/${id}`)
+        .its('body.cupomGerado')
+        .should('include', { codigo, valor: 23, isUtilizado: false });
 
       cy.visit('/cupons');
       cy.get(`[data-testid="cupom-cartao"][data-codigo="${codigo}"]`)

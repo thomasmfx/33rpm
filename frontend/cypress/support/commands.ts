@@ -66,8 +66,18 @@ declare global {
       linhaDoDisco(titulo: string): Chainable<JQuery<HTMLElement>>;
       escolherOpcao(testId: string, inicio: string): Chainable<void>;
       preencherDisco(disco: DadosDisco): Chainable<void>;
+      validarPagamentos(): Chainable<{ id: number; status: { descricao: string } }[]>;
+      avancarPedido(id: number, status: 'EM TRANSPORTE' | 'ENTREGUE'): Chainable<void>;
+      comprarPelaApi(itens: ItemDaCompra[]): Chainable<number>;
+      pedidoEntregue(itens: ItemDaCompra[]): Chainable<number>;
+      envelhecerCarrinho(clienteId: number, minutos: number): Chainable<void>;
     }
   }
+}
+
+export interface ItemDaCompra {
+  titulo: string;
+  quantidade: number;
 }
 
 Cypress.Commands.add('resetarBanco', () => {
@@ -216,6 +226,13 @@ export const ANA: Credencial = {
   nome: 'Ana Paula Ribeiro',
 };
 
+/** Bruno Tavares, cliente 2 do /dev/reset: endereço "Apartamento" no Rio de Janeiro/RJ, sem cartão. */
+export const BRUNO: Credencial = {
+  email: 'bruno.tavares@email.com',
+  senha: 'Senha@123',
+  nome: 'Bruno Tavares',
+};
+
 /** O disco como a API devolve; os testes só leem estes campos. */
 export interface DiscoApi {
   id: number;
@@ -268,7 +285,7 @@ Cypress.Commands.add('cadastrarDiscoSemEstoque', (titulo: string) =>
 
 /** RF0032: a quantidade é escolhida na página do disco, antes de incluir. */
 Cypress.Commands.add('adicionarAoCarrinho', (titulo: string, quantidade: number) => {
-  cy.intercept('POST', '**/api/estoque/disponibilidade').as('disponibilidade');
+  cy.intercept('POST', '**/api/carrinhos/*/itens').as('disponibilidade');
   cy.discoPorTitulo(titulo).then((disco) => {
     cy.visit(`/disco/${disco.id}`);
   });
@@ -279,7 +296,7 @@ Cypress.Commands.add('adicionarAoCarrinho', (titulo: string, quantidade: number)
     cy.get('[data-testid="quantidade-valor"]').should('have.text', String(quantidade));
     cy.get('[data-testid="btn-adicionar-carrinho"]').click();
   });
-  // RN0031: o servidor decide antes de o item entrar no carrinho
+  // RN0031 e RN0044: o servidor decide e bloqueia antes de o item entrar no carrinho
   cy.wait('@disponibilidade').its('response.statusCode').should('eq', 200);
   cy.get('[data-testid="aviso-adicionado"]').should('be.visible');
 });
@@ -362,6 +379,64 @@ Cypress.Commands.add('conferirValor', (testId: string, esperado: number) => {
   cy.get(`[data-testid="${testId}"]`).should(($elemento) => {
     expect(Number($elemento.attr('data-valor')), testId).to.eq(esperado);
   });
+});
+
+/**
+ * RN0037 e RN0038: a rotina que o servidor roda a cada 10 s, depois de 30 s de espera
+ * pela operadora, disparada na hora para o teste não esperar.
+ */
+Cypress.Commands.add('validarPagamentos', () =>
+  cy.request('POST', `${Cypress.env('apiUrl')}/pedidos/validacao-pagamento`).its('body'),
+);
+
+/** RN0039 e RN0040, o passo do administrador pela API. */
+Cypress.Commands.add('avancarPedido', (id: number, status: 'EM TRANSPORTE' | 'ENTREGUE') => {
+  cy.request('PUT', `${Cypress.env('apiUrl')}/pedidos/${id}/status`, {
+    status: { descricao: status },
+  });
+});
+
+/**
+ * Compra da Ana pela API, com o endereço Casa e o Visa final 1002 pagando o que a
+ * cotação do servidor manda. Para os cenários em que a compra é só o ponto de partida.
+ */
+Cypress.Commands.add('comprarPelaApi', (itens: ItemDaCompra[]) => {
+  const ids: { discoId: number; quantidade: number }[] = [];
+  itens.forEach(({ titulo, quantidade }) =>
+    cy.discoPorTitulo(titulo).then((disco) => ids.push({ discoId: disco.id, quantidade })),
+  );
+  return cy.then(() => {
+    const corpo = { clienteId: 1, itens: ids, enderecoId: 1 };
+    return cy
+      .request('POST', `${Cypress.env('apiUrl')}/pedidos/cotacao`, corpo)
+      .its('body.restante')
+      .then((restante: number) =>
+        cy
+          .request('POST', `${Cypress.env('apiUrl')}/pedidos`, {
+            ...corpo,
+            pagamentos: [{ cartaoId: 1, valor: restante }],
+          })
+          .its('body.id'),
+      );
+  });
+});
+
+/** Compra da Ana já aprovada, despachada e entregue, pronta para a troca (RN0043). */
+Cypress.Commands.add('pedidoEntregue', (itens: ItemDaCompra[]) =>
+  cy.comprarPelaApi(itens).then((id) => {
+    cy.validarPagamentos();
+    cy.avancarPedido(id, 'EM TRANSPORTE');
+    cy.avancarPedido(id, 'ENTREGUE');
+    return cy.wrap(id);
+  }),
+);
+
+/** RN0044 (perfil dev): o carrinho fica como se os minutos tivessem passado. */
+Cypress.Commands.add('envelhecerCarrinho', (clienteId: number, minutos: number) => {
+  cy.request(
+    'POST',
+    `${Cypress.env('apiUrl')}/dev/carrinhos/${clienteId}/envelhecer?minutos=${minutos}`,
+  );
 });
 
 /** O inventário é paginado: a busca pelo título traz a linha do disco para a tela. */
