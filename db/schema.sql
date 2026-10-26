@@ -263,6 +263,9 @@ CREATE TABLE pedido (
     subtotal        numeric(10,2) NOT NULL CHECK (subtotal >= 0),
     frete           numeric(10,2) NOT NULL CHECK (frete >= 0),
     total           numeric(10,2) NOT NULL CHECK (total >= 0),
+    -- RN0036: o que os cupons passaram do total; vira cupom de troca só na aprovação
+    -- (CDU03 P8.2 e O13), então a compra reprovada não deixa crédito
+    troco           numeric(10,2) NOT NULL DEFAULT 0 CHECK (troco >= 0),
     status_pedido_id bigint NOT NULL REFERENCES status_pedido (id),
     -- RF0035 e RN0023: endereço de entrega como estava no momento da compra
     entrega_nome            varchar(60) NOT NULL,
@@ -298,19 +301,36 @@ CREATE TABLE pagamento_cartao (
     valor               numeric(10,2) NOT NULL CHECK (valor > 0)
 );
 
+-- RN0037 e RN0038: o resultado da validação; o motivo diz o que reprovou a compra
 CREATE TABLE validacao_pagamento (
     id              bigserial PRIMARY KEY,
     pedido_id       bigint NOT NULL UNIQUE REFERENCES pedido (id) ON DELETE CASCADE,
     aprovado        boolean NOT NULL,
+    motivo          text,
     data            timestamp NOT NULL DEFAULT now()
 );
 
+-- RF0041 e RN0041: pedido de troca de itens de uma compra entregue, ou da compra
+-- inteira. Uma compra pode ter mais de um, um item por vez
 CREATE TABLE troca (
     id                  bigserial PRIMARY KEY,
-    pedido_id           bigint NOT NULL UNIQUE REFERENCES pedido (id),
+    pedido_id           bigint NOT NULL REFERENCES pedido (id),
+    -- EM TROCA, TROCA AUTORIZADA e TROCADO, os mesmos nomes do pedido
+    status_pedido_id    bigint NOT NULL REFERENCES status_pedido (id),
+    compra_inteira      boolean NOT NULL,
     motivo              text NOT NULL,
-    dt_solicitacao      date NOT NULL DEFAULT CURRENT_DATE,
-    dt_retorno          date
+    -- RF0044: informado pelo administrador ao confirmar o recebimento
+    retorno_estoque     boolean,
+    data_cadastro       timestamp NOT NULL DEFAULT now(),
+    data_autorizacao    timestamp,
+    data_recebimento    timestamp
+);
+
+CREATE TABLE troca_item (
+    id              bigserial PRIMARY KEY,
+    troca_id        bigint NOT NULL REFERENCES troca (id) ON DELETE CASCADE,
+    item_pedido_id  bigint NOT NULL REFERENCES item_pedido (id),
+    quantidade      integer NOT NULL CHECK (quantidade > 0)
 );
 
 CREATE TABLE cupom (
@@ -322,6 +342,8 @@ CREATE TABLE cupom (
     is_utilizado    boolean NOT NULL DEFAULT false,
     -- RN0036: a compra cujos cupons passaram do total e geraram este cupom de troca
     pedido_origem_id bigint REFERENCES pedido (id),
+    -- RF0045: a troca cujos itens chegaram e geraram este cupom
+    troca_origem_id bigint REFERENCES troca (id),
     data_cadastro   timestamp NOT NULL DEFAULT now()
 );
 
@@ -329,6 +351,29 @@ CREATE TABLE pedido_cupom (
     pedido_id       bigint NOT NULL REFERENCES pedido (id) ON DELETE CASCADE,
     cupom_id        bigint NOT NULL REFERENCES cupom (id),
     PRIMARY KEY (pedido_id, cupom_id)
+);
+
+-- RN0044: o item no carrinho bloqueia o estoque do disco até a compra ou o fim do
+-- prazo, contado da última inclusão do cliente. Expirado, fica para a RNF0042 mostrar
+CREATE TABLE carrinho_item (
+    id              bigserial PRIMARY KEY,
+    cliente_id      bigint NOT NULL REFERENCES cliente (id) ON DELETE CASCADE,
+    disco_id        bigint NOT NULL REFERENCES disco (id) ON DELETE CASCADE,
+    quantidade      integer NOT NULL CHECK (quantidade > 0),
+    data_inclusao   timestamp NOT NULL DEFAULT now(),
+    is_expirado     boolean NOT NULL DEFAULT false,
+    data_cadastro   timestamp NOT NULL DEFAULT now(),
+    CONSTRAINT uq_carrinho_item UNIQUE (cliente_id, disco_id)
+);
+
+-- RN0046: aviso ao cliente; hoje nasce da troca autorizada
+CREATE TABLE notificacao (
+    id              bigserial PRIMARY KEY,
+    cliente_id      bigint NOT NULL REFERENCES cliente (id) ON DELETE CASCADE,
+    pedido_id       bigint REFERENCES pedido (id),
+    mensagem        text NOT NULL,
+    is_lida         boolean NOT NULL DEFAULT false,
+    data_cadastro   timestamp NOT NULL DEFAULT now()
 );
 
 -- ---------------------------------------------------------------------
@@ -377,6 +422,9 @@ CREATE INDEX idx_disco_categoria_cat   ON disco_categoria (categoria_id);
 CREATE INDEX idx_motivo_disco          ON motivo_status (disco_id);
 CREATE INDEX idx_cupom_cliente         ON cupom (cliente_id);
 CREATE INDEX idx_pagamento_pedido      ON pagamento_cartao (pedido_id);
+CREATE INDEX idx_troca_pedido          ON troca (pedido_id);
+CREATE INDEX idx_carrinho_disco        ON carrinho_item (disco_id);
+CREATE INDEX idx_notificacao_cliente   ON notificacao (cliente_id);
 CREATE INDEX idx_log_entidade          ON log (entidade, entidade_id);
 CREATE INDEX idx_log_data              ON log (data_hora);
 
