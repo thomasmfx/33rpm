@@ -17,11 +17,11 @@ discos por sonoridade, clima, estética e subgênero detalhado — "rap psicodé
 | Cadastro de discos e estoque | **Completo de ponta a ponta**, com 16 testes Cypress: cadastro, alteração, consulta com filtros, inativação manual e automática, ativação, entrada em estoque e preço pela margem do grupo. A vitrine e a Curadoria › Inventário leem da API |
 | Carrinho e criação de pedido | **Completo de ponta a ponta**, com 19 testes Cypress: carrinho com estoque decidido no servidor, checkout dirigido pela cotação do servidor (frete, cupons, vários cartões), pedido em EM PROCESSAMENTO, Meus pedidos e Meus cupons |
 | Vendas eletrônicas: bloqueio, status e trocas | **Completo de ponta a ponta**, com 32 testes Cypress: carrinho no servidor com bloqueio e expiração, validação do pagamento com operadora simulada, baixa em estoque, despacho e entrega pela curadoria, troca de item ou da compra inteira, notificação, cupom de troca e reentrada em estoque |
-| Análise gerencial | Interface pronta, rodando sobre pedidos mockados em `localStorage` |
+| Análise de vendas | **Completo de ponta a ponta**, com 21 testes Cypress: gráfico de linhas das vendas ENTREGUE por mês e categoria (gênero principal do disco), com período, comparação entre categorias e exportação em planilha, só para o administrador |
 | Assistente de recomendação | Funciona local; com as chaves do Dify.ai preenchidas, passa a conversar pelo serviço |
 
 O backend cobre Cliente, Administrador, Disco, Estoque, Carrinho, Pedido, Pagamento, Cupom,
-Troca e Notificação, todos atrás da mesma Fachada.
+Troca, Notificação e Análise, todos atrás da mesma Fachada.
 
 ## Stack
 
@@ -86,6 +86,14 @@ Os discos **não** entram por SQL: na primeira subida do backend com o acervo va
 pela própria Fachada, passando pelas regras do cadastro (RN0011, RN0050, RN0051) e pelo log.
 O arquivo é gerado a partir do mock do front por
 `cd frontend && node --experimental-strip-types scripts/gerar-acervo.mjs`.
+
+Os pedidos também não entram por SQL. Logo depois do acervo, e só se não houver pedido, a
+`CargaVendas` registra 16 compras, quatro para cada cliente ativo (Ana, Bruno, Diego e Eduarda), de
+[backend/src/main/resources/carga/vendas.json](backend/src/main/resources/carga/vendas.json)
+(ENTREGUE, EM TRANSPORTE, APROVADA e REPROVADA, no dia 15 dos seis meses anteriores) pela
+mesma esteira da loja: cotação, pedido, validação do pagamento e passos do administrador. É a
+massa com que o dashboard e a curadoria abrem. O `POST /api/dev/reset` zera os pedidos;
+reiniciar o backend os recarrega.
 
 `up -d` devolve o prompt antes de o banco aceitar conexões. Só siga quando o `pg_isready`
 responder `accepting connections`, ou quando `docker ps` mostrar o contêiner como
@@ -168,7 +176,7 @@ Loja em **localhost:3300** (porta fixa, definida em `frontend/vite.config.ts`).
 
 Clientes e discos são buscados quando a página abre. Se você rodou o `dev/reset` ou
 recriou o banco com a loja aberta, recarregue a página: os ids de disco e os pedidos mock
-do dashboard são derivados do que veio da API.
+da recomendação são derivados do que veio da API.
 
 ### Encerrar
 
@@ -219,7 +227,7 @@ Com os três serviços no ar e a massa carregada:
 
 | Onde | O que mostrar |
 |---|---|
-| `/curadoria` | sem sessão, ou como cliente, mostra o 403; entre como `admin@33rpm.com.br` / `Admin@123` para abrir o painel |
+| `/curadoria` | sem sessão, ou como cliente, mostra "Página indisponível"; entre como `admin@33rpm.com.br` / `Admin@123` para abrir o painel |
 | `/curadoria/clientes` | cadastrar (RF0021), consultar com filtros combinados (RF0024), alterar (RF0022), salvar apenas a senha (RF0028), salvar apenas os endereços (RNF0034), cartões e preferencial (RF0027), inativar e reativar (RF0023) |
 | `/login` | entrar como `ana.ribeiro@email.com` / `Senha@123`; tentar `carla.nogueira@email.com` para ver o bloqueio do cadastro inativo |
 | `/cadastro` | auto-cadastro em três etapas (Conta, Dados pessoais, Endereço), com o CEP preenchendo o endereço pelo ViaCEP; o cliente já entra na loja ao concluir |
@@ -253,7 +261,7 @@ npm run demo:lento              # a mesma suíte, sem pausas e devagar
 | `alteracao.cy.ts` | 6 | RF0022, RF0028, RNF0034 |
 | `inativacao.cy.ts` | 4 | RF0023 — inativar sem excluir |
 | `cartoes.cy.ts` | 5 | RF0027, RN0024, RN0025 |
-| `sessao.cy.ts` | 6 | login, credencial inválida, cliente inativo, auto-cadastro, login do administrador, curadoria recusada ao cliente |
+| `sessao.cy.ts` | 7 | login, conta de demonstração com entrada direta, credencial inválida, cliente inativo, auto-cadastro, login do administrador, curadoria recusada ao cliente |
 | `disco/cadastro.cy.ts` | 3 | RF0011, RN0011, RN0012, RNF0021 |
 | `disco/estoque.cy.ts` | 3 | RF0051, RF0052, RN0013, RN0050, RN0051, RN0061, RN0062, RNF0064 |
 | `disco/alteracao.cy.ts` | 2 | RF0014, RN0014 |
@@ -269,14 +277,17 @@ npm run demo:lento              # a mesma suíte, sem pausas e devagar
 | `pedido/troca.cy.ts` | 7 | RF0041 a RF0045, RF0054, RN0041, RN0042, RN0046, RNF0012 |
 | `demonstracao/criacao-de-pedido/` | 7 | o roteiro mínimo do professor, um spec por item |
 | `demonstracao/vendas-eletronicas/` | 11 | o roteiro mínimo do professor da fase de vendas, um spec por item |
+| `disco/genero-principal.cy.ts` | 5 | RN0071 — o gênero principal do disco, na API e no formulário |
+| `analise/vendas.cy.ts` | 8 | RF0055 a RF0057, RN0071 a RN0074, RNF0011 — a consulta, pela API |
+| `demonstracao/analise-de-vendas/` | 8 | o roteiro mínimo do professor da fase de análise, um spec por item |
 
 ### Suíte de demonstração
 
 `cypress/e2e/demonstracao/` guarda, por fase entregue, um spec para cada item do roteiro do
 professor, com o texto do roteiro como nome do teste ("livro" lido como "disco"). Os testes
 são divididos em etapas com o requisito que cada uma mostra, e cada um usa discos que a
-suíte de regressão não usa. Cada fase tem a sua pasta: `criacao-de-pedido/` e
-`vendas-eletronicas/`.
+suíte de regressão não usa. Cada fase tem a sua pasta: `criacao-de-pedido/`,
+`vendas-eletronicas/` e `analise-de-vendas/`.
 
 No Cypress a unidade de execução é o arquivo: clicar num spec roda todos os testes dele, e
 não há botão para rodar um teste só. Por isso a demonstração tem um teste por arquivo, e o
@@ -502,8 +513,8 @@ resposta imediata, mas quem decide é sempre o servidor.
   `/curadoria` fica só no React: a API continua aberta, sem JWT nem sessão no servidor.
 - **Cliente não é excluído, é inativado.** O DRS só prevê a inativação (RF0023), e as
   chaves estrangeiras de `pedido` e `cupom` impedem o delete físico de quem tem histórico.
-- **Testes automatizados cobrem cliente, disco, estoque, criação de pedido e vendas
-  eletrônicas.**
+- **Testes automatizados cobrem cliente, disco, estoque, criação de pedido, vendas
+  eletrônicas e análise de vendas.**
 - **O carrinho mora no servidor e exige sessão de cliente.** O bloqueio da RN0044 é de um
   cliente: sem sessão, incluir um disco leva ao login. O prazo (15 min) e o aviso (5 min
   antes) ficam em `app.carrinho` no `application.yml`; uma rotina derruba os carrinhos
@@ -519,7 +530,11 @@ resposta imediata, mas quem decide é sempre o servidor.
   valor em `pedido.troco`; a compra reprovada não deixa crédito (CDU03 P8.2 e O13).
 - **A troca não é recusada nem estornada.** O DRS só prevê a autorização (RF0042); o
   administrador informa no recebimento se os itens voltam ao estoque (RF0044).
-- **O dashboard e a recomendação seguem sobre pedidos mockados**, fora desta fase.
+- **A análise conta só as compras ENTREGUE, no gênero principal do disco (decisão do
+  grupo).** O DRS (RN0074) aceitaria também APROVADA e EM TRANSPORTE, mas o critério da
+  atividade manda só ENTREGUE. Um disco com vários gêneros tem um gênero principal, e a
+  venda cai só nele; o mês é o da compra, que é a única data que o pedido guarda.
+- **A recomendação segue sobre pedidos mockados**, fora desta fase.
 - **Deploy não foi definido.** O `docker-compose.yml` da raiz sobe a pilha inteira em
   contêiner, mas só para demonstração local: não há registro de imagens, TLS, segredos
   fora do arquivo nem servidor de destino.
