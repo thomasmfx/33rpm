@@ -29,6 +29,17 @@ export function formatarDataBR(dataIso: string): string {
   return `${dia}/${mes}/${ano}`;
 }
 
+/**
+ * Inverso de formatarDataBR, para o campo de data digitado: o parser padrão do Mantine
+ * lê '01/04/2026' como 4 de janeiro. Devolve null quando não é uma data que existe.
+ */
+export function lerDataBR(texto: string): string | null {
+  const [, dia, mes, ano] = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(texto.trim()) ?? [];
+  if (!dia) return null;
+  const iso = paraIso(new Date(Number(ano), Number(mes) - 1, Number(dia)));
+  return iso === `${ano}-${mes}-${dia}` ? iso : null;
+}
+
 /** Nunca vendido conta como parado, como na RF0013. */
 export function estaParado(disco: Disco, hoje: Date): boolean {
   const dias = diasDesde(disco.ultimaVendaEm, hoje);

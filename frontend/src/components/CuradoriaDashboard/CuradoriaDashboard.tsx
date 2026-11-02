@@ -1,20 +1,19 @@
 import painel from '../../pages/Curadoria/Painel.module.scss';
 import styles from './CuradoriaDashboard.module.scss';
-import { useMemo, useState } from 'react';
-import { Alert, Button, Skeleton } from '@mantine/core';
-import { DatePickerInput } from '@mantine/dates';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, Button, Skeleton, VisuallyHidden } from '@mantine/core';
+import { DateInput } from '@mantine/dates';
 import { LineChart, type LineChartSeries } from '@mantine/charts';
 import * as XLSX from 'xlsx';
 import {
   categoriasDoAcervo,
-  dataLocal,
   linhasParaPlanilha,
-  seriePorCategoria,
-  validarPeriodo,
   type PontoGrafico,
 } from '../../utils/analise';
+import { consultarVendas } from '../../services/analiseService';
+import { ErroApi } from '../../services/api';
 import { formatarBRL } from '../../utils/precificacao';
-import { paraIso } from '../../utils/estoque';
+import { lerDataBR, paraIso } from '../../utils/estoque';
 import { useLoja } from '../../contexts/loja';
 import CabecalhoPainel from '../CabecalhoPainel/CabecalhoPainel';
 import { Download } from '@carbon/icons-react';
@@ -46,85 +45,66 @@ function rotuloEixo(periodo: string): string {
   return `${MESES[Number(mes) - 1]} ${ano.slice(2)}`;
 }
 
-function resumoPeriodo(serie: PontoGrafico[], categorias: string[]) {
-  const totalPorCategoria = new Map(categorias.map((categoria) => [categoria, 0]));
-  let total = 0;
-
-  for (const ponto of serie) {
-    for (const categoria of categorias) {
-      const valor = Number(ponto[categoria] ?? 0);
-      total += valor;
-      totalPorCategoria.set(categoria, (totalPorCategoria.get(categoria) ?? 0) + valor);
-    }
-  }
-
-  let categoriaTopo: string | null = null;
-  let maiorValor = -1;
-  for (const [categoria, valor] of totalPorCategoria) {
-    if (valor > maiorValor) {
-      maiorValor = valor;
-      categoriaTopo = categoria;
-    }
-  }
-
-  return {
-    total,
-    mediaMensal: serie.length > 0 ? total / serie.length : 0,
-    categoriaTopo,
-  };
+/** O que a última consulta devolveu, com as categorias que a geraram. */
+interface ResultadoVendas {
+  pontos: PontoGrafico[];
+  categorias: string[];
 }
 
 function CuradoriaDashboard() {
-  const { pedidos, discos, carregandoClientes, carregandoDiscos } = useLoja();
-  // os pedidos de demonstração nascem dos clientes e apontam para os discos do banco
-  const carregando = carregandoClientes || carregandoDiscos;
+  const { discos, carregandoDiscos } = useLoja();
   const hoje = useMemo(() => new Date(), []);
   // as cores mais fortes da paleta ficam com as categorias de maior acervo
   const categorias = useMemo(() => {
     const quantidade = (categoria: string) =>
-      discos.filter((disco) => disco.genres.includes(categoria)).length;
+      discos.filter((disco) => disco.generoPrincipal === categoria).length;
     return categoriasDoAcervo(discos).sort((a, b) => quantidade(b) - quantidade(a));
   }, [discos]);
 
-  const [dataInicio, setDataInicio] = useState<string | null>(() => {
-    const inicio = new Date(hoje);
-    inicio.setMonth(inicio.getMonth() - 11);
-    return paraIso(inicio);
-  });
+  const [dataInicio, setDataInicio] = useState<string | null>(() =>
+    paraIso(new Date(hoje.getFullYear(), hoje.getMonth() - 11, 1)),
+  );
   const [dataFim, setDataFim] = useState<string | null>(() => paraIso(hoje));
   // null é "as quatro maiores": os discos chegam da API depois da montagem
   const [escolhidas, setCategoriasSelecionadas] = useState<string[] | null>(null);
   const categoriasSelecionadas = escolhidas ?? categorias.slice(0, 4);
+  const [resultado, setResultado] = useState<ResultadoVendas | null>(null);
+  const [erros, setErros] = useState<string[]>([]);
+  const [consultando, setConsultando] = useState(false);
+  const consultaAtual = useRef(0);
+  const consultaInicial = useRef(false);
 
   const todasSelecionadas =
     categorias.length > 0 && categoriasSelecionadas.length === categorias.length;
-
-  const inicio = dataInicio ? dataLocal(dataInicio) : null;
-  const fim = dataFim ? dataLocal(dataFim) : null;
-  const erroPeriodo = validarPeriodo(inicio, fim);
-
-  const serie =
-    erroPeriodo || !inicio || !fim
-      ? null
-      : seriePorCategoria(pedidos, discos, categoriasSelecionadas, inicio, fim);
 
   function corDaCategoria(categoria: string): string {
     return PALETA_CORES[categorias.indexOf(categoria) % PALETA_CORES.length];
   }
 
-  const series: LineChartSeries[] = categoriasSelecionadas.map((categoria) => ({
-    name: categoria,
-    color: corDaCategoria(categoria),
-  }));
+  // uma consulta mais nova invalida a resposta da anterior
+  async function consultar(): Promise<void> {
+    const numero = ++consultaAtual.current;
+    setConsultando(true);
+    try {
+      const pontos = await consultarVendas(dataInicio, dataFim, categoriasSelecionadas);
+      if (numero !== consultaAtual.current) return;
+      setResultado({ pontos, categorias: categoriasSelecionadas });
+      setErros([]);
+    } catch (erro) {
+      if (numero !== consultaAtual.current) return;
+      setResultado(null);
+      setErros(erro instanceof ErroApi ? erro.mensagens : ['Falha ao consultar as vendas.']);
+    } finally {
+      if (numero === consultaAtual.current) setConsultando(false);
+    }
+  }
 
-  const resumo = serie ? resumoPeriodo(serie, categoriasSelecionadas) : null;
-  const indicadores = resumo
-    ? [
-        { rotulo: 'Total vendido no período', valor: formatarBRL(resumo.total) },
-        { rotulo: 'Média mensal', valor: formatarBRL(resumo.mediaMensal) },
-        { rotulo: 'Categoria que mais vendeu', valor: resumo.categoriaTopo ?? '—' },
-      ]
-    : [];
+  // as categorias só existem depois que os discos chegam
+  useEffect(() => {
+    if (consultaInicial.current || categorias.length === 0) return;
+    consultaInicial.current = true;
+    void consultar();
+  });
 
   function handleAlternarCategoria(categoria: string): void {
     setCategoriasSelecionadas(
@@ -135,9 +115,9 @@ function CuradoriaDashboard() {
   }
 
   function handleExportar(): void {
-    if (!serie) return;
+    if (!resultado) return;
 
-    const linhas = linhasParaPlanilha(serie, categoriasSelecionadas);
+    const linhas = linhasParaPlanilha(resultado.pontos, resultado.categorias);
     const planilha = XLSX.utils.json_to_sheet(linhas);
     const pasta = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(pasta, planilha, 'Vendas por categoria');
@@ -145,42 +125,24 @@ function CuradoriaDashboard() {
   }
 
   function renderResultado() {
-    // sem clientes e discos, tudo seria zero
-    if (carregando) {
-      return (
-        <>
-          <div className={styles.indicadores} aria-busy="true" aria-label="Carregando">
-            {[0, 1, 2].map((indice) => (
-              <div key={indice} className={styles.indicador}>
-                <Skeleton height={11} width={160} />
-                <Skeleton height={32} width="70%" />
-              </div>
-            ))}
-          </div>
-          <Skeleton height={400} />
-        </>
-      );
+    if (carregandoDiscos || (consultando && !resultado)) {
+      return <Skeleton height={400} aria-busy="true" aria-label="Carregando" />;
     }
 
-    if (!serie) return null;
+    if (!resultado) return null;
 
-    const ultimo = serie.length - 1;
+    const ultimo = resultado.pontos.length - 1;
+    const series: LineChartSeries[] = resultado.categorias.map((categoria) => ({
+      name: categoria,
+      color: corDaCategoria(categoria),
+    }));
 
     return (
       <>
-        <div className={styles.indicadores}>
-          {indicadores.map((indicador) => (
-            <div key={indicador.rotulo} className={styles.indicador}>
-              <span className={styles.rotuloIndicador}>{indicador.rotulo}</span>
-              <span className={styles.valorIndicador}>{indicador.valor}</span>
-            </div>
-          ))}
-        </div>
-
         <LineChart
           h={400}
           className={styles.grafico}
-          data={serie}
+          data={resultado.pontos}
           dataKey="periodo"
           series={series}
           curveType="linear"
@@ -195,13 +157,49 @@ function CuradoriaDashboard() {
             dot: ({ cx, cy, index }: { cx?: number; cy?: number; index: number }) =>
               index === ultimo ? <circle cx={cx} cy={cy} r={4} fill={linha.color} /> : null,
           })}
+          withLegend
+          legendProps={{ verticalAlign: 'bottom', height: 48 }}
           valueFormatter={formatarBRL}
           xAxisProps={{ tickFormatter: rotuloEixo }}
           yAxisProps={{
             tickFormatter: (valor: number) => FORMATO_EIXO.format(valor),
             width: 88,
           }}
+          data-testid="grafico-vendas"
         />
+
+        <VisuallyHidden>
+          <table data-testid="tabela-vendas">
+            <caption>Vendas entregues por categoria e mês, em reais</caption>
+            <thead>
+              <tr>
+                <th scope="col">Mês</th>
+                {resultado.categorias.map((categoria) => (
+                  <th key={categoria} scope="col">
+                    {categoria}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {resultado.pontos.map((ponto) => (
+                <tr key={ponto.periodo}>
+                  <th scope="row">{ponto.periodo}</th>
+                  {resultado.categorias.map((categoria) => (
+                    <td
+                      key={categoria}
+                      data-categoria={categoria}
+                      data-periodo={ponto.periodo}
+                      data-valor={ponto[categoria]}
+                    >
+                      {formatarBRL(Number(ponto[categoria]))}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </VisuallyHidden>
       </>
     );
   }
@@ -210,12 +208,12 @@ function CuradoriaDashboard() {
     <div className={painel.painel}>
       <CabecalhoPainel
         titulo="Dashboard"
-        resumo="Vendas por categoria"
+        resumo="Vendas entregues por categoria"
         acoes={
           <Button
             variant="outline"
             size="sm"
-            disabled={!serie || carregando}
+            disabled={!resultado || carregandoDiscos}
             onClick={handleExportar}
             leftSection={<Download size={20} />}
           >
@@ -225,23 +223,27 @@ function CuradoriaDashboard() {
       />
 
       <div className={styles.filtros}>
-        <DatePickerInput
+        <DateInput
           label="De"
           size="sm"
           className={styles.data}
           placeholder="dd/mm/aaaa"
           valueFormat="DD/MM/YYYY"
+          dateParser={lerDataBR}
           value={dataInicio}
           onChange={setDataInicio}
+          data-testid="analise-inicio"
         />
-        <DatePickerInput
+        <DateInput
           label="Até"
           size="sm"
           className={styles.data}
           placeholder="dd/mm/aaaa"
           valueFormat="DD/MM/YYYY"
+          dateParser={lerDataBR}
           value={dataFim}
           onChange={setDataFim}
+          data-testid="analise-fim"
         />
         <div className={styles.grupoCategorias}>
           <div className={styles.cabecalhoCategorias}>
@@ -263,6 +265,8 @@ function CuradoriaDashboard() {
                 className={styles.categoria}
                 aria-pressed={categoriasSelecionadas.includes(categoria)}
                 onClick={() => handleAlternarCategoria(categoria)}
+                data-testid="categoria-analise"
+                data-categoria={categoria}
               >
                 <span
                   className={styles.amostra}
@@ -274,9 +278,24 @@ function CuradoriaDashboard() {
             ))}
           </div>
         </div>
+        <Button
+          size="sm"
+          loading={consultando}
+          disabled={carregandoDiscos}
+          onClick={() => void consultar()}
+          data-testid="btn-consultar-analise"
+        >
+          Consultar
+        </Button>
       </div>
 
-      {erroPeriodo && <Alert color="red">{erroPeriodo}</Alert>}
+      {erros.length > 0 && (
+        <Alert color="red" data-testid="alerta-analise">
+          {erros.map((erro) => (
+            <div key={erro}>{erro}</div>
+          ))}
+        </Alert>
+      )}
 
       {renderResultado()}
     </div>

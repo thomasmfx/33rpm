@@ -34,6 +34,8 @@ export interface Disco {
   releaseYear: number;
   /** RN0012: um disco pode estar associado a mais de uma categoria. */
   genres: string[];
+  /** RN0071: o gênero em que as vendas do disco aparecem na análise; um dos `genres`. */
+  generoPrincipal: string;
   styles: string[];
   /** Valor de venda em R$, derivado do custo pela RF0052 + RN0051. */
   price: number;
@@ -79,5 +81,8 @@ export interface Disco {
   precoSugerido: number | null;
 }
 
-/** O acervo de demonstração: código e valor sugerido só nascem no cadastro do servidor. */
-export type DiscoMock = Omit<Disco, 'codigo' | 'precoSugerido'>;
+/**
+ * O acervo de demonstração: código e valor sugerido só nascem no cadastro do servidor,
+ * e o gênero principal é o primeiro de `genres` (frontend/scripts/gerar-acervo.mjs).
+ */
+export type DiscoMock = Omit<Disco, 'codigo' | 'precoSugerido' | 'generoPrincipal'>;

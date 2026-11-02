@@ -34,6 +34,7 @@ export interface FormDiscoValues {
   artist: string;
   releaseYear: number;
   genres: string[];
+  generoPrincipal: string;
   styles: string[];
   price: number;
   coverSrc: string;
@@ -119,6 +120,7 @@ export default function FormDisco({
       artist: initialValues?.artist || '',
       releaseYear: initialValues?.releaseYear ?? new Date().getFullYear(),
       genres: initialValues?.genres ?? [],
+      generoPrincipal: initialValues?.generoPrincipal ?? '',
       styles: initialValues?.styles ?? [],
       price: initialValues?.price ?? 0,
       coverSrc: initialValues?.coverSrc || '',
@@ -142,14 +144,14 @@ export default function FormDisco({
     },
 
     validate: {
-      title: (value) => (value.trim().length === 0 ? 'Informe o título (RN0011).' : null),
-      artist: (value) => (value.trim().length === 0 ? 'Informe o artista (RN0011).' : null),
+      title: (value) => (value.trim().length === 0 ? 'Informe o título.' : null),
+      artist: (value) => (value.trim().length === 0 ? 'Informe o artista.' : null),
       releaseYear: (value) =>
         value < 1900 || value > 2030
-          ? 'O ano deve estar entre 1900 e 2030 (RN0011).'
+          ? 'O ano deve estar entre 1900 e 2030.'
           : null,
       genres: (value) =>
-        value.length === 0 ? 'Selecione ao menos um gênero (RN0012).' : null,
+        value.length === 0 ? 'Selecione ao menos um gênero.' : null,
       // RN0013: sem custo registrado o preço nem aparece na tela, então não há o que validar
       price: (value) =>
         precoSugerido !== null && value <= 0
@@ -158,30 +160,30 @@ export default function FormDisco({
       coverSrc: (value) =>
         value.trim().length === 0 ? 'Informe a capa (URL ou caminho).' : null,
       gravadora: (value) =>
-        value.trim().length === 0 ? 'Informe a gravadora (RN0011).' : null,
-      formatoId: (value) => (!value ? 'Selecione o formato (RN0011).' : null),
+        value.trim().length === 0 ? 'Informe a gravadora.' : null,
+      formatoId: (value) => (!value ? 'Selecione o formato.' : null),
       edicaoIds: (value) =>
-        value.length === 0 ? 'Selecione ao menos uma edição (RN0011).' : null,
+        value.length === 0 ? 'Selecione ao menos uma edição.' : null,
       codigoCatalogo: (value) =>
-        value.trim().length === 0 ? 'Informe o código de catálogo (RN0011).' : null,
+        value.trim().length === 0 ? 'Informe o código de catálogo.' : null,
       codigoBarras: (value) =>
         apenasDigitos(value).length !== 13
-          ? 'O código de barras deve ter 13 dígitos (RN0011).'
+          ? 'O código de barras deve ter 13 dígitos.'
           : null,
       numeroFaixas: (value) =>
         !Number.isInteger(value) || value <= 0
-          ? 'Informe o número de faixas (RN0011).'
+          ? 'Informe o número de faixas.'
           : null,
       descricao: (value) =>
-        value.trim().length === 0 ? 'Informe a descrição (RN0011).' : null,
+        value.trim().length === 0 ? 'Informe a descrição.' : null,
       grupoPrecificacaoId: (value) =>
-        !value ? 'Selecione o grupo de precificação (RN0013).' : null,
+        !value ? 'Selecione o grupo de precificação.' : null,
       dimensoes: {
-        altura: (value) => (value > 0 ? null : 'Informe a altura em cm (RN0011).'),
-        largura: (value) => (value > 0 ? null : 'Informe a largura em cm (RN0011).'),
+        altura: (value) => (value > 0 ? null : 'Informe a altura em cm.'),
+        largura: (value) => (value > 0 ? null : 'Informe a largura em cm.'),
         profundidade: (value) =>
-          value > 0 ? null : 'Informe a profundidade em cm (RN0011).',
-        peso: (value) => (value > 0 ? null : 'Informe o peso em g (RN0011).'),
+          value > 0 ? null : 'Informe a profundidade em cm.',
+        peso: (value) => (value > 0 ? null : 'Informe o peso em g.'),
       },
     },
   });
@@ -196,7 +198,17 @@ export default function FormDisco({
   const [edicoesSelecionadas, setEdicoesSelecionadas] = useState<string[]>(
     initialValues?.edicaoIds ?? [],
   );
+  const [generosEscolhidos, setGenerosEscolhidos] = useState<string[]>(
+    initialValues?.genres ?? [],
+  );
 
+  // RN0071: o principal é sempre um dos gêneros; sai da lista, o primeiro assume
+  form.watch('genres', ({ value }) => {
+    setGenerosEscolhidos(value);
+    if (!value.includes(form.getValues().generoPrincipal)) {
+      form.setFieldValue('generoPrincipal', value[0] ?? '');
+    }
+  });
   form.watch('grupoPrecificacaoId', ({ value }) => setGrupoSelecionado(value));
   form.watch('price', ({ value }) =>
     setPrecoAtual(typeof value === 'number' ? value : Number(value) || 0),
@@ -288,7 +300,7 @@ export default function FormDisco({
           <MultiSelect
             label="Gêneros"
             placeholder="Escolha na lista"
-            description="RN0012: pelo menos um gênero"
+            description="Pelo menos um gênero"
             inputWrapperOrder={DESCRICAO_ABAIXO}
             data={sugestoes.generos}
             searchable
@@ -303,6 +315,21 @@ export default function FormDisco({
             data-testid="disco-estilos"
             key={form.key('styles')}
             {...form.getInputProps('styles')}
+          />
+        </div>
+
+        <div className={styles.grade2}>
+          <Select
+            label="Gênero principal"
+            placeholder="Escolha os gêneros primeiro"
+            description="A categoria em que as vendas do disco aparecem na análise"
+            inputWrapperOrder={DESCRICAO_ABAIXO}
+            data={generosEscolhidos}
+            allowDeselect={false}
+            disabled={generosEscolhidos.length < 2}
+            data-testid="disco-genero-principal"
+            key={form.key('generoPrincipal')}
+            {...form.getInputProps('generoPrincipal')}
           />
         </div>
 
@@ -474,7 +501,7 @@ export default function FormDisco({
           <Select
             label="Grupo de precificação"
             placeholder="Selecione um grupo"
-            description="A margem do grupo sobre o maior custo em estoque define o valor de venda (RF0052 / RN0051)."
+            description="A margem do grupo sobre o maior custo em estoque define o valor de venda."
             inputWrapperOrder={DESCRICAO_ABAIXO}
             data={OPCOES_GRUPO_PRECIFICACAO}
             allowDeselect={false}
@@ -486,15 +513,15 @@ export default function FormDisco({
           {precoSugerido === null ? (
             <p className={styles.aviso}>
               O valor de venda será calculado na primeira entrada em estoque,
-              pela margem do grupo escolhido (RF0052 / RN0013).
+              pela margem do grupo escolhido.
             </p>
           ) : (
             <NumberInput
               label="Preço de venda"
               description={
                 grupoMudou
-                  ? 'Com outro grupo, o valor sugerido sai da nova margem e é conferido ao salvar (RN0014).'
-                  : `Valor sugerido pelo grupo: ${formatarBRL(precoSugerido)}, a margem sobre o maior custo em estoque (RN0051).`
+                  ? 'Com outro grupo, o valor sugerido sai da nova margem e é conferido ao salvar.'
+                  : `Valor sugerido pelo grupo: ${formatarBRL(precoSugerido)}, a margem sobre o maior custo em estoque.`
               }
               inputWrapperOrder={DESCRICAO_ABAIXO}
               prefix="R$ "
@@ -515,8 +542,8 @@ export default function FormDisco({
           <>
             <Alert color="orange" title="Autorização necessária">
               {grupoMudou
-                ? 'RN0014: se o preço ficar abaixo da margem do novo grupo, o servidor exige a autorização de um gerente de vendas.'
-                : 'RN0014: o preço informado está abaixo do valor sugerido pelo grupo de precificação. É preciso registrar a autorização de um gerente de vendas para manter esse valor.'}
+                ? 'Se o preço ficar abaixo da margem do novo grupo, o servidor exige a autorização de um gerente de vendas.'
+                : 'O preço informado está abaixo do valor sugerido pelo grupo de precificação. É preciso registrar a autorização de um gerente de vendas para manter esse valor.'}
             </Alert>
             <TextInput
               label="Autorização do gerente de vendas"

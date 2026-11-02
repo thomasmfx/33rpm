@@ -22,6 +22,7 @@ export interface DiscoApi {
   gravadora: Nomeado;
   anoLancamento: string;
   categorias: { id?: number; desc: string; tipo: TipoCategoria }[];
+  generoPrincipal: { id?: number; desc: string; tipo: TipoCategoria };
   edicoes: Nomeado[];
   formato: Nomeado;
   grupoPrecificacao: Nomeado;
@@ -70,6 +71,7 @@ export function paraDisco(bruto: DiscoApi): Disco {
     artist: bruto.artista.nome,
     releaseYear: Number(bruto.anoLancamento.slice(0, 4)),
     genres: categoriasDoTipo(bruto, 'genero'),
+    generoPrincipal: bruto.generoPrincipal.desc,
     styles: categoriasDoTipo(bruto, 'estilo'),
     price: bruto.precoVenda,
     coverSrc: bruto.capaUrl,
@@ -123,6 +125,9 @@ function paraPayload(valores: FormDiscoValues, capaMiniaturaUrl: string | null) 
       ...valores.genres.map((desc) => ({ desc, tipo: 'genero' })),
       ...valores.styles.map((desc) => ({ desc, tipo: 'estilo' })),
     ],
+    generoPrincipal: valores.generoPrincipal
+      ? { desc: valores.generoPrincipal, tipo: 'genero' }
+      : null,
     edicoes: EDICOES.filter((edicao) => valores.edicaoIds.includes(edicao.id)).map((edicao) => ({
       nome: edicao.nome,
     })),

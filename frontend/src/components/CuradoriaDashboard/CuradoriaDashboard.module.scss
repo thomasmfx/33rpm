@@ -1,5 +1,3 @@
-@use '../../styles/mixins' as *;
-
 .filtros {
   display: flex;
   flex-wrap: wrap;
@@ -65,41 +63,6 @@
   width: 10px;
   height: 10px;
   flex-shrink: 0;
-}
-
-.indicadores {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  border-top: 1px solid var(--cor-vinil);
-}
-
-.indicador {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-  padding: 20px 24px 20px 0;
-  border-right: 1px solid var(--cor-divisoria);
-
-  & + & {
-    padding-left: 24px;
-  }
-}
-
-.rotuloIndicador {
-  @include meta(11px);
-
-  color: var(--cor-auxiliar);
-}
-
-.valorIndicador {
-  font-size: clamp(24px, 2.6vw, 36px);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 // o CSS do @mantine/charts fixa fonte e cor do texto do SVG, e CSS vence os
