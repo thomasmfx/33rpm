@@ -11,6 +11,19 @@ describe('Entrada na loja (autenticação simples)', () => {
     cy.contains('Ana Paula Ribeiro').should('be.visible');
   });
 
+  it('a conta de demonstração entra direto, sem apertar Entrar', () => {
+    cy.visit('/login');
+    cy.contains('button', 'Cliente · ana.ribeiro@email.com').click();
+    cy.location('pathname').should('eq', '/');
+    cy.contains('Ana Paula Ribeiro').should('be.visible');
+
+    cy.clearLocalStorage();
+    cy.visit('/login');
+    cy.contains('button', 'Administrador · admin@33rpm.com.br').click();
+    cy.location('pathname').should('contain', '/curadoria');
+    cy.get('[data-testid="btn-sair-curadoria"]').should('be.visible');
+  });
+
   it('recusa senha errada sem dizer qual campo falhou', () => {
     cy.visit('/login');
     cy.get('[data-testid="login-email"]').type('ana.ribeiro@email.com');
@@ -63,9 +76,7 @@ describe('Entrada na loja (autenticação simples)', () => {
     cy.location('pathname').should('eq', '/');
 
     cy.visit('/curadoria/clientes');
-    cy.get('[data-testid="acesso-restrito"]')
-      .should('contain', 'Esta área é só para administradores')
-      .and('contain', 'conectado como cliente');
+    cy.get('[data-testid="acesso-restrito"]').should('contain', 'Página indisponível');
     cy.get('[data-testid="btn-novo-cliente"]').should('not.exist');
   });
 });

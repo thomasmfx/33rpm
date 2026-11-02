@@ -137,4 +137,8 @@
   &:hover {
     color: var(--cor-vinil);
   }
+
+  &:disabled {
+    cursor: wait;
+  }
 }

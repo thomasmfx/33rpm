@@ -62,11 +62,6 @@ function Login() {
     }
   }
 
-  function preencherDemonstracao(conta: (typeof CONTAS_DEMONSTRACAO)[number]): void {
-    form.setFieldValue('email', conta.email);
-    form.setFieldValue('senha', conta.senha);
-  }
-
   return (
     <main className={styles.main}>
       <div className={styles.painel}>
@@ -143,7 +138,8 @@ function Login() {
                 key={conta.email}
                 type="button"
                 className={styles.demonstracao}
-                onClick={() => preencherDemonstracao(conta)}
+                disabled={enviando}
+                onClick={() => void handleEntrar(conta)}
               >
                 {conta.rotulo} · {conta.email}
               </button>
