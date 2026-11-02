@@ -17,15 +17,15 @@ public class RegrasSenha {
   public List<String> validar(String senha, String confirmacao) {
     List<String> erros = new ArrayList<>();
     if (senha == null || senha.isBlank()) {
-      erros.add("Informe a senha (RN0026).");
+      erros.add("Informe a senha.");
       return erros;
     }
     if (!SENHA_FORTE.matcher(senha).matches()) {
       erros.add("A senha deve ter no mínimo 8 caracteres, letras maiúsculas, "
-          + "minúsculas e um caractere especial (RNF0031).");
+          + "minúsculas e um caractere especial.");
     }
     if (!senha.equals(confirmacao)) {
-      erros.add("As senhas não coincidem (RNF0032).");
+      erros.add("As senhas não coincidem.");
     }
     return erros;
   }

@@ -71,10 +71,10 @@ describe('Entrada em estoque e valor de venda (RF0051, RF0052, RN0013, RN0050, R
   it('RN0050, RN0061, RN0062 e RNF0064 - recusa entrada sem os dados obrigatórios', function () {
     const disco = this.disco as DiscoApi;
     const recusas: [Record<string, unknown>, string][] = [
-      [{ quantidade: 0 }, 'A quantidade deve ser maior que zero (RN0061).'],
-      [{ valorCusto: 0 }, 'Informe um valor de custo maior que zero (RN0062).'],
-      [{ dataEntrada: null }, 'Informe a data de entrada (RNF0064).'],
-      [{ fornecedor: null }, 'Informe o fornecedor da entrada (RN0050).'],
+      [{ quantidade: 0 }, 'A quantidade deve ser maior que zero.'],
+      [{ valorCusto: 0 }, 'Informe um valor de custo maior que zero.'],
+      [{ dataEntrada: null }, 'Informe a data de entrada.'],
+      [{ fornecedor: null }, 'Informe o fornecedor da entrada.'],
     ];
     recusas.forEach(([campo, mensagem]) => {
       registrarEntrada(disco.id, campo).then((resposta) => {

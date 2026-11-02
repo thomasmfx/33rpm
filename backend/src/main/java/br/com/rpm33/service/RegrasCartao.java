@@ -26,18 +26,18 @@ public class RegrasCartao {
     for (Cartao cartao : cartoes) {
       if (cartao.getNumero() == null || cartao.getNumero().length() < 13
           || cartao.getNumero().length() > 19) {
-        erros.add("Número de cartão inválido (RN0024).");
+        erros.add("Número de cartão inválido.");
       }
       if (vazio(cartao.getNomeImpresso())) {
-        erros.add("Informe o nome impresso no cartão (RN0024).");
+        erros.add("Informe o nome impresso no cartão.");
       }
       if (cartao.getBandeira() == null
           || (cartao.getBandeira().getId() == null && vazio(cartao.getBandeira().getDesc()))) {
-        erros.add("Selecione a bandeira do cartão (RN0024).");
+        erros.add("Selecione a bandeira do cartão.");
       }
       if (cartao.getCodigoSeguranca() == null || cartao.getCodigoSeguranca().length() < 3
           || cartao.getCodigoSeguranca().length() > 4) {
-        erros.add("Código de segurança inválido (RN0024).");
+        erros.add("Código de segurança inválido.");
       }
     }
     return erros;
@@ -52,7 +52,7 @@ public class RegrasCartao {
         ? bandeiraCartaoRepository.findById(informada.getId())
         : bandeiraCartaoRepository.findByDescIgnoreCase(informada.getDesc().trim());
     if (encontrada.isEmpty()) {
-      erros.add("Bandeira de cartão não registrada no sistema (RN0025).");
+      erros.add("Bandeira de cartão não registrada no sistema.");
       return null;
     }
     return encontrada.get();

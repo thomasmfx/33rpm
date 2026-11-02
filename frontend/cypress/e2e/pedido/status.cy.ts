@@ -18,13 +18,13 @@ describe('Status da compra pelo administrador (RF0039, RF0040, RN0039, RN0040)',
       avancar(id, 'EM TRANSPORTE')
         .its('body.mensagens')
         .should('deep.eq', [
-          'RN0039: só compras APROVADA seguem para EM TRANSPORTE; esta está EM PROCESSAMENTO.',
+          'Só compras APROVADA seguem para EM TRANSPORTE; esta está EM PROCESSAMENTO.',
         ]);
 
       cy.validarPagamentos();
       avancar(id, 'ENTREGUE')
         .its('body.mensagens')
-        .should('deep.eq', ['RN0040: só compras EM TRANSPORTE podem ser entregues; esta está APROVADA.']);
+        .should('deep.eq', ['Só compras EM TRANSPORTE podem ser entregues; esta está APROVADA.']);
       avancar(id, 'TROCADO').its('status').should('eq', 400);
 
       avancar(id, 'EM TRANSPORTE').its('body.status.descricao').should('eq', 'EM TRANSPORTE');

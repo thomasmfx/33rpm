@@ -63,7 +63,7 @@ export default function ListaCartoes({
     <div className={styles.campos}>
       <p className={styles.ajuda}>
         Cartão é opcional no cadastro. Havendo cartões, um deles é sempre o
-        preferencial (RF0027).
+        preferencial.
       </p>
 
       {cartoes.length > 0 && (

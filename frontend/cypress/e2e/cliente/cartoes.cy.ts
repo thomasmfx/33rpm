@@ -86,7 +86,7 @@ describe('Cartões de crédito do cliente (RF0027)', () => {
       },
     }).then((resposta) => {
       expect(resposta.status).to.eq(400);
-      expect(resposta.body.mensagens[0]).to.contain('RN0025');
+      expect(resposta.body.mensagens[0]).to.contain('Bandeira de cartão não registrada');
     });
   });
 });

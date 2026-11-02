@@ -183,8 +183,8 @@ describe('Realização da compra (RF0033, RF0034, RF0035, RF0036, RF0038)', () =
       }).then((resposta) => {
         expect(resposta.status).to.eq(400);
         expect(resposta.body.mensagens).to.include.members([
-          "Informe o bairro no 'Sem bairro' (RN0023).",
-          'Número de cartão inválido (RN0024).',
+          "Informe o bairro no 'Sem bairro'.",
+          'Número de cartão inválido.',
         ]);
       });
 
@@ -212,7 +212,7 @@ describe('Realização da compra (RF0033, RF0034, RF0035, RF0036, RF0038)', () =
       }).then((resposta) => {
         expect(resposta.status).to.eq(400);
         expect(resposta.body.mensagens).to.include(
-          'Bandeira de cartão não registrada no sistema (RN0025).',
+          'Bandeira de cartão não registrada no sistema.',
         );
       });
       cy.request(`${API()}/pedidos?clienteId=1`).its('body').should('have.length', 0);

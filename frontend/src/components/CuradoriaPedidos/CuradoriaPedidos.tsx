@@ -160,15 +160,15 @@ function DetalhesPedido({ pedido, nomeCliente, onFechar }: Readonly<DetalhesPedi
             </strong>
             <span className={styles.nota}>
               {pedido.validacao.aprovado
-                ? 'Cupons conferidos e cartões aceitos pela operadora; o estoque foi baixado (RF0053).'
-                : `${pedido.validacao.motivo} Os itens foram desbloqueados e os cupons devolvidos (RN0028).`}
+                ? 'Cupons conferidos e cartões aceitos pela operadora; o estoque foi baixado.'
+                : `${pedido.validacao.motivo} Os itens foram desbloqueados e os cupons devolvidos.`}
             </span>
           </div>
         </div>
       )}
       {pedido.status === 'EM PROCESSAMENTO' && (
         <span className={styles.nota}>
-          Aguardando a validação do pagamento: cupons e aceite da operadora (RN0037).
+          Aguardando a validação do pagamento: cupons e aceite da operadora.
         </span>
       )}
 
@@ -272,7 +272,7 @@ function DetalhesTroca({
           <div className={styles.caixaCabecalho}>
             <strong>Autorizar a troca?</strong>
             <span className={styles.nota}>
-              Autorizada, o cliente é notificado (RN0046) e envia os itens de volta.
+              Autorizada, o cliente é notificado e envia os itens de volta.
             </span>
           </div>
           <Button
@@ -308,8 +308,8 @@ function DetalhesTroca({
           </Radio.Group>
           <span className={styles.nota}>
             Ao confirmar, a troca fica TROCADO e o cliente recebe um cupom de troca de{' '}
-            {formatarBRL(troca.valor)} (RF0045).
-            {retorno === 'sim' && ' Os itens voltam ao estoque (RF0054).'}
+            {formatarBRL(troca.valor)}.
+            {retorno === 'sim' && ' Os itens voltam ao estoque.'}
           </span>
           <Button
             size="sm"
@@ -430,7 +430,7 @@ function CuradoriaPedidos() {
       `troca-${troca.id}`,
       async () => {
         await avancarTroca(troca.id, 'TROCA AUTORIZADA');
-        return `Troca #${troca.id} autorizada; o cliente foi notificado (RN0046).`;
+        return `Troca #${troca.id} autorizada; o cliente foi notificado.`;
       },
       'Falha ao autorizar a troca.',
     );

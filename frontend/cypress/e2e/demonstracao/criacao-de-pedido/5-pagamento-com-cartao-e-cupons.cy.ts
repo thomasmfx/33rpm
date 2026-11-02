@@ -24,7 +24,7 @@ describe('Demonstração · Criação de pedido', () => {
     cy.marcarCartao('5100');
     cy.get('[data-testid="pendencias-pagamento"]').should(
       'contain',
-      'RN0035: com cupons, a sobra de R$ 7,00 fica em um único cartão.',
+      'Com cupons, a sobra de R$ 7,00 fica em um único cartão.',
     );
     cy.get('[data-testid="btn-pagar"]').should('be.disabled');
 

@@ -21,7 +21,7 @@ describe('Demonstração · Gerenciar vendas eletrônicas', () => {
         cy.get('[data-testid="btn-solicitar-troca"]').should('be.disabled');
         cy.get('[data-testid="aviso-troca-bloqueada"]').should(
           'contain',
-          'A troca só pode ser pedida depois da entrega (RN0043)',
+          'A troca só pode ser pedida depois da entrega',
         );
       });
 
@@ -40,7 +40,7 @@ describe('Demonstração · Gerenciar vendas eletrônicas', () => {
         }).then((resposta) => {
           expect(resposta.status).to.eq(400);
           expect(resposta.body.mensagens).to.include(
-            'RN0043: só compras ENTREGUE podem ter itens trocados; esta está EM TRANSPORTE.',
+            'Só compras ENTREGUE podem ter itens trocados; esta está EM TRANSPORTE.',
           );
         });
       });

@@ -75,7 +75,7 @@ public class PagamentoService implements IService {
     long promocionais = cupons.stream()
         .filter(cupom -> TipoCupom.PROMOCIONAL.equals(cupom.getTipo().getDesc())).count();
     if (promocionais > 1) {
-      erros.add("RN0033: apenas um cupom promocional por compra.");
+      erros.add("Apenas um cupom promocional por compra.");
     }
 
     BigDecimal total = composicao.getTotal();
@@ -85,7 +85,7 @@ public class PagamentoService implements IService {
     cupons.stream()
         .filter(cupom -> soma.subtract(cupom.getValor()).compareTo(total) >= 0)
         .min(Comparator.comparing(Cupom::getValor).thenComparing(Cupom::getCodigo))
-        .ifPresent(cupom -> erros.add("RN0036: o cupom " + cupom.getCodigo()
+        .ifPresent(cupom -> erros.add("O cupom " + cupom.getCodigo()
             + " é dispensável — os demais já cobrem o total."));
 
     BigDecimal restante = total.subtract(soma).max(ZERO);
@@ -199,12 +199,12 @@ public class PagamentoService implements IService {
     }
     if (comCupom && restante.compareTo(MINIMO_POR_CARTAO) < 0) {
       if (pagamentos.size() > 1) {
-        erros.add("RN0035: com cupons, a sobra de " + reais(restante)
+        erros.add("Com cupons, a sobra de " + reais(restante)
             + " fica em um único cartão.");
       }
     } else if (pagamentos.stream().anyMatch(pagamento -> positivo(pagamento.getValor())
         && pagamento.getValor().compareTo(MINIMO_POR_CARTAO) < 0)) {
-      erros.add("RN0034: cada cartão precisa receber ao menos R$ 10,00.");
+      erros.add("Cada cartão precisa receber ao menos R$ 10,00.");
     }
     return erros;
   }

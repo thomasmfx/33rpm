@@ -265,7 +265,7 @@ function Carrinho() {
           </Button>
           {compraBloqueada && (
             <span className={styles.apagado} data-testid="motivo-compra-bloqueada">
-              Inclua de novo ou dispense os itens expirados para comprar (RNF0042).
+              Inclua de novo ou dispense os itens expirados para comprar.
             </span>
           )}
           <Button variant="default" fullWidth component={Link} to="/acervo">

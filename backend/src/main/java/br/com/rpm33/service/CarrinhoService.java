@@ -234,10 +234,10 @@ public class CarrinhoService implements IService {
     if (livre == 0) {
       itemCarrinhoRepository.delete(item);
       registrar(OperacaoLog.EXCLUIR, item, usuario);
-      ajustes.add("RN0032: " + titulo + " saiu do carrinho: não está mais disponível.");
+      ajustes.add(titulo + " saiu do carrinho: não está mais disponível.");
       return;
     }
-    ajustes.add("RN0032: " + titulo + " passou de " + item.getQuantidade() + " para " + livre
+    ajustes.add(titulo + " passou de " + item.getQuantidade() + " para " + livre
         + " unidade(s), o que há livre em estoque.");
     item.setQuantidade(livre);
     registrar(OperacaoLog.ALTERAR, item, usuario);

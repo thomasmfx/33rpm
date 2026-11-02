@@ -63,7 +63,7 @@ describe('Carrinho de compra (RF0031, RF0032, RN0031)', () => {
         failOnStatusCode: false,
       }).then((resposta) => {
         expect(resposta.status).to.eq(400);
-        expect(resposta.body.mensagens).to.include('RN0031: só há 5 unidade(s) de Anti em estoque.');
+        expect(resposta.body.mensagens).to.include('Só há 5 unidade(s) de Anti em estoque.');
       });
     });
   });
@@ -78,7 +78,7 @@ describe('Carrinho de compra (RF0031, RF0032, RN0031)', () => {
     cy.get('[data-testid="disco-compra"] [data-testid="btn-adicionar-carrinho"]').click();
 
     cy.wait('@disponibilidade').its('response.statusCode').should('eq', 400);
-    cy.get('[data-testid="alerta-carrinho"]').should('contain', 'RN0031');
+    cy.get('[data-testid="alerta-carrinho"]').should('contain', 'Só há');
     cy.get('[data-testid="contador-carrinho"]').should('have.text', '8');
   });
 });

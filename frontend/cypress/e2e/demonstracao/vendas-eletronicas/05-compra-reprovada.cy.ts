@@ -37,7 +37,7 @@ describe('Demonstração · Gerenciar vendas eletrônicas', () => {
           failOnStatusCode: false,
         })
           .its('body.mensagens')
-          .should('include', 'RN0044: só há 8 unidade(s) livre(s) de Whole Lotta Red; as demais estão reservadas em outras compras.');
+          .should('include', 'Só há 8 unidade(s) livre(s) de Whole Lotta Red; as demais estão reservadas em outras compras.');
 
         cy.etapa('RN0037: a operadora recusa o cartão final 0002');
         cy.validarPagamentos();

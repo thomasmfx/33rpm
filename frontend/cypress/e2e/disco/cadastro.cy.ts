@@ -64,13 +64,13 @@ describe('Cadastro de disco (RF0011, RN0011, RN0012, RNF0021)', { scrollBehavior
       expect(resposta.status).to.eq(400);
       const mensagens: string[] = resposta.body.mensagens;
       expect(mensagens).to.include.members([
-        'Informe o artista (RN0011).',
-        'Informe a gravadora (RN0011).',
-        'Selecione ao menos um gênero (RN0012).',
-        'Informe o código de catálogo (RN0011).',
-        'O código de barras deve ter 13 dígitos (RN0011).',
-        'Informe a descrição (RN0011).',
-        'Informe o peso em g (RN0011).',
+        'Informe o artista.',
+        'Informe a gravadora.',
+        'Selecione ao menos um gênero.',
+        'Informe o código de catálogo.',
+        'O código de barras deve ter 13 dígitos.',
+        'Informe a descrição.',
+        'Informe o peso em g.',
       ]);
     });
     cy.request(`${API()}/discos?titulo=Sem dados`).its('body').should('have.length', 0);

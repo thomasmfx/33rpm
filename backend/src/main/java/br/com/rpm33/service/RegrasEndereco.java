@@ -29,7 +29,7 @@ public class RegrasEndereco {
     List<String> erros = new ArrayList<>();
     String identificacao = vazio(endereco.getNome()) ? "endereço" : "'" + endereco.getNome() + "'";
     if (vazio(endereco.getNome())) {
-      erros.add("Informe um nome para o endereço (RF0026).");
+      erros.add("Informe um nome para o endereço.");
     }
     if (!Endereco.ENTREGA.equals(endereco.getTipo()) && !Endereco.COBRANCA.equals(endereco.getTipo())
         && !Endereco.AMBOS.equals(endereco.getTipo())) {
@@ -43,32 +43,32 @@ public class RegrasEndereco {
   public List<String> camposObrigatoriosDoEndereco(Endereco endereco, String identificacao) {
     List<String> erros = new ArrayList<>();
     if (vazio(endereco.getTipoResidencia())) {
-      erros.add("Informe o tipo de residência no " + identificacao + " (RN0023).");
+      erros.add("Informe o tipo de residência no " + identificacao + ".");
     }
     if (vazio(endereco.getTipoLogradouro())) {
-      erros.add("Informe o tipo de logradouro no " + identificacao + " (RN0023).");
+      erros.add("Informe o tipo de logradouro no " + identificacao + ".");
     }
     if (vazio(endereco.getLogradouro())) {
-      erros.add("Informe o logradouro no " + identificacao + " (RN0023).");
+      erros.add("Informe o logradouro no " + identificacao + ".");
     }
     if (vazio(endereco.getNumero())) {
-      erros.add("Informe o número no " + identificacao + " (RN0023).");
+      erros.add("Informe o número no " + identificacao + ".");
     }
     if (vazio(endereco.getBairro())) {
-      erros.add("Informe o bairro no " + identificacao + " (RN0023).");
+      erros.add("Informe o bairro no " + identificacao + ".");
     }
     if (endereco.getCep() == null || endereco.getCep().length() != 8) {
-      erros.add("CEP deve ter 8 dígitos no " + identificacao + " (RN0023).");
+      erros.add("CEP deve ter 8 dígitos no " + identificacao + ".");
     }
     if (endereco.getCidade() == null || vazio(endereco.getCidade().getDesc())) {
-      erros.add("Informe a cidade no " + identificacao + " (RN0023).");
+      erros.add("Informe a cidade no " + identificacao + ".");
     }
     if (endereco.getCidade() == null || endereco.getCidade().getEstado() == null
         || vazio(endereco.getCidade().getEstado().getDesc())) {
-      erros.add("Informe o estado no " + identificacao + " (RN0023).");
+      erros.add("Informe o estado no " + identificacao + ".");
     }
     if (vazio(endereco.getPais())) {
-      erros.add("Informe o país no " + identificacao + " (RN0023).");
+      erros.add("Informe o país no " + identificacao + ".");
     }
     return erros;
   }

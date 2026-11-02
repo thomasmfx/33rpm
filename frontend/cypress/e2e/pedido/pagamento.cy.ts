@@ -54,7 +54,7 @@ describe('Pagamento com cartões e cupons (RF0036, RF0037, RN0033 a RN0036)', ()
     cy.valorNoCartao('1002', '272');
     cy.get('[data-testid="pendencias-pagamento"]').should(
       'contain',
-      'RN0034: cada cartão precisa receber ao menos R$ 10,00.',
+      'Cada cartão precisa receber ao menos R$ 10,00.',
     );
     cy.get('[data-testid="btn-pagar"]').should('be.disabled');
 
@@ -76,7 +76,7 @@ describe('Pagamento com cartões e cupons (RF0036, RF0037, RN0033 a RN0036)', ()
     esperarRecusa(
       'Ride The Lightning',
       { pagamentos: [{ cartaoId: 1, valor: 282 }, { cartaoNovo: CARTAO_AVULSO, valor: 5 }] },
-      'RN0034: cada cartão precisa receber ao menos R$ 10,00.',
+      'Cada cartão precisa receber ao menos R$ 10,00.',
     );
   });
 
@@ -88,7 +88,7 @@ describe('Pagamento com cartões e cupons (RF0036, RF0037, RN0033 a RN0036)', ()
     cy.selecionarCupom('TROCA-AP-300');
     cy.marcarCartao('1002');
     cy.marcarCartao('5100');
-    cy.get('[data-testid="pendencias-pagamento"]').should('contain', 'RN0035');
+    cy.get('[data-testid="pendencias-pagamento"]').should('contain', 'fica em um único cartão');
     cy.get('[data-testid="btn-pagar"]').should('be.disabled');
 
     cy.get('[data-testid="cartao-opcao"][data-final="5100"] [data-testid="cartao-checkbox"]').uncheck({
@@ -123,7 +123,7 @@ describe('Pagamento com cartões e cupons (RF0036, RF0037, RN0033 a RN0036)', ()
         cupons: [{ id: CUPOM.troca300 }],
         pagamentos: [{ cartaoId: 1, valor: 4 }, { cartaoNovo: CARTAO_AVULSO, valor: 3 }],
       },
-      'RN0035: com cupons, a sobra de R$ 7,00 fica em um único cartão.',
+      'Com cupons, a sobra de R$ 7,00 fica em um único cartão.',
     );
   });
 
@@ -179,7 +179,7 @@ describe('Pagamento com cartões e cupons (RF0036, RF0037, RN0033 a RN0036)', ()
     cy.selecionarCupom('TROCA-AP-300');
     cy.selecionarCupom('TROCA-AP-045');
     cy.selecionarCupom('PROMO-AP-20');
-    const mensagem = 'RN0036: o cupom PROMO-AP-20 é dispensável — os demais já cobrem o total.';
+    const mensagem = 'O cupom PROMO-AP-20 é dispensável — os demais já cobrem o total.';
     cy.get('[data-testid="pendencias-pagamento"]').should('contain', mensagem);
     cy.get('[data-testid="btn-pagar"]').should('be.disabled');
 
@@ -196,7 +196,7 @@ describe('Pagamento com cartões e cupons (RF0036, RF0037, RN0033 a RN0036)', ()
 
     cy.selecionarCupom('PROMO-AP-20');
     cy.selecionarCupom('PROMO-AP-50');
-    const mensagem = 'RN0033: apenas um cupom promocional por compra.';
+    const mensagem = 'Apenas um cupom promocional por compra.';
     cy.get('[data-testid="pendencias-pagamento"]').should('contain', mensagem);
     cy.get('[data-testid="btn-pagar"]').should('be.disabled');
 

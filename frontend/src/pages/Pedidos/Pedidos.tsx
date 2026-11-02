@@ -83,20 +83,20 @@ export default function Pedidos() {
         {pedido.status === 'REPROVADA' && pedido.validacao && (
           <Alert color="red" title="Pagamento reprovado" data-testid="motivo-reprovacao">
             {pedido.validacao.motivo} Os discos não foram cobrados e voltaram ao estoque
-            {pedido.cupons.length > 0 && ', e os cupons usados voltaram para Meus cupons'} (RN0028).
+            {pedido.cupons.length > 0 && ', e os cupons usados voltaram para Meus cupons'}.
           </Alert>
         )}
 
         {pedido.cupomGerado && (
           <Alert color="green" title="Sobrou crédito">
             A diferença dos cupons virou o cupom {pedido.cupomGerado.codigo}, no valor de{' '}
-            {formatarBRL(pedido.cupomGerado.valor)} (RN0036).
+            {formatarBRL(pedido.cupomGerado.valor)}.
           </Alert>
         )}
         {pedido.status === 'EM PROCESSAMENTO' && pedido.troco > 0 && (
           <Alert color="green" title="Sobra crédito">
             A diferença de {formatarBRL(pedido.troco)} volta como cupom de troca assim que o
-            pagamento for aprovado (RN0036).
+            pagamento for aprovado.
           </Alert>
         )}
 
@@ -126,7 +126,7 @@ export default function Pedidos() {
             {troca.cupomGerado && (
               <span className={styles.nota} data-testid="troca-cupom" data-codigo={troca.cupomGerado.codigo}>
                 Cupom {troca.cupomGerado.codigo} de {formatarBRL(troca.cupomGerado.valor)} em Meus
-                cupons (RF0045).
+                cupons.
               </span>
             )}
           </div>

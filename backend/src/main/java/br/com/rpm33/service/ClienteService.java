@@ -284,11 +284,11 @@ public class ClienteService implements IService {
       erros.add("Já existe um cliente com este CPF.");
     }
     if (cliente.getDataNascimento() == null) {
-      erros.add("Informe a data de nascimento (RN0026).");
+      erros.add("Informe a data de nascimento.");
     }
     if (cliente.getGenero() == null
         || (cliente.getGenero().getId() == null && vazio(cliente.getGenero().getDesc()))) {
-      erros.add("Selecione um gênero (RN0026).");
+      erros.add("Selecione um gênero.");
     }
     erros.addAll(validarTelefone(cliente.getTelefone()));
     return erros;
@@ -298,12 +298,12 @@ public class ClienteService implements IService {
   private List<String> validarTelefone(Telefone telefone) {
     List<String> erros = new ArrayList<>();
     if (telefone == null) {
-      erros.add("Informe o telefone com tipo, DDD e número (RN0026).");
+      erros.add("Informe o telefone com tipo, DDD e número.");
       return erros;
     }
     if (telefone.getTipo() == null
         || (telefone.getTipo().getId() == null && vazio(telefone.getTipo().getDesc()))) {
-      erros.add("Selecione o tipo do telefone (RN0026).");
+      erros.add("Selecione o tipo do telefone.");
     }
     if (telefone.getDdd() == null || telefone.getDdd().length() != 2) {
       erros.add("DDD inválido.");
@@ -320,8 +320,8 @@ public class ClienteService implements IService {
   private List<String> validarEnderecos(Cliente cliente) {
     List<String> erros = new ArrayList<>();
     if (cliente.getEnderecos().isEmpty()) {
-      erros.add("O cliente precisa de ao menos um endereço de cobrança (RN0021).");
-      erros.add("O cliente precisa de ao menos um endereço de entrega (RN0022).");
+      erros.add("O cliente precisa de ao menos um endereço de cobrança.");
+      erros.add("O cliente precisa de ao menos um endereço de entrega.");
       return erros;
     }
 
@@ -330,10 +330,10 @@ public class ClienteService implements IService {
     }
 
     if (!temEnderecoDe(cliente, Endereco.COBRANCA)) {
-      erros.add("O cliente precisa de ao menos um endereço de cobrança (RN0021).");
+      erros.add("O cliente precisa de ao menos um endereço de cobrança.");
     }
     if (!temEnderecoDe(cliente, Endereco.ENTREGA)) {
-      erros.add("O cliente precisa de ao menos um endereço de entrega (RN0022).");
+      erros.add("O cliente precisa de ao menos um endereço de entrega.");
     }
     return erros;
   }

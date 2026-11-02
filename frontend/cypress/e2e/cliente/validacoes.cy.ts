@@ -98,8 +98,8 @@ describe('Validações do cadastro de cliente', () => {
       (resposta) => {
         expect(resposta.status).to.eq(400);
         const mensagens = resposta.body.mensagens.join(' ');
-        expect(mensagens).to.contain('RNF0031');
-        expect(mensagens).to.contain('RNF0032');
+        expect(mensagens).to.contain('A senha deve ter no mínimo 8 caracteres');
+        expect(mensagens).to.contain('As senhas não coincidem');
       },
     );
   });

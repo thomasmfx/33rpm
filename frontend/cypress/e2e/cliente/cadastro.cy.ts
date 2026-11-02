@@ -51,8 +51,7 @@ describe('Cadastro de cliente (RF0021)', () => {
       cy.preencherDados(dados.novo);
       cy.get('[data-testid="btn-salvar-cliente"]').click();
 
-      cy.contains('RN0021').should('be.visible');
-      cy.contains('RN0022').should('be.visible');
+      cy.contains('ao menos um endereço de entrega e um de cobrança').should('be.visible');
       cy.request(`${Cypress.env('apiUrl')}/clientes?nome=Renata`)
         .its('body')
         .should('have.length', 0);
@@ -66,7 +65,7 @@ describe('Cadastro de cliente (RF0021)', () => {
       cy.adicionarEndereco({ ...dados.endereco, tipo: 'Cobrança' });
       cy.get('[data-testid="btn-salvar-cliente"]').click();
 
-      cy.contains('ao menos um endereço de entrega (RN0022)').should('be.visible');
+      cy.contains('ao menos um endereço de entrega').should('be.visible');
     });
   });
 
@@ -109,8 +108,8 @@ describe('Cadastro de cliente (RF0021)', () => {
       },
     }).then((resposta) => {
       expect(resposta.status).to.eq(400);
-      expect(resposta.body.mensagens.join(' ')).to.contain('RN0021');
-      expect(resposta.body.mensagens.join(' ')).to.contain('RN0022');
+      expect(resposta.body.mensagens.join(' ')).to.contain('endereço de cobrança');
+      expect(resposta.body.mensagens.join(' ')).to.contain('endereço de entrega');
     });
   });
 });

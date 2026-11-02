@@ -52,7 +52,7 @@ describe('Alteração de disco (RF0014, RN0014)', { scrollBehavior: 'center' }, 
       }).then((resposta) => {
         expect(resposta.status).to.eq(400);
         expect(resposta.body.mensagens).to.include(
-          'RN0014: preço abaixo da margem do grupo exige autorização do gerente de vendas.',
+          'Preço abaixo da margem do grupo exige autorização do gerente de vendas.',
         );
       });
 

@@ -20,12 +20,12 @@ interface ListaEnderecosProps {
 
 function mensagemTiposFaltando(faltando: TipoEndereco[]): string {
   if (faltando.includes('entrega') && faltando.includes('cobranca')) {
-    return 'O cliente precisa de ao menos um endereço de entrega e um de cobrança (RN0021, RN0022). Um endereço marcado como "Entrega e cobrança" resolve os dois.';
+    return 'O cliente precisa de ao menos um endereço de entrega e um de cobrança. Um endereço marcado como "Entrega e cobrança" resolve os dois.';
   }
   if (faltando.includes('entrega')) {
-    return 'O cliente precisa de ao menos um endereço de entrega (RN0022).';
+    return 'O cliente precisa de ao menos um endereço de entrega.';
   }
-  return 'O cliente precisa de ao menos um endereço de cobrança (RN0021).';
+  return 'O cliente precisa de ao menos um endereço de cobrança.';
 }
 
 export default function ListaEnderecos({

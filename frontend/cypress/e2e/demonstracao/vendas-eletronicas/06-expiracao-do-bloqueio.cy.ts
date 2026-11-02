@@ -26,7 +26,7 @@ describe('Demonstração · Gerenciar vendas eletrônicas', () => {
         .its('body.mensagens')
         .should(
           'include',
-          'RN0044: só há 6 unidade(s) livre(s) de Maggot Brain; as demais estão reservadas em outras compras.',
+          'Só há 6 unidade(s) livre(s) de Maggot Brain; as demais estão reservadas em outras compras.',
         );
 
       cy.etapa('O carrinho mostra o prazo de 15 minutos, contado da última inclusão');

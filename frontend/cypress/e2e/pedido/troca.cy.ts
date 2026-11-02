@@ -41,17 +41,17 @@ describe('Troca e devolução (RF0041 a RF0045, RF0054, RN0041 a RN0043, RN0046)
 
         solicitar({ ...pedido, itens: [{ itemPedidoId: itens['To Pimp A Butterfly'], quantidade: 3 }] })
           .its('body.mensagens')
-          .should('deep.eq', ['RN0041: só há 2 unidade(s) de To Pimp A Butterfly para trocar nesta compra.']);
+          .should('deep.eq', ['Só há 2 unidade(s) de To Pimp A Butterfly para trocar nesta compra.']);
 
         solicitar({ ...pedido, itens: [{ itemPedidoId: itens['To Pimp A Butterfly'], quantidade: 1 }] })
           .its('status')
           .should('eq', 201);
         solicitar({ ...pedido, itens: [{ itemPedidoId: itens['To Pimp A Butterfly'], quantidade: 2 }] })
           .its('body.mensagens')
-          .should('deep.eq', ['RN0041: só há 1 unidade(s) de To Pimp A Butterfly para trocar nesta compra.']);
+          .should('deep.eq', ['Só há 1 unidade(s) de To Pimp A Butterfly para trocar nesta compra.']);
         solicitar({ ...pedido, compraInteira: true })
           .its('body.mensagens')
-          .should('deep.eq', ['RN0041: parte desta compra já foi para troca; escolha os itens que faltam.']);
+          .should('deep.eq', ['Parte desta compra já foi para troca; escolha os itens que faltam.']);
         solicitar({ ...pedido, motivo: ' ', itens: [{ itemPedidoId: itens['The Slow Rush'], quantidade: 1 }] })
           .its('body.mensagens')
           .should('deep.eq', ['Informe o motivo da troca.']);
@@ -73,14 +73,14 @@ describe('Troca e devolução (RF0041 a RF0045, RF0054, RN0041 a RN0043, RN0046)
         }).then(({ body: troca }) => {
           avancar(troca.id, 'TROCADO', true)
             .its('body.mensagens')
-            .should('deep.eq', ['RN0042: só trocas autorizadas têm o recebimento confirmado; esta está EM TROCA.']);
+            .should('deep.eq', ['Só trocas autorizadas têm o recebimento confirmado; esta está EM TROCA.']);
           avancar(troca.id, 'TROCA AUTORIZADA').its('body.status.descricao').should('eq', 'TROCA AUTORIZADA');
           avancar(troca.id, 'TROCA AUTORIZADA')
             .its('body.mensagens')
-            .should('deep.eq', ['RF0042: só trocas EM TROCA podem ser autorizadas; esta está TROCA AUTORIZADA.']);
+            .should('deep.eq', ['Só trocas EM TROCA podem ser autorizadas; esta está TROCA AUTORIZADA.']);
           avancar(troca.id, 'TROCADO')
             .its('body.mensagens')
-            .should('deep.eq', ['RF0044: informe se os itens trocados voltam ao estoque.']);
+            .should('deep.eq', ['Informe se os itens trocados voltam ao estoque.']);
           avancar(troca.id, 'TROCADO', true).its('body.status.descricao').should('eq', 'TROCADO');
           avancar(troca.id, 'TROCADO', true).its('status').should('eq', 400);
         });

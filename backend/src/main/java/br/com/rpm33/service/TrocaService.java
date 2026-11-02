@@ -82,7 +82,7 @@ public class TrocaService implements IService {
     }
     String statusDaCompra = pedido.getStatus().getDescricao();
     if (!StatusPedido.ENTREGUE.equals(statusDaCompra)) {
-      erros.add("RN0043: só compras ENTREGUE podem ter itens trocados; esta está "
+      erros.add("Só compras ENTREGUE podem ter itens trocados; esta está "
           + statusDaCompra + ".");
     }
     if (entrada.getMotivo() == null || entrada.getMotivo().isBlank()) {
@@ -135,7 +135,7 @@ public class TrocaService implements IService {
     } else if (StatusPedido.TROCA_AUTORIZADA.equals(atual)
         && StatusPedido.TROCADO.equals(destino)) {
       if (entrada.getRetornoEstoque() == null) {
-        return Resultado.erro("RF0044: informe se os itens trocados voltam ao estoque.");
+        return Resultado.erro("Informe se os itens trocados voltam ao estoque.");
       }
       receber(troca, entrada.getRetornoEstoque());
     } else {
@@ -229,7 +229,7 @@ public class TrocaService implements IService {
   /** RN0041: todos os itens, com a quantidade cheia, desde que nada da compra esteja em troca. */
   private List<TrocaItem> itensDaCompraInteira(Pedido pedido, List<String> erros) {
     if (!trocaRepository.findByPedidoIdInOrderByIdAsc(List.of(pedido.getId())).isEmpty()) {
-      erros.add("RN0041: parte desta compra já foi para troca; escolha os itens que faltam.");
+      erros.add("Parte desta compra já foi para troca; escolha os itens que faltam.");
       return List.of();
     }
     return pedido.getItens().stream().map(item -> novoItem(item, item.getQuantidade())).toList();
@@ -238,7 +238,7 @@ public class TrocaService implements IService {
   /** RN0041: cada item escolhido é desta compra e não passa do que ainda não foi trocado. */
   private List<TrocaItem> itensEscolhidos(Troca entrada, Pedido pedido, List<String> erros) {
     if (entrada.getItens() == null || entrada.getItens().isEmpty()) {
-      erros.add("RN0041: escolha ao menos um item para trocar.");
+      erros.add("Escolha ao menos um item para trocar.");
       return List.of();
     }
     Map<Long, Integer> jaTrocados = new HashMap<>();
@@ -261,7 +261,7 @@ public class TrocaService implements IService {
       }
       int restantes = item.getQuantidade() - jaTrocados.getOrDefault(item.getId(), 0);
       if (escolhido.getQuantidade() > restantes) {
-        erros.add("RN0041: só há " + restantes + " unidade(s) de " + item.getTitulo()
+        erros.add("Só há " + restantes + " unidade(s) de " + item.getTitulo()
             + " para trocar nesta compra.");
         continue;
       }
@@ -292,10 +292,10 @@ public class TrocaService implements IService {
 
   private static String recusaDoAvanco(String atual, String destino) {
     if (StatusPedido.TROCA_AUTORIZADA.equals(destino)) {
-      return "RF0042: só trocas EM TROCA podem ser autorizadas; esta está " + atual + ".";
+      return "Só trocas EM TROCA podem ser autorizadas; esta está " + atual + ".";
     }
     if (StatusPedido.TROCADO.equals(destino)) {
-      return "RN0042: só trocas autorizadas têm o recebimento confirmado; esta está " + atual
+      return "Só trocas autorizadas têm o recebimento confirmado; esta está " + atual
           + ".";
     }
     return "A troca segue de EM TROCA para TROCA AUTORIZADA e depois para TROCADO.";

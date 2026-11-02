@@ -21,7 +21,7 @@ describe('Demonstração · Gerenciar vendas eletrônicas', () => {
     cy.valorNoCartao('1002', '480');
     cy.get('[data-testid="pendencias-pagamento"]').should(
       'contain',
-      'RN0034: cada cartão precisa receber ao menos R$ 10,00.',
+      'Cada cartão precisa receber ao menos R$ 10,00.',
     );
     cy.get('[data-testid="btn-pagar"]').should('be.disabled');
 

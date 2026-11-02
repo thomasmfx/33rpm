@@ -33,10 +33,10 @@ export function motivoBloqueioRemocao(
   const restantes = enderecos.filter((endereco) => endereco.id !== enderecoId);
 
   if (!temEnderecoDe(restantes, 'entrega')) {
-    return 'É o único endereço de entrega do cliente (RN0022).';
+    return 'É o único endereço de entrega do cliente.';
   }
   if (!temEnderecoDe(restantes, 'cobranca')) {
-    return 'É o único endereço de cobrança do cliente (RN0021).';
+    return 'É o único endereço de cobrança do cliente.';
   }
   return null;
 }

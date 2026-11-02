@@ -19,7 +19,7 @@ const SECOES: { tipo: TipoCupom; titulo: string; descricao: string }[] = [
   {
     tipo: 'promocional',
     titulo: 'Promocionais',
-    descricao: 'Campanhas da loja, emitidas para você. Vale um por compra (RN0033).',
+    descricao: 'Campanhas da loja, emitidas para você. Vale um por compra.',
   },
 ];
 

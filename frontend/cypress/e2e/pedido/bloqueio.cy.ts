@@ -28,7 +28,7 @@ describe('Bloqueio do carrinho (RN0044, RN0045, RNF0042, RN0032)', () => {
       });
       cy.get('[data-testid="alerta-carrinho"]').should(
         'contain',
-        'RN0044: só há 1 unidade(s) livre(s) de 2014 Forest Hills Drive',
+        'Só há 1 unidade(s) livre(s) de 2014 Forest Hills Drive',
       );
       cy.get('[data-testid="contador-carrinho"]').should('have.text', '0');
     });
@@ -119,7 +119,7 @@ describe('Bloqueio do carrinho (RN0044, RN0045, RNF0042, RN0032)', () => {
     cy.get('[data-testid="btn-finalizar-compra"]').click();
     cy.get('[data-testid="alerta-ajustes"]').should(
       'contain',
-      'RN0032: Metallica saiu do carrinho: não está mais disponível.',
+      'Metallica saiu do carrinho: não está mais disponível.',
     );
     cy.location('pathname').should('eq', '/carrinho');
     cy.get('[data-testid="item-carrinho"]').should('have.length', 1).and('contain', 'Awaken, My Love!');

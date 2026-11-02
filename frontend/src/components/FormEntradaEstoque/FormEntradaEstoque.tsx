@@ -64,11 +64,11 @@ export default function FormEntradaEstoque({
       quantidade: (valor) =>
         Number.isInteger(valor) && valor > 0
           ? null
-          : 'A quantidade deve ser maior que zero (RN0061).',
+          : 'A quantidade deve ser maior que zero.',
       valorCusto: (valor) =>
-        valor > 0 ? null : 'Informe um valor de custo maior que zero (RN0062).',
-      fornecedor: (valor) => (valor ? null : 'Informe o fornecedor da entrada (RN0050).'),
-      dataEntrada: (valor) => (valor ? null : 'Informe a data de entrada (RNF0064).'),
+        valor > 0 ? null : 'Informe um valor de custo maior que zero.',
+      fornecedor: (valor) => (valor ? null : 'Informe o fornecedor da entrada.'),
+      dataEntrada: (valor) => (valor ? null : 'Informe a data de entrada.'),
     },
   });
 
@@ -108,15 +108,15 @@ export default function FormEntradaEstoque({
 
   function explicacaoPreco(): string {
     if (disco.autorizacaoGerente !== null) {
-      return `O preço foi baixado da margem com autorização de ${disco.autorizacaoGerente}, então a entrada não o reajusta (RN0014).`;
+      return `O preço foi baixado da margem com autorização de ${disco.autorizacaoGerente}, então a entrada não o reajusta.`;
     }
     if (!previaAtual) {
       return `Informe a quantidade e o custo para ver o preço recalculado pelo grupo ${nomeGrupo} (+${margem}%).`;
     }
     if (precoMuda) {
-      return `Recalculado pelo grupo ${nomeGrupo}: maior custo em estoque + ${margem}% (RN0051).`;
+      return `Recalculado pelo grupo ${nomeGrupo}: maior custo em estoque + ${margem}%.`;
     }
-    return 'O valor só sobe quando a entrada custa mais que o maior custo já registrado (RN0051).';
+    return 'O valor só sobe quando a entrada custa mais que o maior custo já registrado.';
   }
 
   return (

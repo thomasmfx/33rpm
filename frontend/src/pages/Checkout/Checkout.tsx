@@ -549,8 +549,7 @@ function PaginaCheckout({ cliente }: Readonly<{ cliente: Cliente }>) {
                 </div>
                 {valores && valores.troco > 0 && (
                   <p className={styles.ajuda} {...medida('aviso-troco', valores.troco)}>
-                    A diferença de {formatarBRL(valores.troco)} volta como um novo cupom de troca
-                    (RN0036).
+                    A diferença de {formatarBRL(valores.troco)} volta como um novo cupom de troca.
                   </p>
                 )}
               </div>

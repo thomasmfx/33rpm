@@ -49,12 +49,12 @@ describe('Inativação e ativação de disco (RF0012, RF0013, RF0016, RN0015, RN
 
       inativar({ justificativa: 'Sem saída há três meses.' }).then((resposta) => {
         expect(resposta.status).to.eq(400);
-        expect(resposta.body.mensagens).to.include('Informe a categoria da inativação (RN0015).');
+        expect(resposta.body.mensagens).to.include('Informe a categoria da inativação.');
       });
       inativar({ categoria: { desc: 'BAIXA DEMANDA' }, justificativa: 'curta' }).then((resposta) => {
         expect(resposta.status).to.eq(400);
         expect(resposta.body.mensagens).to.include(
-          'A justificativa precisa ter ao menos 10 caracteres (RN0015).',
+          'A justificativa precisa ter ao menos 10 caracteres.',
         );
       });
       cy.request(`${API()}/discos/${disco.id}`).its('body.isAtivo').should('eq', true);
@@ -90,7 +90,7 @@ describe('Inativação e ativação de disco (RF0012, RF0013, RF0016, RN0015, RN
         body: { motivoStatus: { justificativa: 'Nova remessa confirmada.' } },
       }).then((resposta) => {
         expect(resposta.status).to.eq(400);
-        expect(resposta.body.mensagens).to.include('Informe a categoria da ativação (RN0017).');
+        expect(resposta.body.mensagens).to.include('Informe a categoria da ativação.');
       });
     });
   });

@@ -355,11 +355,11 @@ export default function CuradoriaInventario() {
         inativados.length === 0
           ? {
               cor: 'gray',
-              mensagens: ['Nenhum disco sem estoque e parado para inativar agora (RF0013).'],
+              mensagens: ['Nenhum disco sem estoque e parado para inativar agora.'],
             }
           : {
               cor: 'green',
-              titulo: `${plural(inativados.length, 'disco inativado', 'discos inativados')} como ${CATEGORIA_INATIVACAO_AUTOMATICA} (RN0016)`,
+              titulo: `${plural(inativados.length, 'disco inativado', 'discos inativados')} como ${CATEGORIA_INATIVACAO_AUTOMATICA}`,
               mensagens: inativados.map((disco) => `${disco.title} · ${disco.artist}`),
             },
       );
@@ -446,7 +446,7 @@ export default function CuradoriaInventario() {
             )}
             {disco.autorizacaoGerente !== null && (
               <Tooltip
-                label={`Preço abaixo da margem, autorizado por ${disco.autorizacaoGerente} (RN0014)`}
+                label={`Preço abaixo da margem, autorizado por ${disco.autorizacaoGerente}`}
               >
                 <span className={styles.autorizado}>Autorizado</span>
               </Tooltip>
@@ -630,7 +630,7 @@ export default function CuradoriaInventario() {
         acoes={
           <>
             <Tooltip
-              label={`RF0013: inativa como ${CATEGORIA_INATIVACAO_AUTOMATICA} os discos sem estoque e sem venda há ${PARAMETRO_INATIVACAO_AUTOMATICA.diasSemVenda} dias ou mais (nunca vendidos também entram).`}
+              label={`Inativa como ${CATEGORIA_INATIVACAO_AUTOMATICA} os discos sem estoque e sem venda há ${PARAMETRO_INATIVACAO_AUTOMATICA.diasSemVenda} dias ou mais (nunca vendidos também entram).`}
               multiline
               w={300}
             >

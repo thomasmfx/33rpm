@@ -44,7 +44,7 @@ export default function SolicitarTroca({ pedido, onSolicitada }: Readonly<Solici
           Solicitar troca
         </Button>
         <span className={styles.nota} data-testid="aviso-troca-bloqueada">
-          A troca só pode ser pedida depois da entrega (RN0043). Este pedido está{' '}
+          A troca só pode ser pedida depois da entrega. Este pedido está{' '}
           {rotuloDoStatus(pedido.status).toLowerCase()}.
         </span>
       </div>
@@ -149,7 +149,7 @@ export default function SolicitarTroca({ pedido, onSolicitada }: Readonly<Solici
 
       {modo === 'inteira' && (
         <span className={styles.nota}>
-          Todos os discos desta compra vão para a troca, e o pedido passa a EM TROCA (RN0041).
+          Todos os discos desta compra vão para a troca, e o pedido passa a EM TROCA.
         </span>
       )}
 

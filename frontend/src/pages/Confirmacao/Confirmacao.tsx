@@ -126,7 +126,7 @@ function PedidoConfirmado({ id, cliente }: Readonly<{ id: string; cliente: Clien
           data-valor={String(pedido.troco)}
         >
           A diferença de {formatarBRL(pedido.troco)} entre os cupons e o total volta como cupom
-          de troca assim que o pagamento for aprovado (RN0036).
+          de troca assim que o pagamento for aprovado.
         </Alert>
       )}
 

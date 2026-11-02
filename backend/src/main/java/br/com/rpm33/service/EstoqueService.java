@@ -71,13 +71,13 @@ public class EstoqueService implements IService {
     Disco disco = resolverDisco(entrada.getDiscoId(), erros);
     Fornecedor fornecedor = resolverFornecedor(entrada.getFornecedor(), erros);
     if (entrada.getQuantidade() == null || entrada.getQuantidade() <= 0) {
-      erros.add("A quantidade deve ser maior que zero (RN0061).");
+      erros.add("A quantidade deve ser maior que zero.");
     }
     if (entrada.getValorCusto() == null || entrada.getValorCusto().signum() <= 0) {
-      erros.add("Informe um valor de custo maior que zero (RN0062).");
+      erros.add("Informe um valor de custo maior que zero.");
     }
     if (entrada.getDataEntrada() == null) {
-      erros.add("Informe a data de entrada (RNF0064).");
+      erros.add("Informe a data de entrada.");
     }
     if (!erros.isEmpty()) {
       return Resultado.erro(erros);
@@ -169,7 +169,7 @@ public class EstoqueService implements IService {
     for (ItemPedido item : porDisco.values()) {
       Disco disco = discos.get(item.getDiscoId());
       if (disco == null) {
-        erros.add("RN0031: o disco " + item.getDiscoId() + " não existe.");
+        erros.add("O disco " + item.getDiscoId() + " não existe.");
         continue;
       }
       item.setDisco(disco);
@@ -177,12 +177,12 @@ public class EstoqueService implements IService {
       int livre = Math.max(0, disco.getEstoque() - reservado);
       consulta.getLivres().put(disco.getId(), Boolean.TRUE.equals(disco.getIsAtivo()) ? livre : 0);
       if (!Boolean.TRUE.equals(disco.getIsAtivo())) {
-        erros.add("RN0031: " + disco.getTitulo() + " não está disponível.");
+        erros.add(disco.getTitulo() + " não está disponível.");
       } else if (item.getQuantidade() > livre && reservado == 0) {
-        erros.add("RN0031: só há " + disco.getEstoque() + " unidade(s) de " + disco.getTitulo()
+        erros.add("Só há " + disco.getEstoque() + " unidade(s) de " + disco.getTitulo()
             + " em estoque.");
       } else if (item.getQuantidade() > livre) {
-        erros.add("RN0044: só há " + livre + " unidade(s) livre(s) de " + disco.getTitulo()
+        erros.add("Só há " + livre + " unidade(s) livre(s) de " + disco.getTitulo()
             + "; as demais estão reservadas em outras compras.");
       }
     }
@@ -290,7 +290,7 @@ public class EstoqueService implements IService {
 
   private Disco resolverDisco(Long discoId, List<String> erros) {
     if (discoId == null) {
-      erros.add("Informe o disco da entrada (RN0050).");
+      erros.add("Informe o disco da entrada.");
       return null;
     }
     Optional<Disco> disco = discoRepository.findById(discoId);
@@ -304,7 +304,7 @@ public class EstoqueService implements IService {
   /** RN0050: todo item de estoque vem de um fornecedor registrado. */
   private Fornecedor resolverFornecedor(Fornecedor informado, List<String> erros) {
     if (informado == null || (informado.getId() == null && vazio(informado.getNome()))) {
-      erros.add("Informe o fornecedor da entrada (RN0050).");
+      erros.add("Informe o fornecedor da entrada.");
       return null;
     }
     Optional<Fornecedor> encontrado = informado.getId() != null
@@ -313,7 +313,7 @@ public class EstoqueService implements IService {
     if (encontrado.isEmpty()) {
       String nome = vazio(informado.getNome()) ? String.valueOf(informado.getId())
           : informado.getNome().trim();
-      erros.add("Fornecedor " + nome + " não registrado no sistema (RN0050).");
+      erros.add("Fornecedor " + nome + " não registrado no sistema.");
       return null;
     }
     return encontrado.get();

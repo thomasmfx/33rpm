@@ -325,10 +325,10 @@ public class PedidoService implements IService {
 
   private static String recusaDoAvanco(String atual, String destino) {
     if (StatusPedido.EM_TRANSPORTE.equals(destino)) {
-      return "RN0039: só compras APROVADA seguem para EM TRANSPORTE; esta está " + atual + ".";
+      return "Só compras APROVADA seguem para EM TRANSPORTE; esta está " + atual + ".";
     }
     if (StatusPedido.ENTREGUE.equals(destino)) {
-      return "RN0040: só compras EM TRANSPORTE podem ser entregues; esta está " + atual + ".";
+      return "Só compras EM TRANSPORTE podem ser entregues; esta está " + atual + ".";
     }
     return "O administrador só despacha compras APROVADA e confirma a entrega das que estão "
         + "EM TRANSPORTE.";
@@ -427,7 +427,7 @@ public class PedidoService implements IService {
     Endereco novo = entrada.getEnderecoNovo();
     if (entrada.getEnderecoId() != null && novo != null) {
       conferencia.pendencias.add(
-          "Escolha um endereço do perfil ou informe um novo, não os dois (RF0035).");
+          "Escolha um endereço do perfil ou informe um novo, não os dois.");
       return;
     }
     if (entrada.getEnderecoId() != null) {
@@ -437,7 +437,7 @@ public class PedidoService implements IService {
       if (endereco == null) {
         conferencia.pendencias.add("O endereço escolhido não é do cliente.");
       } else if (!endereco.atende(Endereco.ENTREGA)) {
-        conferencia.pendencias.add("O endereço escolhido não é de entrega (RN0022).");
+        conferencia.pendencias.add("O endereço escolhido não é de entrega.");
       } else {
         conferencia.enderecoPerfil = endereco;
         conferencia.cidade = endereco.getCidade().getDesc();
@@ -446,7 +446,7 @@ public class PedidoService implements IService {
       return;
     }
     if (novo == null) {
-      conferencia.pendencias.add("Escolha um endereço de entrega (RF0035).");
+      conferencia.pendencias.add("Escolha um endereço de entrega.");
       return;
     }
 
@@ -456,7 +456,7 @@ public class PedidoService implements IService {
     novo.setCep(apenasDigitos(novo.getCep()));
     List<String> erros = regrasEndereco.validar(novo);
     if (erros.isEmpty() && !novo.atende(Endereco.ENTREGA)) {
-      erros.add("O endereço escolhido não é de entrega (RN0022).");
+      erros.add("O endereço escolhido não é de entrega.");
     }
     Estado estado = erros.isEmpty() ? regrasEndereco.resolverEstado(novo.getCidade(), erros) : null;
     conferencia.pendencias.addAll(erros);
