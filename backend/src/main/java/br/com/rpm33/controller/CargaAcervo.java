@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +44,7 @@ import jakarta.persistence.FlushModeType;
  */
 @Component
 @Profile("dev")
+@Order(1)
 public class CargaAcervo implements ApplicationRunner {
 
   /** Gerado por frontend/scripts/gerar-acervo.mjs; não se edita à mão. */
@@ -172,6 +174,13 @@ public class CargaAcervo implements ApplicationRunner {
         Categoria categoria = categorias.get(chave(informada.getTipo() + ":" + informada.getDesc()));
         if (categoria != null) {
           informada.setId(categoria.getId());
+        }
+      }
+      Categoria principal = disco.getGeneroPrincipal();
+      if (principal != null) {
+        Categoria categoria = categorias.get(chave(principal.getTipo() + ":" + principal.getDesc()));
+        if (categoria != null) {
+          principal.setId(categoria.getId());
         }
       }
       for (Edicao informada : disco.getEdicoes()) {

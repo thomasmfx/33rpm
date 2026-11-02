@@ -1,0 +1,34 @@
+[
+  { "cliente": "ana.ribeiro@email.com", "itens": [{ "titulo": "The Dark Side Of The Moon", "quantidade": 1 }], "mesesAtras": 6, "status": "ENTREGUE" },
+  { "cliente": "bruno.tavares@email.com", "itens": [{ "titulo": "Pet Sounds", "quantidade": 2 }], "mesesAtras": 4, "status": "ENTREGUE" },
+  { "cliente": "diego.ferraz@email.com", "itens": [{ "titulo": "Metallica", "quantidade": 1 }], "mesesAtras": 2, "status": "ENTREGUE" },
+  {
+    "cliente": "ana.ribeiro@email.com",
+    "itens": [
+      { "titulo": "Illmatic", "quantidade": 1 },
+      { "titulo": "Rodeo", "quantidade": 1 }
+    ],
+    "mesesAtras": 5,
+    "status": "ENTREGUE"
+  },
+  { "cliente": "bruno.tavares@email.com", "itens": [{ "titulo": "Late Registration", "quantidade": 1 }], "mesesAtras": 3, "status": "ENTREGUE" },
+  { "cliente": "eduarda.lins@email.com", "itens": [{ "titulo": "2014 Forest Hills Drive", "quantidade": 1 }], "mesesAtras": 1, "status": "ENTREGUE" },
+  { "cliente": "diego.ferraz@email.com", "itens": [{ "titulo": "Random Access Memories", "quantidade": 1 }], "mesesAtras": 4, "status": "ENTREGUE" },
+  { "cliente": "eduarda.lins@email.com", "itens": [{ "titulo": "Mezzanine", "quantidade": 1 }], "mesesAtras": 2, "status": "ENTREGUE" },
+  { "cliente": "ana.ribeiro@email.com", "itens": [{ "titulo": "Songs In The Key Of Life", "quantidade": 1 }], "mesesAtras": 3, "status": "ENTREGUE" },
+  { "cliente": "bruno.tavares@email.com", "itens": [{ "titulo": "Awaken, My Love!", "quantidade": 1 }], "mesesAtras": 1, "status": "ENTREGUE" },
+  {
+    "cliente": "diego.ferraz@email.com",
+    "itens": [
+      { "titulo": "Purple Rain", "quantidade": 1 },
+      { "titulo": "The Slow Rush", "quantidade": 1 }
+    ],
+    "mesesAtras": 5,
+    "status": "ENTREGUE"
+  },
+  { "cliente": "ana.ribeiro@email.com", "itens": [{ "titulo": "Culture II", "quantidade": 1 }], "mesesAtras": 2, "status": "EM TRANSPORTE" },
+  { "cliente": "diego.ferraz@email.com", "itens": [{ "titulo": "Un Verano Sin Ti", "quantidade": 1 }], "mesesAtras": 1, "status": "EM TRANSPORTE" },
+  { "cliente": "bruno.tavares@email.com", "itens": [{ "titulo": "Are You Experienced", "quantidade": 1 }], "mesesAtras": 3, "status": "APROVADA" },
+  { "cliente": "eduarda.lins@email.com", "itens": [{ "titulo": "Back To Black", "quantidade": 1 }], "mesesAtras": 4, "status": "APROVADA" },
+  { "cliente": "eduarda.lins@email.com", "itens": [{ "titulo": "Favourite Worst Nightmare", "quantidade": 1 }], "mesesAtras": 2, "status": "REPROVADA" }
+]

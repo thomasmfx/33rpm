@@ -195,6 +195,8 @@ CREATE TABLE disco (
     gravadora_id            bigint NOT NULL REFERENCES gravadora (id),
     grupo_precificacao_id   bigint NOT NULL REFERENCES grupo_precificacao (id),
     formato_id              bigint NOT NULL REFERENCES formato (id),
+    -- RN0071: a categoria em que as vendas do disco aparecem na análise
+    genero_principal_id     bigint NOT NULL REFERENCES categoria (id),
     titulo                  varchar(160) NOT NULL,
     ano_lancamento          date NOT NULL,
     codigo_catalogo         varchar(40) NOT NULL,
@@ -414,6 +416,8 @@ CREATE INDEX idx_cliente_nome          ON cliente (nome);
 CREATE INDEX idx_pedido_cliente        ON pedido (cliente_id);
 CREATE INDEX idx_pedido_data_status    ON pedido (data, status_pedido_id);
 CREATE INDEX idx_item_pedido_disco     ON item_pedido (disco_id);
+CREATE INDEX idx_item_pedido_pedido    ON item_pedido (pedido_id);
+CREATE INDEX idx_disco_genero_principal ON disco (genero_principal_id);
 CREATE INDEX idx_entrada_disco         ON entrada_estoque (disco_id);
 CREATE INDEX idx_disco_titulo          ON disco (titulo);
 CREATE INDEX idx_disco_artista         ON disco (artista_id);

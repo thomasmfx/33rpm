@@ -291,12 +291,11 @@ public class DiscoService implements IService {
   private CategoriaStatus validarMotivo(MotivoStatus motivo, String tipo, List<String> erros) {
     boolean inativacao = CategoriaStatus.INATIVACAO.equals(tipo);
     String operacao = inativacao ? "inativação" : "ativação";
-    String regra = inativacao ? "RN0015" : "RN0017";
 
     CategoriaStatus categoria = null;
     CategoriaStatus informada = motivo == null ? null : motivo.getCategoria();
     if (informada == null || (informada.getId() == null && vazio(informada.getDesc()))) {
-      erros.add("Informe a categoria da " + operacao + " (" + regra + ").");
+      erros.add("Informe a categoria da " + operacao + ".");
     } else {
       Optional<CategoriaStatus> encontrada = informada.getId() != null
           ? categoriaStatusRepository.findById(informada.getId())
@@ -305,13 +304,13 @@ public class DiscoService implements IService {
       categoria = encontrada.orElse(null);
       if (categoria == null) {
         erros.add("Categoria " + nomeOuId(informada.getDesc(), informada.getId())
-            + " não registrada para " + operacao + " (" + regra + ").");
+            + " não registrada para " + operacao + ".");
       }
     }
 
     String justificativa = motivo == null ? null : motivo.getJustificativa();
     if (justificativa == null || justificativa.trim().length() < JUSTIFICATIVA_MINIMA) {
-      erros.add("A justificativa precisa ter ao menos 10 caracteres (" + regra + ").");
+      erros.add("A justificativa precisa ter ao menos 10 caracteres.");
     }
     return categoria;
   }
@@ -327,7 +326,7 @@ public class DiscoService implements IService {
     if (RegrasPreco.exigeAutorizacao(entrada.getPrecoVenda(), sugerido)
         && vazio(entrada.getAutorizacaoGerente())) {
       return List.of(
-          "RN0014: preço abaixo da margem do grupo exige autorização do gerente de vendas.");
+          "Preço abaixo da margem do grupo exige autorização do gerente de vendas.");
     }
     return List.of();
   }
@@ -368,6 +367,7 @@ public class DiscoService implements IService {
     private Gravadora gravadora;
     private String gravadoraNova;
     private final List<Categoria> categorias = new ArrayList<>();
+    private Categoria generoPrincipal;
     private final Map<String, String> estilosNovos = new LinkedHashMap<>();
     private final List<Edicao> edicoes = new ArrayList<>();
     private Formato formato;
@@ -378,17 +378,17 @@ public class DiscoService implements IService {
   private List<String> validarCadastro(Disco entrada, Cadastro cadastro) {
     List<String> erros = new ArrayList<>();
     if (vazio(entrada.getTitulo())) {
-      erros.add("Informe o título (RN0011).");
+      erros.add("Informe o título.");
     }
 
     // artista, gravadora e estilo novos entram no domínio junto com o disco
     Artista artista = entrada.getArtista();
     if (artista == null || (artista.getId() == null && vazio(artista.getNome()))) {
-      erros.add("Informe o artista (RN0011).");
+      erros.add("Informe o artista.");
     } else if (artista.getId() != null) {
       cadastro.artista = artistaRepository.findById(artista.getId()).orElse(null);
       if (cadastro.artista == null) {
-        erros.add("Informe o artista (RN0011).");
+        erros.add("Informe o artista.");
       }
     } else {
       cadastro.artistaNovo = artista.getNome().trim();
@@ -397,11 +397,11 @@ public class DiscoService implements IService {
 
     Gravadora gravadora = entrada.getGravadora();
     if (gravadora == null || (gravadora.getId() == null && vazio(gravadora.getNome()))) {
-      erros.add("Informe a gravadora (RN0011).");
+      erros.add("Informe a gravadora.");
     } else if (gravadora.getId() != null) {
       cadastro.gravadora = gravadoraRepository.findById(gravadora.getId()).orElse(null);
       if (cadastro.gravadora == null) {
-        erros.add("Informe a gravadora (RN0011).");
+        erros.add("Informe a gravadora.");
       }
     } else {
       cadastro.gravadoraNova = gravadora.getNome().trim();
@@ -411,63 +411,64 @@ public class DiscoService implements IService {
 
     LocalDate ano = entrada.getAnoLancamento();
     if (ano == null || ano.getYear() < ANO_MINIMO || ano.getYear() > ANO_MAXIMO) {
-      erros.add("O ano deve estar entre 1900 e 2030 (RN0011).");
+      erros.add("O ano deve estar entre 1900 e 2030.");
     }
 
     validarCategorias(entrada.getCategorias(), cadastro, erros);
+    validarGeneroPrincipal(entrada.getGeneroPrincipal(), cadastro, erros);
     validarEdicoes(entrada.getEdicoes(), cadastro, erros);
 
     Formato formato = entrada.getFormato();
     if (formato == null || (formato.getId() == null && vazio(formato.getNome()))) {
-      erros.add("Selecione o formato (RN0011).");
+      erros.add("Selecione o formato.");
     } else {
       cadastro.formato = (formato.getId() != null
           ? formatoRepository.findById(formato.getId())
           : formatoRepository.findByNomeIgnoreCase(formato.getNome().trim())).orElse(null);
       if (cadastro.formato == null) {
-        erros.add("Formato não registrado no sistema (RNF0013).");
+        erros.add("Formato não registrado no sistema.");
       }
     }
 
     GrupoPrecificacao grupo = entrada.getGrupoPrecificacao();
     if (grupo == null || (grupo.getId() == null && vazio(grupo.getNome()))) {
-      erros.add("Selecione o grupo de precificação (RN0013).");
+      erros.add("Selecione o grupo de precificação.");
     } else {
       cadastro.grupo = (grupo.getId() != null
           ? grupoPrecificacaoRepository.findById(grupo.getId())
           : grupoPrecificacaoRepository.findByNomeIgnoreCase(grupo.getNome().trim()))
           .orElse(null);
       if (cadastro.grupo == null) {
-        erros.add("Grupo de precificação não registrado no sistema (RNF0013).");
+        erros.add("Grupo de precificação não registrado no sistema.");
       }
     }
 
     if (vazio(entrada.getCodigoCatalogo())) {
-      erros.add("Informe o código de catálogo (RN0011).");
+      erros.add("Informe o código de catálogo.");
     }
     if (entrada.getCodigoBarras() == null || !entrada.getCodigoBarras().trim().matches("\\d{13}")) {
-      erros.add("O código de barras deve ter 13 dígitos (RN0011).");
+      erros.add("O código de barras deve ter 13 dígitos.");
     }
     if (entrada.getNumeroFaixas() == null || entrada.getNumeroFaixas() <= 0) {
-      erros.add("Informe o número de faixas (RN0011).");
+      erros.add("Informe o número de faixas.");
     }
     if (vazio(entrada.getDescricao())) {
-      erros.add("Informe a descrição (RN0011).");
+      erros.add("Informe a descrição.");
     }
     if (vazio(entrada.getCapaUrl())) {
       erros.add("Informe a capa (URL ou caminho).");
     }
     if (!positivo(entrada.getAltura())) {
-      erros.add("Informe a altura em cm (RN0011).");
+      erros.add("Informe a altura em cm.");
     }
     if (!positivo(entrada.getLargura())) {
-      erros.add("Informe a largura em cm (RN0011).");
+      erros.add("Informe a largura em cm.");
     }
     if (!positivo(entrada.getProfundidade())) {
-      erros.add("Informe a profundidade em cm (RN0011).");
+      erros.add("Informe a profundidade em cm.");
     }
     if (entrada.getPeso() == null || entrada.getPeso() <= 0) {
-      erros.add("Informe o peso em g (RN0011).");
+      erros.add("Informe o peso em g.");
     }
     return erros;
   }
@@ -480,7 +481,7 @@ public class DiscoService implements IService {
       if (informada.getId() != null) {
         Optional<Categoria> encontrada = categoriaRepository.findById(informada.getId());
         if (encontrada.isEmpty()) {
-          erros.add("Gênero " + informada.getId() + " não registrado no sistema (RNF0013).");
+          erros.add("Gênero " + informada.getId() + " não registrado no sistema.");
           temGenero = true;
         } else {
           temGenero = temGenero || Categoria.GENERO.equals(encontrada.get().getTipo());
@@ -508,17 +509,47 @@ public class DiscoService implements IService {
       if (genero.isPresent()) {
         cadastro.categorias.add(genero.get());
       } else {
-        erros.add("Gênero " + desc + " não registrado no sistema (RNF0013).");
+        erros.add("Gênero " + desc + " não registrado no sistema.");
       }
     }
     if (!temGenero) {
-      erros.add("Selecione ao menos um gênero (RN0012).");
+      erros.add("Selecione ao menos um gênero.");
+    }
+  }
+
+  /**
+   * RN0071: cada venda cai numa categoria só, a do gênero principal. Com um gênero só, é
+   * ele; com mais de um, o cadastro precisa dizer qual.
+   */
+  private void validarGeneroPrincipal(Categoria informado, Cadastro cadastro,
+      List<String> erros) {
+    List<Categoria> generos = cadastro.categorias.stream()
+        .filter(categoria -> Categoria.GENERO.equals(categoria.getTipo())).toList();
+    boolean semInformar = informado == null
+        || (informado.getId() == null && vazio(informado.getDesc()));
+
+    if (semInformar) {
+      if (generos.size() == 1) {
+        cadastro.generoPrincipal = generos.get(0);
+      } else if (generos.size() > 1) {
+        erros.add("Informe o gênero principal do disco.");
+      }
+      return;
+    }
+
+    cadastro.generoPrincipal = generos.stream()
+        .filter(genero -> informado.getId() != null
+            ? genero.getId().equals(informado.getId())
+            : genero.getDesc().equalsIgnoreCase(informado.getDesc().trim()))
+        .findFirst().orElse(null);
+    if (cadastro.generoPrincipal == null) {
+      erros.add("O gênero principal precisa estar entre os gêneros do disco.");
     }
   }
 
   private void validarEdicoes(Set<Edicao> informadas, Cadastro cadastro, List<String> erros) {
     if (informadas == null || informadas.isEmpty()) {
-      erros.add("Selecione ao menos uma edição (RN0011).");
+      erros.add("Selecione ao menos uma edição.");
       return;
     }
     for (Edicao informada : informadas) {
@@ -530,7 +561,7 @@ public class DiscoService implements IService {
       }
       if (encontrada.isEmpty()) {
         erros.add("Edição " + nomeOuId(informada.getNome(), informada.getId())
-            + " não registrada no sistema (RNF0013).");
+            + " não registrada no sistema.");
       } else {
         cadastro.edicoes.add(encontrada.get());
       }
@@ -553,6 +584,7 @@ public class DiscoService implements IService {
     }
     destino.getCategorias().clear();
     destino.getCategorias().addAll(categorias);
+    destino.setGeneroPrincipal(cadastro.generoPrincipal);
     destino.getEdicoes().clear();
     destino.getEdicoes().addAll(cadastro.edicoes);
 

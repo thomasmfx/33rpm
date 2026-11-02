@@ -46,6 +46,11 @@ public class Disco extends EntidadeDominio {
   @OrderBy("id")
   private Set<Categoria> categorias = new LinkedHashSet<>();
 
+  /** RN0071: um dos gêneros do disco; as vendas dele contam só nesta categoria. */
+  @ManyToOne(fetch = FetchType.EAGER, optional = false)
+  @JoinColumn(name = "genero_principal_id")
+  private Categoria generoPrincipal;
+
   @ManyToMany(fetch = FetchType.EAGER)
   @JoinTable(name = "disco_edicao", joinColumns = @JoinColumn(name = "disco_id"),
       inverseJoinColumns = @JoinColumn(name = "edicao_id"))
@@ -166,6 +171,14 @@ public class Disco extends EntidadeDominio {
 
   public void setCategorias(Set<Categoria> categorias) {
     this.categorias = categorias;
+  }
+
+  public Categoria getGeneroPrincipal() {
+    return generoPrincipal;
+  }
+
+  public void setGeneroPrincipal(Categoria generoPrincipal) {
+    this.generoPrincipal = generoPrincipal;
   }
 
   public Set<Edicao> getEdicoes() {

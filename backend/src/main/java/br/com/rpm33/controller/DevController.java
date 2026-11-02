@@ -36,6 +36,7 @@ import br.com.rpm33.model.TipoTelefone;
 import br.com.rpm33.repository.CupomRepository;
 import br.com.rpm33.repository.ItemCarrinhoRepository;
 import br.com.rpm33.repository.LogRepository;
+import br.com.rpm33.repository.PedidoRepository;
 import br.com.rpm33.repository.TipoCupomRepository;
 import br.com.rpm33.service.IFachada;
 import br.com.rpm33.service.Resultado;
@@ -57,19 +58,21 @@ public class DevController {
   private final CupomRepository cupomRepository;
   private final TipoCupomRepository tipoCupomRepository;
   private final ItemCarrinhoRepository itemCarrinhoRepository;
+  private final PedidoRepository pedidoRepository;
   private final LogRepository logRepository;
   private final ObjectMapper objectMapper;
   private final EntityManager entityManager;
 
   public DevController(IFachada fachada, CargaAcervo cargaAcervo,
       CupomRepository cupomRepository, TipoCupomRepository tipoCupomRepository,
-      ItemCarrinhoRepository itemCarrinhoRepository, LogRepository logRepository,
-      ObjectMapper objectMapper, EntityManager entityManager) {
+      ItemCarrinhoRepository itemCarrinhoRepository, PedidoRepository pedidoRepository,
+      LogRepository logRepository, ObjectMapper objectMapper, EntityManager entityManager) {
     this.fachada = fachada;
     this.cargaAcervo = cargaAcervo;
     this.cupomRepository = cupomRepository;
     this.tipoCupomRepository = tipoCupomRepository;
     this.itemCarrinhoRepository = itemCarrinhoRepository;
+    this.pedidoRepository = pedidoRepository;
     this.logRepository = logRepository;
     this.objectMapper = objectMapper;
     this.entityManager = entityManager;
@@ -108,6 +111,19 @@ public class DevController {
   public ResponseEntity<Object> envelhecerCarrinho(@PathVariable Long clienteId,
       @RequestParam int minutos) {
     return ResponseEntity.ok(Map.of("itens", itemCarrinhoRepository.envelhecer(clienteId, minutos)));
+  }
+
+  /**
+   * RF0055: o pedido passa a ter sido comprado ao meio-dia da data informada. O banco
+   * carimba a compra com a hora de agora, e a análise agrupa por mês.
+   */
+  @PostMapping("/pedidos/{id}/data")
+  @Transactional
+  public ResponseEntity<Object> retroagirPedido(@PathVariable Long id,
+      @RequestParam LocalDate data) {
+    int alterados = pedidoRepository.retroagir(id, data.atTime(12, 0));
+    return alterados == 0 ? ResponseEntity.notFound().build()
+        : ResponseEntity.ok(Map.of("id", id, "data", data));
   }
 
   /** RNF0012: o log de transações, do mais recente para o mais antigo. */

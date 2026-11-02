@@ -68,6 +68,7 @@ const itens = discosMock.map((disco) => {
         ...disco.genres.map((desc) => ({ desc, tipo: 'genero' })),
         ...disco.styles.map((desc) => ({ desc, tipo: 'estilo' })),
       ],
+      generoPrincipal: { desc: disco.genres[0], tipo: 'genero' },
       edicoes: disco.edicaoIds.map((id) => ({ nome: edicaoPorId.get(id) })),
       formato: { nome: formatoPorId.get(disco.formatoId) },
       grupoPrecificacao: { nome: grupo.nome },
