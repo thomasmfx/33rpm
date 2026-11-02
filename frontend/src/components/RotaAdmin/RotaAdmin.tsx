@@ -9,7 +9,7 @@ import styles from './RotaAdmin.module.scss';
  * continua aberta, como definido nas delimitações do projeto (CLAUDE.md).
  */
 export default function RotaAdmin({ children }: Readonly<{ children: ReactNode }>) {
-  const { sessao, administradorAtivo, carregandoSessao } = useLoja();
+  const { administradorAtivo, carregandoSessao } = useLoja();
 
   if (carregandoSessao) {
     return (
@@ -19,7 +19,7 @@ export default function RotaAdmin({ children }: Readonly<{ children: ReactNode }
     );
   }
 
-  if (!administradorAtivo) return <AcessoRestrito isCliente={sessao?.papel === 'cliente'} />;
+  if (!administradorAtivo) return <AcessoRestrito />;
 
   return children;
 }

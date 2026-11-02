@@ -342,7 +342,7 @@ function CuradoriaClientes() {
   }
 
   // sai da curadoria antes de trocar a sessão: na ordem inversa a RotaAdmin
-  // renderiza sem admin ainda em /curadoria e o 403 pisca antes da Home
+  // renderiza sem admin ainda em /curadoria e a página indisponível pisca antes da Home
   async function handleEntrarComoCliente(clienteId: string): Promise<void> {
     await navegar('/', { flushSync: true });
     entrarComoCliente(clienteId);

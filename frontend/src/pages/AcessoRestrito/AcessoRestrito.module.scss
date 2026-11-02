@@ -37,13 +37,6 @@
   transform: translateY(-50%);
 }
 
-.rotulo {
-  @include meta(12px);
-
-  position: relative;
-  color: var(--cor-apagado);
-}
-
 .lado {
   display: flex;
   align-items: center;
@@ -63,12 +56,6 @@
   p {
     @include corpo;
   }
-}
-
-.codigo {
-  @include meta(14px);
-
-  color: var(--cor-selo);
 }
 
 .acoes {
