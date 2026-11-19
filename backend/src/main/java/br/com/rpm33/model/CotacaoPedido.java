@@ -4,16 +4,11 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 /**
  * Checkout: os valores que o pedido teria e as pendências que impediriam a gravação.
- * Passa pela mesma conferência do PedidoService.salvar, mas nunca grava.
+ * Passa pela mesma conferência do PedidoService.criar, mas nunca grava.
  */
-public class CotacaoPedido extends EntidadeDominio {
-
-  @JsonIgnore
-  private Pedido pedido;
+public class CotacaoPedido {
 
   private BigDecimal subtotal;
   private Integer pesoTotal;
@@ -24,19 +19,6 @@ public class CotacaoPedido extends EntidadeDominio {
   private BigDecimal restante;
   private BigDecimal troco;
   private List<String> pendencias = new ArrayList<>();
-
-  @Override
-  public String getNomeEntidade() {
-    return Pedido.class.getSimpleName();
-  }
-
-  public Pedido getPedido() {
-    return pedido;
-  }
-
-  public void setPedido(Pedido pedido) {
-    this.pedido = pedido;
-  }
 
   public BigDecimal getSubtotal() {
     return subtotal;

@@ -2,11 +2,8 @@ package br.com.rpm33.model;
 
 import java.math.BigDecimal;
 
-/**
- * RF0015: filtro de consulta de discos. Não é entidade persistente — trafega pela
- * Fachada como qualquer EntidadeDominio e é resolvido pelo DiscoService.
- */
-public class DiscoFiltro extends EntidadeDominio {
+/** RF0015: filtro de consulta de discos. Não é entidade persistente. */
+public class DiscoFiltro {
 
   public static final String TODOS = "todos";
   public static final String ATIVOS = "ativos";
@@ -28,11 +25,6 @@ public class DiscoFiltro extends EntidadeDominio {
   private String formato;
   private String status = TODOS;
   private String estoque = TODOS;
-
-  @Override
-  public String getNomeEntidade() {
-    return Disco.class.getSimpleName();
-  }
 
   public String getTitulo() {
     return titulo;

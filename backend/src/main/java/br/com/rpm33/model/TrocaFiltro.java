@@ -1,16 +1,11 @@
 package br.com.rpm33.model;
 
 /** RF0043: os pedidos de troca, opcionalmente de um status, de um cliente ou de uma compra. */
-public class TrocaFiltro extends EntidadeDominio {
+public class TrocaFiltro {
 
   private String status;
   private Long clienteId;
   private Long pedidoId;
-
-  @Override
-  public String getNomeEntidade() {
-    return Troca.class.getSimpleName();
-  }
 
   public String getStatus() {
     return status;

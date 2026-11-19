@@ -1,10 +1,7 @@
 package br.com.rpm33.model;
 
-/**
- * RF0024: filtro de consulta de clientes. Não é entidade persistente — trafega
- * pela Fachada como qualquer EntidadeDominio e é resolvido pelo ClienteService.
- */
-public class ClienteFiltro extends EntidadeDominio {
+/** RF0024: filtro de consulta de clientes. Não é entidade persistente. */
+public class ClienteFiltro {
 
   public static final String TODOS = "todos";
   public static final String ATIVOS = "ativos";
@@ -17,11 +14,6 @@ public class ClienteFiltro extends EntidadeDominio {
   private String codigo;
   private String status = TODOS;
   private Integer rankingMinimo;
-
-  @Override
-  public String getNomeEntidade() {
-    return Cliente.class.getSimpleName();
-  }
 
   public String getNome() {
     return nome;

@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.rpm33.model.ConsultaDisponibilidade;
 import br.com.rpm33.model.Disco;
-import br.com.rpm33.model.EntidadeDominio;
 import br.com.rpm33.model.EntradaEstoque;
 import br.com.rpm33.model.Fornecedor;
 import br.com.rpm33.model.ItemPedido;
@@ -35,10 +34,11 @@ import br.com.rpm33.repository.PedidoRepository;
 
 /**
  * Entrada em estoque (RF0051, RF0052), disponibilidade para a compra (RN0031, RN0044),
- * baixa da venda aprovada (RF0053) e reentrada da troca (RF0054).
+ * baixa da venda aprovada (RF0053) e reentrada da troca (RF0054). A entrada não é
+ * alterada nem excluída: ela compõe o histórico de custo.
  */
-@Service(EntradaEstoque.NOME_ENTIDADE)
-public class EstoqueService implements IService {
+@Service
+public class EstoqueService {
 
   private final EntradaEstoqueRepository entradaEstoqueRepository;
   private final DiscoRepository discoRepository;
@@ -63,10 +63,8 @@ public class EstoqueService implements IService {
   }
 
   /** RF0051 e RN0050: a entrada soma ao estoque e pode reajustar o preço (RF0052). */
-  @Override
   @Transactional
-  public Resultado salvar(EntidadeDominio entidade) {
-    EntradaEstoque entrada = (EntradaEstoque) entidade;
+  public EntradaEstoque registrarEntrada(EntradaEstoque entrada) {
     List<String> erros = new ArrayList<>();
     Disco disco = resolverDisco(entrada.getDiscoId(), erros);
     Fornecedor fornecedor = resolverFornecedor(entrada.getFornecedor(), erros);
@@ -80,7 +78,7 @@ public class EstoqueService implements IService {
       erros.add("Informe a data de entrada.");
     }
     if (!erros.isEmpty()) {
-      return Resultado.erro(erros);
+      throw new RegraNegocioException(erros);
     }
 
     BigDecimal custo = entrada.getValorCusto().setScale(2, RoundingMode.HALF_UP);
@@ -101,39 +99,25 @@ public class EstoqueService implements IService {
     disco.setAutorizacaoGerente(reprecificacao.autorizacao());
 
     registrar(salva, disco);
-    return Resultado.com(salva);
+    return salva;
   }
 
-  /** RF0053 e RF0054, quando a entidade é um movimento; a entrada em si não muda. */
-  @Override
-  @Transactional
-  public Resultado alterar(EntidadeDominio entidade) {
-    if (entidade instanceof MovimentoEstoque movimento) {
-      return movimentar(movimento);
-    }
-    return Resultado.erro("A entrada em estoque não é alterada: registre uma nova entrada.");
-  }
-
-  /** Entradas de um disco (ou todas), a prévia do preço e a disponibilidade da RN0031. */
-  @Override
+  /** As entradas de um disco, ou todas, da mais recente para a mais antiga. */
   @Transactional(readOnly = true)
-  public Resultado consultar(EntidadeDominio entidade) {
-    if (entidade instanceof ConsultaDisponibilidade consulta) {
-      return validarDisponibilidade(consulta);
-    }
-    if (entidade instanceof PreviaEntrada previa) {
-      return prever(previa);
-    }
-    EntradaEstoque filtro = (EntradaEstoque) entidade;
-    List<EntradaEstoque> entradas = filtro.getDiscoId() == null
+  public List<EntradaEstoque> consultarEntradas(Long discoId) {
+    return discoId == null
         ? entradaEstoqueRepository.findAllByOrderByDataEntradaDescIdDesc()
-        : entradaEstoqueRepository.findByDiscoIdOrderByDataEntradaDescIdDesc(filtro.getDiscoId());
-    return Resultado.de(entradas);
+        : entradaEstoqueRepository.findByDiscoIdOrderByDataEntradaDescIdDesc(discoId);
   }
 
-  @Override
-  public Resultado excluir(EntidadeDominio entidade) {
-    return Resultado.erro("A entrada em estoque não é excluída: ela compõe o histórico de custo.");
+  /** RN0031 e RN0044 na consulta avulsa da API: o que não estiver disponível é recusado. */
+  @Transactional(readOnly = true)
+  public ConsultaDisponibilidade validarDisponibilidade(ConsultaDisponibilidade consulta) {
+    List<String> pendencias = conferirDisponibilidade(consulta);
+    if (!pendencias.isEmpty()) {
+      throw new RegraNegocioException(pendencias);
+    }
+    return consulta;
   }
 
   /**
@@ -141,11 +125,12 @@ public class EstoqueService implements IService {
    * pedida. Livre é o estoque menos o que outros carrinhos ainda no prazo bloqueiam e o
    * que as compras EM PROCESSAMENTO reservam (RN0028). A consulta volta com os itens
    * agrupados por disco e com o disco de cada um, mesmo quando há pendência, para o
-   * pedido calcular o que der.
+   * pedido calcular o que der; por isso as pendências voltam como lista, não como recusa.
    */
-  private Resultado validarDisponibilidade(ConsultaDisponibilidade consulta) {
+  @Transactional(readOnly = true)
+  public List<String> conferirDisponibilidade(ConsultaDisponibilidade consulta) {
     if (consulta.getItens() == null || consulta.getItens().isEmpty()) {
-      return Resultado.erro("O carrinho está vazio.");
+      return List.of("O carrinho está vazio.");
     }
     List<String> erros = new ArrayList<>();
     Map<Long, ItemPedido> porDisco = new LinkedHashMap<>();
@@ -187,7 +172,7 @@ public class EstoqueService implements IService {
       }
     }
     consulta.setItens(new ArrayList<>(porDisco.values()));
-    return erros.isEmpty() ? Resultado.com(consulta) : Resultado.erro(erros);
+    return erros;
   }
 
   /**
@@ -215,7 +200,8 @@ public class EstoqueService implements IService {
    * RF0053: a venda aprovada sai do estoque. RF0054: o item trocado volta. O pedido já
    * reservava as unidades da baixa, então faltar estoque aqui é defeito, não regra.
    */
-  private Resultado movimentar(MovimentoEstoque movimento) {
+  @Transactional
+  public List<Disco> movimentar(MovimentoEstoque movimento) {
     boolean baixa = MovimentoEstoque.BAIXA.equals(movimento.getTipo());
     List<Disco> movimentados = new ArrayList<>();
     for (ItemPedido item : movimento.getItens()) {
@@ -239,15 +225,16 @@ public class EstoqueService implements IService {
           dados, movimento.getUsuario());
       movimentados.add(disco);
     }
-    return Resultado.de(movimentados);
+    return movimentados;
   }
 
   /** RF0052: o preço e o estoque que a entrada produziria, sem gravar nada. */
-  private Resultado prever(PreviaEntrada previa) {
+  @Transactional(readOnly = true)
+  public PreviaEntrada prever(PreviaEntrada previa) {
     List<String> erros = new ArrayList<>();
     Disco disco = resolverDisco(previa.getDiscoId(), erros);
     if (!erros.isEmpty()) {
-      return Resultado.erro(erros);
+      throw new RegraNegocioException(erros);
     }
     // a prévia acompanha a digitação: quantidade ou custo ainda vazios só ficam fora da conta
     int quantidade = previa.getQuantidade() == null || previa.getQuantidade() < 0
@@ -263,7 +250,7 @@ public class EstoqueService implements IService {
     previa.setPrecoResultante(reprecificacao.preco());
     previa.setEstoqueAtual(disco.getEstoque());
     previa.setEstoqueResultante(disco.getEstoque() + quantidade);
-    return Resultado.com(previa);
+    return previa;
   }
 
   /**

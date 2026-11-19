@@ -1,6 +1,6 @@
 package br.com.rpm33.controller;
 
-import java.util.Map;
+import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,75 +11,57 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.rpm33.model.CotacaoPedido;
 import br.com.rpm33.model.Pedido;
 import br.com.rpm33.model.PedidoFiltro;
-import br.com.rpm33.model.ProcessamentoPagamentos;
-import br.com.rpm33.service.IFachada;
-import br.com.rpm33.service.Resultado;
+import br.com.rpm33.service.PedidoService;
 
 @RestController
 @RequestMapping("/api/pedidos")
 public class PedidoController {
 
-  private final IFachada fachada;
+  private final PedidoService pedidoService;
 
-  public PedidoController(IFachada fachada) {
-    this.fachada = fachada;
+  public PedidoController(PedidoService pedidoService) {
+    this.pedidoService = pedidoService;
   }
 
   /** RF0033 a RF0038 */
   @PostMapping
-  public ResponseEntity<Object> criar(@RequestBody Pedido pedido) {
-    return resposta(fachada.inserir(pedido), HttpStatus.CREATED);
+  @ResponseStatus(HttpStatus.CREATED)
+  public Pedido criar(@RequestBody Pedido pedido) {
+    return pedidoService.criar(pedido);
   }
 
   /** Checkout: os valores e as pendências do pedido como está, sem gravar nada. */
   @PostMapping("/cotacao")
-  public ResponseEntity<Object> cotar(@RequestBody Pedido pedido) {
-    CotacaoPedido cotacao = new CotacaoPedido();
-    cotacao.setPedido(pedido);
-    return resposta(fachada.consultar(cotacao), HttpStatus.OK);
+  public CotacaoPedido cotar(@RequestBody Pedido pedido) {
+    return pedidoService.cotar(pedido);
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<Object> buscar(@PathVariable Long id) {
-    Pedido alvo = new Pedido();
-    alvo.setId(id);
-    Resultado resultado = fachada.consultar(alvo);
-    return resultado.temErro() ? ResponseEntity.notFound().build()
-        : ResponseEntity.ok(resultado.primeira());
+  public ResponseEntity<Pedido> buscar(@PathVariable Long id) {
+    return ResponseEntity.of(pedidoService.buscar(id));
   }
 
   /** Meus pedidos, com clienteId; sem ele, todos, para a curadoria. */
   @GetMapping
-  public ResponseEntity<Object> consultar(@ModelAttribute PedidoFiltro filtro) {
-    Resultado resultado = fachada.consultar(filtro);
-    return resultado.temErro() ? erro(resultado) : ResponseEntity.ok(resultado.getEntidades());
+  public List<Pedido> consultar(@ModelAttribute PedidoFiltro filtro) {
+    return pedidoService.consultar(filtro);
   }
 
   /** RN0039 (EM TRANSPORTE) e RN0040 (ENTREGUE), pelo administrador. */
   @PutMapping("/{id}/status")
-  public ResponseEntity<Object> avancar(@PathVariable Long id, @RequestBody Pedido pedido) {
-    pedido.setId(id);
-    return resposta(fachada.alterar(pedido), HttpStatus.OK);
+  public Pedido avancar(@PathVariable Long id, @RequestBody Pedido pedido) {
+    return pedidoService.avancarStatus(id, pedido.getStatus());
   }
 
   /** RN0037 e RN0038: valida agora os pagamentos pendentes, sem esperar a operadora. */
   @PostMapping("/validacao-pagamento")
-  public ResponseEntity<Object> validarPagamentos() {
-    Resultado resultado = fachada.alterar(new ProcessamentoPagamentos());
-    return resultado.temErro() ? erro(resultado) : ResponseEntity.ok(resultado.getEntidades());
-  }
-
-  private ResponseEntity<Object> resposta(Resultado resultado, HttpStatus sucesso) {
-    return resultado.temErro() ? erro(resultado)
-        : ResponseEntity.status(sucesso).body(resultado.primeira());
-  }
-
-  private ResponseEntity<Object> erro(Resultado resultado) {
-    return ResponseEntity.badRequest().body(Map.of("mensagens", resultado.getMensagens()));
+  public List<Pedido> validarPagamentos() {
+    return pedidoService.validarPagamentos();
   }
 }

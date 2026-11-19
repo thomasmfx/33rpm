@@ -1,6 +1,7 @@
 package br.com.rpm33.service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -14,7 +15,6 @@ import br.com.rpm33.model.Cartao;
 import br.com.rpm33.model.Cliente;
 import br.com.rpm33.model.ClienteFiltro;
 import br.com.rpm33.model.Endereco;
-import br.com.rpm33.model.EntidadeDominio;
 import br.com.rpm33.model.Genero;
 import br.com.rpm33.model.OperacaoLog;
 import br.com.rpm33.model.Telefone;
@@ -27,8 +27,8 @@ import jakarta.persistence.EntityManager;
 /**
  * Regras do cadastro de clientes. Nada disso vive no controlador nem na interface.
  */
-@Service("Cliente")
-public class ClienteService implements IService {
+@Service
+public class ClienteService {
 
   private static final Pattern EMAIL = Pattern.compile("^\\S+@\\S+\\.\\S+$");
 
@@ -58,18 +58,16 @@ public class ClienteService implements IService {
   }
 
   /** RF0021 */
-  @Override
   @Transactional
-  public Resultado salvar(EntidadeDominio entidade) {
-    Cliente cliente = (Cliente) entidade;
+  public Cliente cadastrar(Cliente cliente) {
     normalizar(cliente);
 
     List<String> erros = validarDadosCadastrais(cliente, null);
     erros.addAll(regrasSenha.validar(cliente.getSenha(), cliente.getConfirmarSenha()));
-    erros.addAll(validarEnderecos(cliente));
+    erros.addAll(validarEnderecos(cliente.getEnderecos()));
     erros.addAll(regrasCartao.validarCartoes(cliente.getCartoes()));
     if (!erros.isEmpty()) {
-      return Resultado.erro(erros);
+      throw new RegraNegocioException(erros);
     }
 
     Cliente novo = new Cliente();
@@ -77,7 +75,7 @@ public class ClienteService implements IService {
     substituirEnderecos(novo, cliente.getEnderecos(), erros);
     substituirCartoes(novo, cliente.getCartoes(), erros);
     if (!erros.isEmpty()) {
-      return Resultado.erro(erros);
+      throw new RegraNegocioException(erros);
     }
 
     novo.setCodigo(gerarCodigo());
@@ -87,54 +85,33 @@ public class ClienteService implements IService {
 
     Cliente salvo = clienteRepository.save(novo);
     registradorLog.registrar(OperacaoLog.INSERIR, salvo);
-    return Resultado.com(salvo);
+    return salvo;
   }
 
-  /** RF0022, RF0028, RNF0034 e a reativação do cadastro. */
-  @Override
+  /** RF0022: o cadastro inteiro; a senha só muda se vier preenchida. */
   @Transactional
-  public Resultado alterar(EntidadeDominio entidade) {
-    Cliente entrada = (Cliente) entidade;
-    Optional<Cliente> encontrado = clienteRepository.findById(entrada.getId());
-    if (encontrado.isEmpty()) {
-      return Resultado.erro("Cliente não encontrado.");
-    }
-    Cliente atual = encontrado.get();
+  public Cliente alterar(Long id, Cliente entrada) {
+    Cliente atual = encontrar(id);
     normalizar(entrada);
-
-    if (apenasSenha(entrada)) {
-      return alterarSenha(atual, entrada);
-    }
-    if (apenasEnderecos(entrada)) {
-      return alterarEnderecos(atual, entrada);
-    }
-    if (apenasCartoes(entrada)) {
-      return alterarCartoes(atual, entrada);
-    }
-    if (apenasStatus(entrada)) {
-      atual.setIsAtivo(entrada.getIsAtivo());
-      registradorLog.registrar(OperacaoLog.ALTERAR, atual);
-      return Resultado.com(atual);
-    }
 
     List<String> erros = validarDadosCadastrais(entrada, atual.getId());
     if (entrada.getSenha() != null && !entrada.getSenha().isBlank()) {
       erros.addAll(regrasSenha.validar(entrada.getSenha(), entrada.getConfirmarSenha()));
     }
-    erros.addAll(validarEnderecos(entrada));
+    erros.addAll(validarEnderecos(entrada.getEnderecos()));
     erros.addAll(regrasCartao.validarCartoes(entrada.getCartoes()));
     if (entrada.getCpf() != null && !entrada.getCpf().equals(atual.getCpf())) {
       erros.add("O CPF não pode ser alterado.");
     }
     if (!erros.isEmpty()) {
-      return Resultado.erro(erros);
+      throw new RegraNegocioException(erros);
     }
 
     copiarDadosCadastrais(entrada, atual, erros);
     substituirEnderecos(atual, entrada.getEnderecos(), erros);
     substituirCartoes(atual, entrada.getCartoes(), erros);
     if (!erros.isEmpty()) {
-      return Resultado.erro(erros);
+      throw new RegraNegocioException(erros);
     }
     if (entrada.getSenha() != null && !entrada.getSenha().isBlank()) {
       atual.setSenha(encoder.encode(entrada.getSenha()));
@@ -144,122 +121,109 @@ public class ClienteService implements IService {
     }
 
     registradorLog.registrar(OperacaoLog.ALTERAR, atual);
-    return Resultado.com(atual);
+    return atual;
   }
 
-  /** RF0024 pelo filtro, carga do formulário pelo id, autenticação por e-mail e senha. */
-  @Override
-  @Transactional(readOnly = true)
-  public Resultado consultar(EntidadeDominio entidade) {
-    if (entidade instanceof ClienteFiltro filtro) {
-      List<Cliente> encontrados =
-          clienteRepository.findAll(ClienteSpecs.de(filtro), Sort.by("nome"));
-      return Resultado.de(encontrados);
+  /** RF0028: trocar a senha sem editar o resto do cadastro. */
+  @Transactional
+  public Cliente alterarSenha(Long id, String senha, String confirmarSenha) {
+    Cliente atual = encontrar(id);
+    List<String> erros = regrasSenha.validar(senha, confirmarSenha);
+    if (!erros.isEmpty()) {
+      throw new RegraNegocioException(erros);
     }
+    atual.setSenha(encoder.encode(senha));
+    registradorLog.registrar(OperacaoLog.ALTERAR, atual);
+    return atual;
+  }
 
-    Cliente cliente = (Cliente) entidade;
-    if (cliente.getId() != null) {
-      return clienteRepository.findById(cliente.getId())
-          .map(Resultado::com)
-          .orElseGet(() -> Resultado.erro("Cliente não encontrado."));
+  /** RNF0034: alterar ou adicionar endereços sem editar o resto do cadastro. */
+  @Transactional
+  public Cliente alterarEnderecos(Long id, Collection<Endereco> enderecos) {
+    Cliente atual = encontrar(id);
+    normalizarEnderecos(enderecos);
+    List<String> erros = validarEnderecos(enderecos);
+    if (!erros.isEmpty()) {
+      throw new RegraNegocioException(erros);
     }
-    if (cliente.getEmail() != null && cliente.getSenha() != null) {
-      return autenticar(cliente.getEmail(), cliente.getSenha());
+    substituirEnderecos(atual, enderecos, erros);
+    if (!erros.isEmpty()) {
+      throw new RegraNegocioException(erros);
     }
-    return Resultado.de(clienteRepository.findAll(Sort.by("nome")));
+    registradorLog.registrar(OperacaoLog.ALTERAR, atual);
+    return atual;
+  }
+
+  /** RF0036: cartão novo do checkout incorporado ao perfil, sem editar o cadastro. */
+  @Transactional
+  public Cliente alterarCartoes(Long id, Collection<Cartao> cartoes) {
+    Cliente atual = encontrar(id);
+    normalizarCartoes(cartoes);
+    List<String> erros = regrasCartao.validarCartoes(cartoes);
+    if (!erros.isEmpty()) {
+      throw new RegraNegocioException(erros);
+    }
+    substituirCartoes(atual, cartoes, erros);
+    if (!erros.isEmpty()) {
+      throw new RegraNegocioException(erros);
+    }
+    registradorLog.registrar(OperacaoLog.ALTERAR, atual);
+    return atual;
+  }
+
+  /** A reativação do cadastro. */
+  @Transactional
+  public Cliente ativar(Long id) {
+    Cliente atual = encontrar(id);
+    atual.setIsAtivo(true);
+    registradorLog.registrar(OperacaoLog.ALTERAR, atual);
+    return atual;
   }
 
   /**
    * RF0023. Cliente não é apagado: o DRS só prevê inativação e as chaves de pedido e cupom
    * impedem a exclusão física de quem já tem histórico.
    */
-  @Override
   @Transactional
-  public Resultado excluir(EntidadeDominio entidade) {
-    Cliente entrada = (Cliente) entidade;
-    Optional<Cliente> encontrado = clienteRepository.findById(entrada.getId());
-    if (encontrado.isEmpty()) {
-      return Resultado.erro("Cliente não encontrado.");
-    }
-    Cliente atual = encontrado.get();
+  public Cliente inativar(Long id) {
+    Cliente atual = encontrar(id);
     atual.setIsAtivo(false);
     registradorLog.registrar(OperacaoLog.EXCLUIR, atual);
-    return Resultado.com(atual);
+    return atual;
   }
 
-  // ------------------------------------------------------------------
-  // Alterações parciais
-  // ------------------------------------------------------------------
-
-  /** RF0028: trocar a senha sem editar o resto do cadastro. */
-  private Resultado alterarSenha(Cliente atual, Cliente entrada) {
-    List<String> erros = regrasSenha.validar(entrada.getSenha(), entrada.getConfirmarSenha());
-    if (!erros.isEmpty()) {
-      return Resultado.erro(erros);
-    }
-    atual.setSenha(encoder.encode(entrada.getSenha()));
-    registradorLog.registrar(OperacaoLog.ALTERAR, atual);
-    return Resultado.com(atual);
+  /** RF0024 */
+  @Transactional(readOnly = true)
+  public List<Cliente> consultar(ClienteFiltro filtro) {
+    return clienteRepository.findAll(ClienteSpecs.de(filtro), Sort.by("nome"));
   }
 
-  /** RNF0034: alterar ou adicionar endereços sem editar o resto do cadastro. */
-  private Resultado alterarEnderecos(Cliente atual, Cliente entrada) {
-    List<String> erros = validarEnderecos(entrada);
-    if (!erros.isEmpty()) {
-      return Resultado.erro(erros);
-    }
-    substituirEnderecos(atual, entrada.getEnderecos(), erros);
-    if (!erros.isEmpty()) {
-      return Resultado.erro(erros);
-    }
-    registradorLog.registrar(OperacaoLog.ALTERAR, atual);
-    return Resultado.com(atual);
+  /** A carga do formulário. */
+  @Transactional(readOnly = true)
+  public Optional<Cliente> buscar(Long id) {
+    return clienteRepository.findById(id);
   }
 
-  /** RF0036: cartão novo do checkout incorporado ao perfil, sem editar o cadastro. */
-  private Resultado alterarCartoes(Cliente atual, Cliente entrada) {
-    List<String> erros = regrasCartao.validarCartoes(entrada.getCartoes());
-    if (!erros.isEmpty()) {
-      return Resultado.erro(erros);
+  /** Autenticação simples: e-mail e senha conferidos contra o hash guardado. */
+  @Transactional(readOnly = true)
+  public Cliente autenticar(String email, String senha) {
+    if (email == null || senha == null) {
+      throw new AutenticacaoException("Informe e-mail e senha.");
     }
-    substituirCartoes(atual, entrada.getCartoes(), erros);
-    if (!erros.isEmpty()) {
-      return Resultado.erro(erros);
-    }
-    registradorLog.registrar(OperacaoLog.ALTERAR, atual);
-    return Resultado.com(atual);
-  }
-
-  private Resultado autenticar(String email, String senha) {
     Optional<Cliente> encontrado = clienteRepository.findByEmailIgnoreCase(email);
     if (encontrado.isEmpty() || !encoder.matches(senha, encontrado.get().getSenha())) {
-      return Resultado.erro("E-mail ou senha inválidos.");
+      throw new AutenticacaoException("E-mail ou senha inválidos.");
     }
     Cliente cliente = encontrado.get();
     if (Boolean.FALSE.equals(cliente.getIsAtivo())) {
-      return Resultado.erro("Cadastro inativo. Procure a curadoria.");
+      throw new AutenticacaoException("Cadastro inativo. Procure a curadoria.");
     }
-    return Resultado.com(cliente);
+    return cliente;
   }
 
-  private boolean apenasSenha(Cliente entrada) {
-    return entrada.getSenha() != null && entrada.getNome() == null
-        && entrada.getEnderecos().isEmpty() && entrada.getCartoes().isEmpty();
-  }
-
-  private boolean apenasEnderecos(Cliente entrada) {
-    return entrada.getNome() == null && entrada.getSenha() == null
-        && !entrada.getEnderecos().isEmpty();
-  }
-
-  private boolean apenasCartoes(Cliente entrada) {
-    return entrada.getNome() == null && entrada.getSenha() == null
-        && entrada.getEnderecos().isEmpty() && !entrada.getCartoes().isEmpty();
-  }
-
-  private boolean apenasStatus(Cliente entrada) {
-    return entrada.getIsAtivo() != null && entrada.getNome() == null && entrada.getSenha() == null
-        && entrada.getEnderecos().isEmpty() && entrada.getCartoes().isEmpty();
+  private Cliente encontrar(Long id) {
+    return clienteRepository.findById(id)
+        .orElseThrow(() -> new RegraNegocioException("Cliente não encontrado."));
   }
 
   // ------------------------------------------------------------------
@@ -317,29 +281,29 @@ public class ClienteService implements IService {
 
   /** RNF0031 e RNF0032. */
   /** RN0021, RN0022 e RN0023. */
-  private List<String> validarEnderecos(Cliente cliente) {
+  private List<String> validarEnderecos(Collection<Endereco> enderecos) {
     List<String> erros = new ArrayList<>();
-    if (cliente.getEnderecos().isEmpty()) {
+    if (enderecos.isEmpty()) {
       erros.add("O cliente precisa de ao menos um endereço de cobrança.");
       erros.add("O cliente precisa de ao menos um endereço de entrega.");
       return erros;
     }
 
-    for (Endereco endereco : cliente.getEnderecos()) {
+    for (Endereco endereco : enderecos) {
       erros.addAll(regrasEndereco.validar(endereco));
     }
 
-    if (!temEnderecoDe(cliente, Endereco.COBRANCA)) {
+    if (!temEnderecoDe(enderecos, Endereco.COBRANCA)) {
       erros.add("O cliente precisa de ao menos um endereço de cobrança.");
     }
-    if (!temEnderecoDe(cliente, Endereco.ENTREGA)) {
+    if (!temEnderecoDe(enderecos, Endereco.ENTREGA)) {
       erros.add("O cliente precisa de ao menos um endereço de entrega.");
     }
     return erros;
   }
 
-  private boolean temEnderecoDe(Cliente cliente, String tipo) {
-    return cliente.getEnderecos().stream().anyMatch(endereco -> endereco.atende(tipo));
+  private static boolean temEnderecoDe(Collection<Endereco> enderecos, String tipo) {
+    return enderecos.stream().anyMatch(endereco -> endereco.atende(tipo));
   }
 
   private boolean emailEmUso(String email, Long idAtual) {
@@ -477,10 +441,18 @@ public class ClienteService implements IService {
       cliente.getTelefone().setDdd(apenasDigitos(cliente.getTelefone().getDdd()));
       cliente.getTelefone().setNumero(apenasDigitos(cliente.getTelefone().getNumero()));
     }
-    for (Endereco endereco : cliente.getEnderecos()) {
+    normalizarEnderecos(cliente.getEnderecos());
+    normalizarCartoes(cliente.getCartoes());
+  }
+
+  private static void normalizarEnderecos(Collection<Endereco> enderecos) {
+    for (Endereco endereco : enderecos) {
       endereco.setCep(apenasDigitos(endereco.getCep()));
     }
-    for (Cartao cartao : cliente.getCartoes()) {
+  }
+
+  private static void normalizarCartoes(Collection<Cartao> cartoes) {
+    for (Cartao cartao : cartoes) {
       cartao.setNumero(apenasDigitos(cartao.getNumero()));
       cartao.setCodigoSeguranca(apenasDigitos(cartao.getCodigoSeguranca()));
     }

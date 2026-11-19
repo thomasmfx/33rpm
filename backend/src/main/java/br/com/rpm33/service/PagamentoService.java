@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.rpm33.model.ComposicaoPagamento;
 import br.com.rpm33.model.Cupom;
-import br.com.rpm33.model.EntidadeDominio;
 import br.com.rpm33.model.PagamentoCartao;
 import br.com.rpm33.model.Pedido;
 import br.com.rpm33.model.TipoCupom;
@@ -32,8 +31,8 @@ import br.com.rpm33.repository.CupomRepository;
  * pelas RN0033 a RN0036. Validação depois da finalização (RN0037), com a operadora de
  * cartão simulada. Não grava nada; quem grava é o PedidoService.
  */
-@Service("Pagamento")
-public class PagamentoService implements IService {
+@Service
+public class PagamentoService {
 
   private static final BigDecimal ZERO = BigDecimal.ZERO.setScale(2);
   private static final BigDecimal MINIMO_POR_CARTAO = new BigDecimal("10.00");
@@ -47,27 +46,13 @@ public class PagamentoService implements IService {
     this.cartoesRecusados = cartoesRecusados;
   }
 
-  @Override
-  public Resultado salvar(EntidadeDominio entidade) {
-    return Resultado.erro("O pagamento só é composto, dentro do pedido.");
-  }
-
-  @Override
-  public Resultado alterar(EntidadeDominio entidade) {
-    return Resultado.erro("O pagamento só é composto, dentro do pedido.");
-  }
-
   /**
    * A composição volta preenchida (cupons conferidos, restante e troco) mesmo quando há
-   * pendência, porque a cotação do checkout mostra os valores junto com as mensagens.
+   * pendência, porque a cotação do checkout mostra os valores junto com as mensagens; por
+   * isso as pendências voltam como lista, não como recusa.
    */
-  @Override
   @Transactional(readOnly = true)
-  public Resultado consultar(EntidadeDominio entidade) {
-    if (entidade instanceof ValidacaoPagamento validacao) {
-      return validar(validacao);
-    }
-    ComposicaoPagamento composicao = (ComposicaoPagamento) entidade;
+  public List<String> compor(ComposicaoPagamento composicao) {
     List<String> erros = new ArrayList<>();
     List<Cupom> cupons = conferirCupons(composicao, erros);
     composicao.setCupons(cupons);
@@ -93,12 +78,7 @@ public class PagamentoService implements IService {
     composicao.setRestante(restante);
     composicao.setTroco(soma.subtract(total).max(ZERO));
     erros.addAll(conferirCartoes(composicao.getPagamentos(), restante, !cupons.isEmpty()));
-    return erros.isEmpty() ? Resultado.com(composicao) : Resultado.erro(erros);
-  }
-
-  @Override
-  public Resultado excluir(EntidadeDominio entidade) {
-    return Resultado.erro("O pagamento só é composto, dentro do pedido.");
+    return erros;
   }
 
   /**
@@ -107,7 +87,8 @@ public class PagamentoService implements IService {
    * pelo aceite da operadora simulada, que recusa os números de app.operadora. A
    * validação volta preenchida; reprovar não é erro da operação.
    */
-  private Resultado validar(ValidacaoPagamento validacao) {
+  @Transactional(readOnly = true)
+  public void validar(ValidacaoPagamento validacao) {
     Pedido pedido = validacao.getPedido();
     List<String> motivos = new ArrayList<>();
     for (Cupom cupom : pedido.getCupons()) {
@@ -136,7 +117,6 @@ public class PagamentoService implements IService {
     }
     validacao.setAprovado(motivos.isEmpty());
     validacao.setMotivo(motivos.isEmpty() ? null : String.join(" ", motivos));
-    return Resultado.com(validacao);
   }
 
   /** Cada cupom existe, é do cliente, não foi usado e aparece uma vez só. */

@@ -40,11 +40,6 @@ public class ItemCarrinho extends EntidadeDominio {
   @Column(name = "is_expirado")
   private Boolean isExpirado;
 
-  @Override
-  public String getNomeEntidade() {
-    return Carrinho.class.getSimpleName();
-  }
-
   public Long getClienteId() {
     return clienteId;
   }

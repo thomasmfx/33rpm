@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -32,14 +31,15 @@ import br.com.rpm33.model.Gravadora;
 import br.com.rpm33.model.GrupoPrecificacao;
 import br.com.rpm33.model.MotivoStatus;
 import br.com.rpm33.repository.DiscoRepository;
-import br.com.rpm33.service.IFachada;
-import br.com.rpm33.service.Resultado;
+import br.com.rpm33.service.DiscoService;
+import br.com.rpm33.service.EstoqueService;
+import br.com.rpm33.service.RegraNegocioException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.FlushModeType;
 
 /**
  * D3: o acervo da demonstração entra pelas mesmas regras da curadoria — cadastro do
- * disco, entradas em estoque, ajuste de preço e inativação, tudo pela Fachada, com
+ * disco, entradas em estoque, ajuste de preço e inativação, tudo pelos serviços, com
  * validação e log. Roda na subida quando não há disco e a cada POST /api/dev/reset.
  */
 @Component
@@ -50,14 +50,16 @@ public class CargaAcervo implements ApplicationRunner {
   /** Gerado por frontend/scripts/gerar-acervo.mjs; não se edita à mão. */
   private static final String ARQUIVO = "carga/acervo.json";
 
-  private final IFachada fachada;
+  private final DiscoService discoService;
+  private final EstoqueService estoqueService;
   private final DiscoRepository discoRepository;
   private final ObjectMapper objectMapper;
   private final EntityManager entityManager;
 
-  public CargaAcervo(IFachada fachada, DiscoRepository discoRepository,
-      ObjectMapper objectMapper, EntityManager entityManager) {
-    this.fachada = fachada;
+  public CargaAcervo(DiscoService discoService, EstoqueService estoqueService,
+      DiscoRepository discoRepository, ObjectMapper objectMapper, EntityManager entityManager) {
+    this.discoService = discoService;
+    this.estoqueService = estoqueService;
     this.discoRepository = discoRepository;
     this.objectMapper = objectMapper;
     this.entityManager = entityManager;
@@ -69,15 +71,15 @@ public class CargaAcervo implements ApplicationRunner {
     if (discoRepository.count() > 0) {
       return;
     }
-    List<String> falhas = carregar();
-    if (!falhas.isEmpty()) {
-      throw new IllegalStateException("Carga do acervo recusada: " + String.join(" | ", falhas));
-    }
+    carregar();
   }
 
-  /** Na ordem do arquivo, para os ids (1..69) e os códigos DSC saírem sempre iguais. */
+  /**
+   * Na ordem do arquivo, para os ids (1..69) e os códigos DSC saírem sempre iguais. Para
+   * no primeiro disco recusado: a recusa já marcou a transação para desfazer.
+   */
   @Transactional
-  public List<String> carregar() {
+  public void carregar() {
     // Carga em massa: sem flush antes de cada consulta, o que custava uma conferência do
     // contexto inteiro por consulta. Nada do que ela consulta depende de alteração
     // pendente: disco, entrada, motivo e log são gravados já no persist (IDENTITY).
@@ -85,42 +87,37 @@ public class CargaAcervo implements ApplicationRunner {
     entityManager.setFlushMode(FlushModeType.COMMIT);
     try {
       Dominios dominios = new Dominios();
-      List<String> falhas = new ArrayList<>();
       for (ItemAcervo item : ler()) {
         dominios.referenciarPorId(item);
-        cadastrar(item, falhas);
+        try {
+          cadastrar(item);
+        } catch (RegraNegocioException e) {
+          throw new IllegalStateException("Carga do acervo recusada: " + e.getMensagens().stream()
+              .map(mensagem -> item.disco().getTitulo() + ": " + mensagem)
+              .collect(Collectors.joining(" | ")), e);
+        }
       }
-      return falhas;
     } finally {
       entityManager.setFlushMode(modoAnterior);
     }
   }
 
-  private void cadastrar(ItemAcervo item, List<String> falhas) {
-    Resultado cadastro = fachada.inserir(item.disco());
-    if (cadastro.temErro()) {
-      anotar(falhas, item, cadastro);
-      return;
-    }
-    Disco disco = (Disco) cadastro.primeira();
+  private void cadastrar(ItemAcervo item) {
+    Disco disco = discoService.cadastrar(item.disco());
     for (EntradaEstoque entrada : item.entradas()) {
       entrada.setDiscoId(disco.getId());
-      anotar(falhas, item, fachada.inserir(entrada));
+      estoqueService.registrarEntrada(entrada);
     }
 
     // na mesma transação, disco é o objeto que as entradas acabaram de reprecificar
     if (item.precoVenda() != null && item.precoVenda().compareTo(disco.getPrecoVenda()) != 0) {
       Disco preco = new Disco();
-      preco.setId(disco.getId());
       preco.setPrecoVenda(item.precoVenda());
       preco.setAutorizacaoGerente(item.autorizacaoGerente());
-      anotar(falhas, item, fachada.alterar(preco));
+      discoService.alterar(disco.getId(), preco);
     }
     if (item.inativacao() != null) {
-      Disco inativo = new Disco();
-      inativo.setId(disco.getId());
-      inativo.setMotivoStatus(item.inativacao());
-      anotar(falhas, item, fachada.excluir(inativo));
+      discoService.inativar(disco.getId(), item.inativacao());
     }
   }
 
@@ -131,11 +128,6 @@ public class CargaAcervo implements ApplicationRunner {
     } catch (IOException e) {
       throw new UncheckedIOException("Não foi possível ler " + ARQUIVO, e);
     }
-  }
-
-  private static void anotar(List<String> falhas, ItemAcervo item, Resultado resultado) {
-    resultado.getMensagens()
-        .forEach(mensagem -> falhas.add(item.disco().getTitulo() + ": " + mensagem));
   }
 
   /** Um disco do acervo: o cadastro, o histórico de entradas, o preço e o status do mock. */

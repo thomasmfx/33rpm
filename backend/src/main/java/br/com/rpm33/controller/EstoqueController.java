@@ -1,66 +1,53 @@
 package br.com.rpm33.controller;
 
-import java.util.Map;
+import java.util.List;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.rpm33.model.ConsultaDisponibilidade;
 import br.com.rpm33.model.EntradaEstoque;
 import br.com.rpm33.model.PreviaEntrada;
-import br.com.rpm33.service.IFachada;
-import br.com.rpm33.service.Resultado;
+import br.com.rpm33.service.EstoqueService;
 
 @RestController
 @RequestMapping("/api/estoque")
 public class EstoqueController {
 
-  private final IFachada fachada;
+  private final EstoqueService estoqueService;
 
-  public EstoqueController(IFachada fachada) {
-    this.fachada = fachada;
+  public EstoqueController(EstoqueService estoqueService) {
+    this.estoqueService = estoqueService;
   }
 
   /** RF0051 e RF0052 */
   @PostMapping("/entradas")
-  public ResponseEntity<Object> registrarEntrada(@RequestBody EntradaEstoque entrada) {
-    return resposta(fachada.inserir(entrada), HttpStatus.CREATED);
+  @ResponseStatus(HttpStatus.CREATED)
+  public EntradaEstoque registrarEntrada(@RequestBody EntradaEstoque entrada) {
+    return estoqueService.registrarEntrada(entrada);
   }
 
   @GetMapping("/entradas")
-  public ResponseEntity<Object> consultarEntradas(
-      @RequestParam(required = false) Long discoId) {
-    EntradaEstoque filtro = new EntradaEstoque();
-    filtro.setDiscoId(discoId);
-    Resultado resultado = fachada.consultar(filtro);
-    return resultado.temErro() ? erro(resultado) : ResponseEntity.ok(resultado.getEntidades());
+  public List<EntradaEstoque> consultarEntradas(@RequestParam(required = false) Long discoId) {
+    return estoqueService.consultarEntradas(discoId);
   }
 
   /** RF0052: o preço que a entrada produziria, para a tela mostrar antes de gravar. */
   @PostMapping("/entradas/previa")
-  public ResponseEntity<Object> prever(@RequestBody PreviaEntrada previa) {
-    return resposta(fachada.consultar(previa), HttpStatus.OK);
+  public PreviaEntrada prever(@RequestBody PreviaEntrada previa) {
+    return estoqueService.prever(previa);
   }
 
   /** RN0031: o carrinho confere cada inclusão e cada mudança de quantidade. */
   @PostMapping("/disponibilidade")
-  public ResponseEntity<Object> conferirDisponibilidade(
+  public ConsultaDisponibilidade conferirDisponibilidade(
       @RequestBody ConsultaDisponibilidade consulta) {
-    return resposta(fachada.consultar(consulta), HttpStatus.OK);
-  }
-
-  private ResponseEntity<Object> resposta(Resultado resultado, HttpStatus sucesso) {
-    return resultado.temErro() ? erro(resultado)
-        : ResponseEntity.status(sucesso).body(resultado.primeira());
-  }
-
-  private ResponseEntity<Object> erro(Resultado resultado) {
-    return ResponseEntity.badRequest().body(Map.of("mensagens", resultado.getMensagens()));
+    return estoqueService.validarDisponibilidade(consulta);
   }
 }

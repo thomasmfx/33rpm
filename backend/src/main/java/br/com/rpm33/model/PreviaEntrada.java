@@ -6,7 +6,7 @@ import java.math.BigDecimal;
  * RF0052: preço e estoque que o disco teria com a entrada informada, calculados pela
  * mesma regra da gravação. Nada é gravado.
  */
-public class PreviaEntrada extends EntidadeDominio {
+public class PreviaEntrada {
 
   private Long discoId;
   private Integer quantidade;
@@ -16,11 +16,6 @@ public class PreviaEntrada extends EntidadeDominio {
   private BigDecimal precoResultante;
   private Integer estoqueAtual;
   private Integer estoqueResultante;
-
-  @Override
-  public String getNomeEntidade() {
-    return EntradaEstoque.NOME_ENTIDADE;
-  }
 
   public Long getDiscoId() {
     return discoId;

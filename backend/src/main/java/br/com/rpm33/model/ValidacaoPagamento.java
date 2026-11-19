@@ -33,11 +33,6 @@ public class ValidacaoPagamento extends EntidadeDominio {
   /** O que reprovou a compra; nulo na aprovada. */
   private String motivo;
 
-  @Override
-  public String getNomeEntidade() {
-    return "Pagamento";
-  }
-
   public Pedido getPedido() {
     return pedido;
   }

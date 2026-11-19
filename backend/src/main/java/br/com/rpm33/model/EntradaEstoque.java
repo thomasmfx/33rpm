@@ -23,8 +23,6 @@ import jakarta.persistence.Table;
 @Table(name = "entrada_estoque")
 public class EntradaEstoque extends EntidadeDominio {
 
-  public static final String NOME_ENTIDADE = "Estoque";
-
   @JsonIgnore
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "disco_id")
@@ -44,11 +42,6 @@ public class EntradaEstoque extends EntidadeDominio {
 
   @Column(name = "data_entrada")
   private LocalDate dataEntrada;
-
-  @Override
-  public String getNomeEntidade() {
-    return NOME_ENTIDADE;
-  }
 
   public Disco getDisco() {
     return disco;

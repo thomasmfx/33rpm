@@ -1,15 +1,10 @@
 package br.com.rpm33.model;
 
 /** Checkout e Meus cupons: os cupons de um cliente, opcionalmente só os não utilizados. */
-public class CupomFiltro extends EntidadeDominio {
+public class CupomFiltro {
 
   private Long clienteId;
   private Boolean disponiveis;
-
-  @Override
-  public String getNomeEntidade() {
-    return Cupom.class.getSimpleName();
-  }
 
   public Long getClienteId() {
     return clienteId;

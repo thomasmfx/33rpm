@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.rpm33.model.Cliente;
 import br.com.rpm33.model.Cupom;
 import br.com.rpm33.model.CupomFiltro;
-import br.com.rpm33.model.EntidadeDominio;
 import br.com.rpm33.model.OperacaoLog;
 import br.com.rpm33.model.TipoCupom;
 import br.com.rpm33.repository.ClienteRepository;
@@ -26,8 +24,8 @@ import br.com.rpm33.repository.TipoCupomRepository;
  * o cupom gerado leva quem o gerou: a validação do pagamento (RN0036) ou a curadoria, ao
  * receber a troca (RF0045).
  */
-@Service("Cupom")
-public class CupomService implements IService {
+@Service
+public class CupomService {
 
   private final CupomRepository cupomRepository;
   private final TipoCupomRepository tipoCupomRepository;
@@ -46,10 +44,8 @@ public class CupomService implements IService {
    * O cupom de troca gerado pelo que os cupons passaram do total (RN0036) ou pelos itens
    * de uma troca recebidos (RF0045).
    */
-  @Override
   @Transactional
-  public Resultado salvar(EntidadeDominio entidade) {
-    Cupom entrada = (Cupom) entidade;
+  public Cupom gerar(Cupom entrada) {
     List<String> erros = new ArrayList<>();
     Cliente cliente = entrada.getCliente();
     if (cliente == null && entrada.getClienteId() != null) {
@@ -71,7 +67,7 @@ public class CupomService implements IService {
       erros.add("O valor do cupom precisa ser maior que zero.");
     }
     if (!erros.isEmpty()) {
-      return Resultado.erro(erros);
+      throw new RegraNegocioException(erros);
     }
 
     Cupom novo = new Cupom();
@@ -86,54 +82,43 @@ public class CupomService implements IService {
     Cupom salvo = cupomRepository.save(novo);
     registrar(OperacaoLog.INSERIR, salvo, salvo.getTrocaOrigemId() == null
         ? RegistradorLog.ROTINA_AUTOMATICA : RegistradorLog.CURADORIA);
-    return Resultado.com(salvo);
+    return salvo;
   }
 
   /** RN0033 a RN0036: o cupom usado na compra não volta a ser aceito. */
-  @Override
   @Transactional
-  public Resultado alterar(EntidadeDominio entidade) {
-    Cupom entrada = (Cupom) entidade;
-    Optional<Cupom> encontrado =
-        entrada.getId() == null ? Optional.empty() : cupomRepository.findById(entrada.getId());
-    if (encontrado.isEmpty()) {
-      return Resultado.erro("Cupom não encontrado.");
-    }
-    if (entrada.getIsUtilizado() == null) {
-      return Resultado.erro("Informe se o cupom foi utilizado.");
-    }
-    Cupom atual = encontrado.get();
-    // dois pedidos simultâneos leem o cupom livre; só um pode consumi-lo
-    if (Boolean.TRUE.equals(entrada.getIsUtilizado()) && cupomRepository.consumir(atual.getId()) == 0) {
-      return Resultado.erro("O cupom " + atual.getCodigo() + " já foi utilizado.");
-    }
-    atual.setIsUtilizado(entrada.getIsUtilizado());
-    registrar(OperacaoLog.ALTERAR, atual, atual.getCliente().getEmail());
-    return Resultado.com(atual);
+  public Cupom consumir(Long id) {
+    return marcarUso(id, true);
+  }
+
+  /** A compra reprovada devolve o cupom ao cliente. */
+  @Transactional
+  public Cupom devolver(Long id) {
+    return marcarUso(id, false);
   }
 
   /** Os cupons do cliente, usados e disponíveis, por tipo e código. */
-  @Override
   @Transactional(readOnly = true)
-  public Resultado consultar(EntidadeDominio entidade) {
-    if (entidade instanceof CupomFiltro filtro) {
-      if (filtro.getClienteId() == null) {
-        return Resultado.de(cupomRepository.findAllByOrderByTipoIdAscCodigoAsc());
-      }
-      return Resultado.de(Boolean.TRUE.equals(filtro.getDisponiveis())
-          ? cupomRepository.findByClienteIdAndIsUtilizadoFalseOrderByTipoIdAscCodigoAsc(
-              filtro.getClienteId())
-          : cupomRepository.findByClienteIdOrderByTipoIdAscCodigoAsc(filtro.getClienteId()));
+  public List<Cupom> consultar(CupomFiltro filtro) {
+    if (filtro.getClienteId() == null) {
+      return cupomRepository.findAllByOrderByTipoIdAscCodigoAsc();
     }
-    Cupom cupom = (Cupom) entidade;
-    return (cupom.getId() == null ? Optional.<Cupom>empty() : cupomRepository.findById(cupom.getId()))
-        .map(Resultado::com)
-        .orElseGet(() -> Resultado.erro("Cupom não encontrado."));
+    return Boolean.TRUE.equals(filtro.getDisponiveis())
+        ? cupomRepository.findByClienteIdAndIsUtilizadoFalseOrderByTipoIdAscCodigoAsc(
+            filtro.getClienteId())
+        : cupomRepository.findByClienteIdOrderByTipoIdAscCodigoAsc(filtro.getClienteId());
   }
 
-  @Override
-  public Resultado excluir(EntidadeDominio entidade) {
-    return Resultado.erro("O cupom não é excluído: usado ou não, ele fica no histórico do cliente.");
+  private Cupom marcarUso(Long id, boolean utilizado) {
+    Cupom atual = cupomRepository.findById(id)
+        .orElseThrow(() -> new RegraNegocioException("Cupom não encontrado."));
+    // dois pedidos simultâneos leem o cupom livre; só um pode consumi-lo
+    if (utilizado && cupomRepository.consumir(atual.getId()) == 0) {
+      throw new RegraNegocioException("O cupom " + atual.getCodigo() + " já foi utilizado.");
+    }
+    atual.setIsUtilizado(utilizado);
+    registrar(OperacaoLog.ALTERAR, atual, atual.getCliente().getEmail());
+    return atual;
   }
 
   private TipoCupom resolverTipo(TipoCupom informado) {

@@ -2,7 +2,6 @@ package br.com.rpm33.controller;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,8 +37,7 @@ import br.com.rpm33.repository.ItemCarrinhoRepository;
 import br.com.rpm33.repository.LogRepository;
 import br.com.rpm33.repository.PedidoRepository;
 import br.com.rpm33.repository.TipoCupomRepository;
-import br.com.rpm33.service.IFachada;
-import br.com.rpm33.service.Resultado;
+import br.com.rpm33.service.ClienteService;
 import jakarta.persistence.EntityManager;
 
 /**
@@ -53,7 +51,7 @@ public class DevController {
 
   public static final String SENHA_PADRAO = "Senha@123";
 
-  private final IFachada fachada;
+  private final ClienteService clienteService;
   private final CargaAcervo cargaAcervo;
   private final CupomRepository cupomRepository;
   private final TipoCupomRepository tipoCupomRepository;
@@ -63,11 +61,11 @@ public class DevController {
   private final ObjectMapper objectMapper;
   private final EntityManager entityManager;
 
-  public DevController(IFachada fachada, CargaAcervo cargaAcervo,
+  public DevController(ClienteService clienteService, CargaAcervo cargaAcervo,
       CupomRepository cupomRepository, TipoCupomRepository tipoCupomRepository,
       ItemCarrinhoRepository itemCarrinhoRepository, PedidoRepository pedidoRepository,
       LogRepository logRepository, ObjectMapper objectMapper, EntityManager entityManager) {
-    this.fachada = fachada;
+    this.clienteService = clienteService;
     this.cargaAcervo = cargaAcervo;
     this.cupomRepository = cupomRepository;
     this.tipoCupomRepository = tipoCupomRepository;
@@ -78,10 +76,13 @@ public class DevController {
     this.entityManager = entityManager;
   }
 
-  /** Três clientes, o acervo inteiro pela Fachada e os cupons da Ana e do Bruno. */
+  /**
+   * Três clientes, o acervo inteiro pelos serviços e os cupons da Ana e do Bruno. Uma
+   * recusa no meio desfaz o reset inteiro.
+   */
   @PostMapping("/reset")
   @Transactional
-  public ResponseEntity<Object> reset() {
+  public List<String> reset() {
     entityManager.createNativeQuery("TRUNCATE cliente, disco, log RESTART IDENTITY CASCADE")
         .executeUpdate();
     entityManager.createNativeQuery("ALTER SEQUENCE seq_codigo_cliente RESTART WITH 1")
@@ -89,17 +90,13 @@ public class DevController {
     entityManager.createNativeQuery("ALTER SEQUENCE seq_codigo_disco RESTART WITH 1")
         .executeUpdate();
 
-    List<String> falhas = new ArrayList<>();
-    Cliente ana = inserir(anaPaula(), 5, falhas);
-    Cliente bruno = inserir(brunoTavares(), 3, falhas);
-    inserir(carlaNogueira(), 1, falhas);
-    falhas.addAll(cargaAcervo.carregar());
+    Cliente ana = cadastrar(anaPaula(), 5);
+    Cliente bruno = cadastrar(brunoTavares(), 3);
+    cadastrar(carlaNogueira(), 1);
+    cargaAcervo.carregar();
 
-    if (!falhas.isEmpty()) {
-      return ResponseEntity.internalServerError().body(falhas);
-    }
     inserirCupons(ana, bruno);
-    return ResponseEntity.ok(List.of("CLI-000001", "CLI-000002", "CLI-000003"));
+    return List.of("CLI-000001", "CLI-000002", "CLI-000003");
   }
 
   /**
@@ -150,13 +147,8 @@ public class DevController {
     return resposta;
   }
 
-  private Cliente inserir(Cliente cliente, int ranking, List<String> falhas) {
-    Resultado resultado = fachada.inserir(cliente);
-    if (resultado.temErro()) {
-      falhas.addAll(resultado.getMensagens());
-      return null;
-    }
-    Cliente salvo = (Cliente) resultado.primeira();
+  private Cliente cadastrar(Cliente cliente, int ranking) {
+    Cliente salvo = clienteService.cadastrar(cliente);
     if (!Boolean.TRUE.equals(cliente.getIsAtivo())) {
       salvo.setIsAtivo(false);
     }

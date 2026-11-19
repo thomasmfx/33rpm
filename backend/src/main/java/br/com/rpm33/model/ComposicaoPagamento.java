@@ -9,7 +9,7 @@ import java.util.List;
  * compor). Resolvida pelo PagamentoService, que devolve aqui os cupons conferidos,
  * o restante para os cartões e o troco.
  */
-public class ComposicaoPagamento extends EntidadeDominio {
+public class ComposicaoPagamento {
 
   private Long clienteId;
   private BigDecimal total;
@@ -18,11 +18,6 @@ public class ComposicaoPagamento extends EntidadeDominio {
   private BigDecimal valorCupons;
   private BigDecimal restante;
   private BigDecimal troco;
-
-  @Override
-  public String getNomeEntidade() {
-    return "Pagamento";
-  }
 
   public Long getClienteId() {
     return clienteId;

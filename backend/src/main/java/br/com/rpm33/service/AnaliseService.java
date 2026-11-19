@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.rpm33.model.AnaliseVendas;
 import br.com.rpm33.model.Categoria;
-import br.com.rpm33.model.EntidadeDominio;
 import br.com.rpm33.model.SerieVendas;
 import br.com.rpm33.repository.CategoriaRepository;
 import br.com.rpm33.repository.PedidoRepository;
@@ -26,8 +25,8 @@ import br.com.rpm33.repository.PedidoRepository;
  * RF0055: histórico de vendas por categoria e mês. Só leitura: a análise não grava nada.
  * A venda é a compra ENTREGUE, e o mês é o da compra.
  */
-@Service("Analise")
-public class AnaliseService implements IService {
+@Service
+public class AnaliseService {
 
   /** RN0072 */
   private static final int PERIODO_MAXIMO_MESES = 24;
@@ -41,25 +40,13 @@ public class AnaliseService implements IService {
     this.categoriaRepository = categoriaRepository;
   }
 
-  @Override
-  public Resultado salvar(EntidadeDominio entidade) {
-    return Resultado.erro("A análise é só consulta.");
-  }
-
-  @Override
-  public Resultado alterar(EntidadeDominio entidade) {
-    return Resultado.erro("A análise é só consulta.");
-  }
-
-  @Override
   @Transactional(readOnly = true)
-  public Resultado consultar(EntidadeDominio entidade) {
-    AnaliseVendas consulta = (AnaliseVendas) entidade;
+  public AnaliseVendas consultarVendas(AnaliseVendas consulta) {
     List<String> erros = new ArrayList<>();
     Set<String> categorias = validarCategorias(consulta.getCategorias(), erros);
     validarPeriodo(consulta, erros);
     if (!erros.isEmpty()) {
-      return Resultado.erro(erros);
+      throw new RegraNegocioException(erros);
     }
 
     List<YearMonth> meses = mesesDoPeriodo(consulta);
@@ -81,12 +68,7 @@ public class AnaliseService implements IService {
                 .getOrDefault(mes, BigDecimal.ZERO).setScale(2))
             .toList()))
         .toList());
-    return Resultado.com(consulta);
-  }
-
-  @Override
-  public Resultado excluir(EntidadeDominio entidade) {
-    return Resultado.erro("A análise é só consulta.");
+    return consulta;
   }
 
   /** RF0057: ao menos uma categoria, cada uma um gênero do acervo (RNF0013). */

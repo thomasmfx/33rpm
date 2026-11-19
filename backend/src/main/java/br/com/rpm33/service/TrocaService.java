@@ -9,12 +9,10 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.rpm33.model.Cupom;
-import br.com.rpm33.model.EntidadeDominio;
 import br.com.rpm33.model.ItemPedido;
 import br.com.rpm33.model.MovimentoEstoque;
 import br.com.rpm33.model.Notificacao;
@@ -37,29 +35,29 @@ import br.com.rpm33.repository.TrocaRepository;
  * estoque quando ele assim informa (RF0054). Recusa de troca e estorno no cartão não
  * estão no DRS.
  */
-@Service("Troca")
-public class TrocaService implements IService {
+@Service
+public class TrocaService {
 
   private final TrocaRepository trocaRepository;
   private final PedidoRepository pedidoRepository;
   private final StatusPedidoRepository statusPedidoRepository;
   private final CupomRepository cupomRepository;
-  private final IService cupons;
-  private final IService estoque;
-  private final IService notificacoes;
+  private final CupomService cupomService;
+  private final EstoqueService estoqueService;
+  private final NotificacaoService notificacaoService;
   private final RegistradorLog registradorLog;
 
   public TrocaService(TrocaRepository trocaRepository, PedidoRepository pedidoRepository,
       StatusPedidoRepository statusPedidoRepository, CupomRepository cupomRepository,
-      @Qualifier("Cupom") IService cupons, @Qualifier("Estoque") IService estoque,
-      @Qualifier("Notificacao") IService notificacoes, RegistradorLog registradorLog) {
+      CupomService cupomService, EstoqueService estoqueService,
+      NotificacaoService notificacaoService, RegistradorLog registradorLog) {
     this.trocaRepository = trocaRepository;
     this.pedidoRepository = pedidoRepository;
     this.statusPedidoRepository = statusPedidoRepository;
     this.cupomRepository = cupomRepository;
-    this.cupons = cupons;
-    this.estoque = estoque;
-    this.notificacoes = notificacoes;
+    this.cupomService = cupomService;
+    this.estoqueService = estoqueService;
+    this.notificacaoService = notificacaoService;
     this.registradorLog = registradorLog;
   }
 
@@ -67,14 +65,12 @@ public class TrocaService implements IService {
    * RF0041, RN0041 e RN0043: o pedido de troca nasce EM TROCA. Na compra inteira, a
    * compra também passa a EM TROCA.
    */
-  @Override
   @Transactional
-  public Resultado salvar(EntidadeDominio entidade) {
-    Troca entrada = (Troca) entidade;
+  public Troca solicitar(Troca entrada) {
     Pedido pedido = entrada.getPedidoId() == null ? null
         : pedidoRepository.findById(entrada.getPedidoId()).orElse(null);
     if (pedido == null) {
-      return Resultado.erro("Pedido não encontrado.");
+      throw new RegraNegocioException("Pedido não encontrado.");
     }
     List<String> erros = new ArrayList<>();
     if (entrada.getClienteId() != null && !entrada.getClienteId().equals(pedido.getClienteId())) {
@@ -92,7 +88,7 @@ public class TrocaService implements IService {
     List<TrocaItem> itens = compraInteira ? itensDaCompraInteira(pedido, erros)
         : itensEscolhidos(entrada, pedido, erros);
     if (!erros.isEmpty()) {
-      return Resultado.erro(erros);
+      throw new RegraNegocioException(erros);
     }
 
     Troca troca = new Troca();
@@ -111,7 +107,7 @@ public class TrocaService implements IService {
       mudarStatusDaCompra(pedido, StatusPedido.EM_TROCA, usuario);
     }
     registrar(OperacaoLog.INSERIR, troca, usuario);
-    return Resultado.com(troca);
+    return troca;
   }
 
   /**
@@ -119,15 +115,10 @@ public class TrocaService implements IService {
    * TROCA AUTORIZADA vira TROCADO, com o cupom (RF0045) e, se o administrador disser que
    * os itens voltam, a reentrada em estoque (RF0054).
    */
-  @Override
   @Transactional
-  public Resultado alterar(EntidadeDominio entidade) {
-    Troca entrada = (Troca) entidade;
-    Troca troca = entrada.getId() == null ? null
-        : trocaRepository.findById(entrada.getId()).orElse(null);
-    if (troca == null) {
-      return Resultado.erro("Troca não encontrada.");
-    }
+  public Troca avancarStatus(Long id, Troca entrada) {
+    Troca troca = trocaRepository.findById(id)
+        .orElseThrow(() -> new RegraNegocioException("Troca não encontrada."));
     String atual = troca.getStatus().getDescricao();
     String destino = entrada.getStatus() == null ? null : entrada.getStatus().getDescricao();
     if (StatusPedido.EM_TROCA.equals(atual) && StatusPedido.TROCA_AUTORIZADA.equals(destino)) {
@@ -135,46 +126,30 @@ public class TrocaService implements IService {
     } else if (StatusPedido.TROCA_AUTORIZADA.equals(atual)
         && StatusPedido.TROCADO.equals(destino)) {
       if (entrada.getRetornoEstoque() == null) {
-        return Resultado.erro("Informe se os itens trocados voltam ao estoque.");
+        throw new RegraNegocioException("Informe se os itens trocados voltam ao estoque.");
       }
       receber(troca, entrada.getRetornoEstoque());
     } else {
-      return Resultado.erro(recusaDoAvanco(atual, destino));
+      throw new RegraNegocioException(recusaDoAvanco(atual, destino));
     }
     preencher(List.of(troca));
-    return Resultado.com(troca);
+    return troca;
   }
 
   /** RF0043: os pedidos de troca, filtrados por status, cliente ou compra. */
-  @Override
   @Transactional(readOnly = true)
-  public Resultado consultar(EntidadeDominio entidade) {
-    if (entidade instanceof TrocaFiltro filtro) {
-      // poucas trocas: filtrar aqui mantém a consulta do repositório sem parâmetro opcional
-      List<Troca> trocas = trocaRepository.findAllByOrderByIdDesc();
-      preencher(trocas);
-      return Resultado.de(trocas.stream()
-          .filter(troca -> vazio(filtro.getStatus())
-              || filtro.getStatus().equals(troca.getStatus().getDescricao()))
-          .filter(troca -> filtro.getClienteId() == null
-              || filtro.getClienteId().equals(troca.getClienteId()))
-          .filter(troca -> filtro.getPedidoId() == null
-              || filtro.getPedidoId().equals(troca.getPedidoId()))
-          .toList());
-    }
-    Troca troca = (Troca) entidade;
-    Troca encontrada =
-        troca.getId() == null ? null : trocaRepository.findById(troca.getId()).orElse(null);
-    if (encontrada == null) {
-      return Resultado.erro("Troca não encontrada.");
-    }
-    preencher(List.of(encontrada));
-    return Resultado.com(encontrada);
-  }
-
-  @Override
-  public Resultado excluir(EntidadeDominio entidade) {
-    return Resultado.erro("A troca não é recusada nem excluída: o DRS só prevê a autorização.");
+  public List<Troca> consultar(TrocaFiltro filtro) {
+    // poucas trocas: filtrar aqui mantém a consulta do repositório sem parâmetro opcional
+    List<Troca> trocas = trocaRepository.findAllByOrderByIdDesc();
+    preencher(trocas);
+    return trocas.stream()
+        .filter(troca -> vazio(filtro.getStatus())
+            || filtro.getStatus().equals(troca.getStatus().getDescricao()))
+        .filter(troca -> filtro.getClienteId() == null
+            || filtro.getClienteId().equals(troca.getClienteId()))
+        .filter(troca -> filtro.getPedidoId() == null
+            || filtro.getPedidoId().equals(troca.getPedidoId()))
+        .toList();
   }
 
   private void autorizar(Troca troca) {
@@ -190,7 +165,7 @@ public class TrocaService implements IService {
     aviso.setPedidoId(pedido.getId());
     aviso.setMensagem("Sua troca no pedido #" + pedido.getId() + " foi autorizada. Envie os "
         + "itens para a 33rpm: o cupom de troca é gerado quando eles chegarem.");
-    exigir(notificacoes.salvar(aviso));
+    notificacaoService.criar(aviso);
     registrar(OperacaoLog.ALTERAR, troca, RegistradorLog.CURADORIA);
   }
 
@@ -211,7 +186,7 @@ public class TrocaService implements IService {
     cupom.setCodigo("TROCA-T%06d".formatted(troca.getId()));
     cupom.setValor(troca.getValor());
     cupom.setTrocaOrigemId(troca.getId());
-    exigir(cupons.salvar(cupom));
+    cupomService.gerar(cupom);
 
     if (retornoEstoque) {
       List<ItemPedido> devolvidos = troca.getItens().stream().map(item -> {
@@ -220,8 +195,8 @@ public class TrocaService implements IService {
         devolvido.setQuantidade(item.getQuantidade());
         return devolvido;
       }).toList();
-      exigir(estoque.alterar(MovimentoEstoque.de(MovimentoEstoque.REENTRADA, devolvidos,
-          "Troca " + troca.getId(), RegistradorLog.CURADORIA)));
+      estoqueService.movimentar(MovimentoEstoque.de(MovimentoEstoque.REENTRADA, devolvidos,
+          "Troca " + troca.getId(), RegistradorLog.CURADORIA));
     }
     registrar(OperacaoLog.ALTERAR, troca, RegistradorLog.CURADORIA);
   }
@@ -337,14 +312,6 @@ public class TrocaService implements IService {
   private StatusPedido status(String descricao) {
     return statusPedidoRepository.findByDescricao(descricao).orElseThrow(
         () -> new IllegalStateException("Status " + descricao + " ausente. Rode db/seed.sql."));
-  }
-
-  /** As escritas internas já foram conferidas; uma recusa aqui é defeito, não regra. */
-  private static Resultado exigir(Resultado resultado) {
-    if (resultado.temErro()) {
-      throw new IllegalStateException(String.join(" ", resultado.getMensagens()));
-    }
-    return resultado;
   }
 
   private static boolean vazio(String valor) {

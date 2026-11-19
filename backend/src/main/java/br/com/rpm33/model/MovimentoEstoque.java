@@ -7,7 +7,7 @@ import java.util.List;
  * RF0053 e RF0054: a baixa da venda aprovada e a reentrada da troca recebida. Não é
  * entrada de fornecedor, então não passa pelo custo nem pela reprecificação.
  */
-public class MovimentoEstoque extends EntidadeDominio {
+public class MovimentoEstoque {
 
   public static final String BAIXA = "BAIXA";
   public static final String REENTRADA = "REENTRADA";
@@ -27,11 +27,6 @@ public class MovimentoEstoque extends EntidadeDominio {
     movimento.origem = origem;
     movimento.usuario = usuario;
     return movimento;
-  }
-
-  @Override
-  public String getNomeEntidade() {
-    return EntradaEstoque.NOME_ENTIDADE;
   }
 
   public String getTipo() {

@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.rpm33.model.Administrador;
-import br.com.rpm33.model.EntidadeDominio;
 import br.com.rpm33.model.OperacaoLog;
 import br.com.rpm33.repository.AdministradorRepository;
 
@@ -19,8 +18,8 @@ import br.com.rpm33.repository.AdministradorRepository;
  * administrador vem da carga do banco (db/administradores.sql) e só altera os
  * próprios dados e a senha.
  */
-@Service("Administrador")
-public class AdministradorService implements IService {
+@Service
+public class AdministradorService {
 
   private static final Pattern EMAIL = Pattern.compile("^\\S+@\\S+\\.\\S+$");
 
@@ -37,77 +36,55 @@ public class AdministradorService implements IService {
     this.encoder = encoder;
   }
 
-  @Override
-  public Resultado salvar(EntidadeDominio entidade) {
-    return Resultado.erro("O administrador vem da carga do banco; não há cadastro pela API.");
+  /** A carga da sessão. */
+  @Transactional(readOnly = true)
+  public Optional<Administrador> buscar(Long id) {
+    return administradorRepository.findById(id);
   }
 
-  /** Dados cadastrais ou só a senha, conforme o que veio preenchido (como no cliente). */
-  @Override
+  /** Nome e e-mail do próprio administrador. */
   @Transactional
-  public Resultado alterar(EntidadeDominio entidade) {
-    Administrador entrada = (Administrador) entidade;
-    Optional<Administrador> encontrado = administradorRepository.findById(entrada.getId());
-    if (encontrado.isEmpty()) {
-      return Resultado.erro("Administrador não encontrado.");
-    }
-    Administrador atual = encontrado.get();
-
-    if (apenasSenha(entrada)) {
-      List<String> erros = regrasSenha.validar(entrada.getSenha(), entrada.getConfirmarSenha());
-      if (!erros.isEmpty()) {
-        return Resultado.erro(erros);
-      }
-      atual.setSenha(encoder.encode(entrada.getSenha()));
-      registradorLog.registrar(OperacaoLog.ALTERAR, atual);
-      return Resultado.com(atual);
-    }
-
+  public Administrador alterar(Long id, Administrador entrada) {
+    Administrador atual = encontrar(id);
     List<String> erros = validarDados(entrada, atual.getId());
     if (!erros.isEmpty()) {
-      return Resultado.erro(erros);
+      throw new RegraNegocioException(erros);
     }
     atual.setNome(entrada.getNome().trim());
     atual.setEmail(entrada.getEmail().trim());
     registradorLog.registrar(OperacaoLog.ALTERAR, atual);
-    return Resultado.com(atual);
+    return atual;
   }
 
-  /** Carga da sessão pelo id ou autenticação por e-mail e senha. */
-  @Override
+  /** RF0028 para o administrador: a senha muda sozinha. */
+  @Transactional
+  public Administrador alterarSenha(Long id, String senha, String confirmarSenha) {
+    Administrador atual = encontrar(id);
+    List<String> erros = regrasSenha.validar(senha, confirmarSenha);
+    if (!erros.isEmpty()) {
+      throw new RegraNegocioException(erros);
+    }
+    atual.setSenha(encoder.encode(senha));
+    registradorLog.registrar(OperacaoLog.ALTERAR, atual);
+    return atual;
+  }
+
   @Transactional(readOnly = true)
-  public Resultado consultar(EntidadeDominio entidade) {
-    Administrador administrador = (Administrador) entidade;
-    if (administrador.getId() != null) {
-      return administradorRepository.findById(administrador.getId())
-          .map(Resultado::com)
-          .orElseGet(() -> Resultado.erro("Administrador não encontrado."));
-    }
-    if (administrador.getEmail() != null && administrador.getSenha() != null) {
-      return autenticar(administrador.getEmail(), administrador.getSenha());
-    }
-    return Resultado.erro("Informe o administrador pelo id ou por e-mail e senha.");
-  }
-
-  @Override
-  public Resultado excluir(EntidadeDominio entidade) {
-    return Resultado.erro("O administrador não é excluído pela API.");
-  }
-
-  private Resultado autenticar(String email, String senha) {
+  public Administrador autenticar(String email, String senha) {
     Optional<Administrador> encontrado = administradorRepository.findByEmailIgnoreCase(email);
     if (encontrado.isEmpty() || !encoder.matches(senha, encontrado.get().getSenha())) {
-      return Resultado.erro("E-mail ou senha inválidos.");
+      throw new AutenticacaoException("E-mail ou senha inválidos.");
     }
     Administrador administrador = encontrado.get();
     if (Boolean.FALSE.equals(administrador.getIsAtivo())) {
-      return Resultado.erro("Cadastro inativo. Procure a curadoria.");
+      throw new AutenticacaoException("Cadastro inativo. Procure a curadoria.");
     }
-    return Resultado.com(administrador);
+    return administrador;
   }
 
-  private boolean apenasSenha(Administrador entrada) {
-    return entrada.getSenha() != null && entrada.getNome() == null && entrada.getEmail() == null;
+  private Administrador encontrar(Long id) {
+    return administradorRepository.findById(id)
+        .orElseThrow(() -> new RegraNegocioException("Administrador não encontrado."));
   }
 
   private List<String> validarDados(Administrador entrada, Long idAtual) {

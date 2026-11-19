@@ -1,13 +1,12 @@
 package br.com.rpm33.service;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.com.rpm33.model.EntidadeDominio;
 import br.com.rpm33.model.Notificacao;
 import br.com.rpm33.model.NotificacaoFiltro;
 import br.com.rpm33.model.OperacaoLog;
@@ -18,8 +17,8 @@ import br.com.rpm33.repository.NotificacaoRepository;
  * RN0046: avisos ao cliente. Nascem de uma operação da curadoria (hoje, a troca
  * autorizada); o cliente só lê e marca como lidos.
  */
-@Service("Notificacao")
-public class NotificacaoService implements IService {
+@Service
+public class NotificacaoService {
 
   private final NotificacaoRepository notificacaoRepository;
   private final ClienteRepository clienteRepository;
@@ -32,15 +31,13 @@ public class NotificacaoService implements IService {
     this.registradorLog = registradorLog;
   }
 
-  @Override
   @Transactional
-  public Resultado salvar(EntidadeDominio entidade) {
-    Notificacao entrada = (Notificacao) entidade;
+  public Notificacao criar(Notificacao entrada) {
     if (entrada.getClienteId() == null || !clienteRepository.existsById(entrada.getClienteId())) {
-      return Resultado.erro("Cliente não encontrado.");
+      throw new RegraNegocioException("Cliente não encontrado.");
     }
     if (entrada.getMensagem() == null || entrada.getMensagem().isBlank()) {
-      return Resultado.erro("Informe a mensagem da notificação.");
+      throw new RegraNegocioException("Informe a mensagem da notificação.");
     }
     Notificacao nova = new Notificacao();
     nova.setClienteId(entrada.getClienteId());
@@ -49,50 +46,28 @@ public class NotificacaoService implements IService {
     nova.setIsLida(false);
     Notificacao salva = notificacaoRepository.save(nova);
     registrar(OperacaoLog.INSERIR, salva, RegistradorLog.CURADORIA);
-    return Resultado.com(salva);
+    return salva;
   }
 
   /** O cliente marca a notificação como lida. */
-  @Override
   @Transactional
-  public Resultado alterar(EntidadeDominio entidade) {
-    Notificacao entrada = (Notificacao) entidade;
-    Optional<Notificacao> encontrada = entrada.getId() == null ? Optional.empty()
-        : notificacaoRepository.findById(entrada.getId());
-    if (encontrada.isEmpty()) {
-      return Resultado.erro("Notificação não encontrada.");
-    }
-    if (entrada.getIsLida() == null) {
-      return Resultado.erro("Informe se a notificação foi lida.");
-    }
-    Notificacao atual = encontrada.get();
-    atual.setIsLida(entrada.getIsLida());
+  public Notificacao marcarComoLida(Long id) {
+    Notificacao atual = notificacaoRepository.findById(id)
+        .orElseThrow(() -> new RegraNegocioException("Notificação não encontrada."));
+    atual.setIsLida(true);
     String usuario = clienteRepository.findById(atual.getClienteId())
         .map(cliente -> cliente.getEmail()).orElse(RegistradorLog.CURADORIA);
     registrar(OperacaoLog.ALTERAR, atual, usuario);
-    return Resultado.com(atual);
+    return atual;
   }
 
   /** As notificações do cliente, da mais recente para a mais antiga. */
-  @Override
   @Transactional(readOnly = true)
-  public Resultado consultar(EntidadeDominio entidade) {
-    if (entidade instanceof NotificacaoFiltro filtro) {
-      if (filtro.getClienteId() == null) {
-        return Resultado.erro("Informe o cliente.");
-      }
-      return Resultado.de(notificacaoRepository.findByClienteIdOrderByIdDesc(filtro.getClienteId()));
+  public List<Notificacao> consultar(NotificacaoFiltro filtro) {
+    if (filtro.getClienteId() == null) {
+      throw new RegraNegocioException("Informe o cliente.");
     }
-    Notificacao notificacao = (Notificacao) entidade;
-    return (notificacao.getId() == null ? Optional.<Notificacao>empty()
-        : notificacaoRepository.findById(notificacao.getId()))
-        .map(Resultado::com)
-        .orElseGet(() -> Resultado.erro("Notificação não encontrada."));
-  }
-
-  @Override
-  public Resultado excluir(EntidadeDominio entidade) {
-    return Resultado.erro("A notificação não é excluída: marque-a como lida.");
+    return notificacaoRepository.findByClienteIdOrderByIdDesc(filtro.getClienteId());
   }
 
   private void registrar(String operacao, Notificacao notificacao, String usuario) {

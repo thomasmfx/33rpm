@@ -10,7 +10,7 @@ import org.springframework.format.annotation.DateTimeFormat;
  * RF0055: o período e as categorias da consulta de vendas. O resultado volta no mesmo
  * objeto: os meses do período e uma série por categoria, alinhada a eles.
  */
-public class AnaliseVendas extends EntidadeDominio {
+public class AnaliseVendas {
 
   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
   private LocalDate inicio;
@@ -24,11 +24,6 @@ public class AnaliseVendas extends EntidadeDominio {
   private List<String> meses = new ArrayList<>();
 
   private List<SerieVendas> series = new ArrayList<>();
-
-  @Override
-  public String getNomeEntidade() {
-    return "Analise";
-  }
 
   public LocalDate getInicio() {
     return inicio;

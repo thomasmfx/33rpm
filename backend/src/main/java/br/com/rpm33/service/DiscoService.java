@@ -25,11 +25,9 @@ import br.com.rpm33.model.CategoriaStatus;
 import br.com.rpm33.model.Disco;
 import br.com.rpm33.model.DiscoFiltro;
 import br.com.rpm33.model.Edicao;
-import br.com.rpm33.model.EntidadeDominio;
 import br.com.rpm33.model.Formato;
 import br.com.rpm33.model.Gravadora;
 import br.com.rpm33.model.GrupoPrecificacao;
-import br.com.rpm33.model.InativacaoAutomatica;
 import br.com.rpm33.model.MotivoStatus;
 import br.com.rpm33.model.OperacaoLog;
 import br.com.rpm33.repository.ArtistaRepository;
@@ -47,8 +45,8 @@ import br.com.rpm33.repository.MotivoStatusRepository;
  * Regras do cadastro de discos (RF0011 a RF0016). O preço nasce e acompanha as
  * entradas em estoque (EstoqueService); aqui ele só muda pela curadoria, sob a RN0014.
  */
-@Service("Disco")
-public class DiscoService implements IService {
+@Service
+public class DiscoService {
 
   private static final int JUSTIFICATIVA_MINIMA = 10;
   private static final int ANO_MINIMO = 1900;
@@ -90,14 +88,12 @@ public class DiscoService implements IService {
   }
 
   /** RF0011: nasce ativo, sem estoque e sem preço — RN0013: sem custo não há preço. */
-  @Override
   @Transactional
-  public Resultado salvar(EntidadeDominio entidade) {
-    Disco entrada = (Disco) entidade;
+  public Disco cadastrar(Disco entrada) {
     Cadastro cadastro = new Cadastro();
     List<String> erros = validarCadastro(entrada, cadastro);
     if (!erros.isEmpty()) {
-      return Resultado.erro(erros);
+      throw new RegraNegocioException(erros);
     }
 
     Disco novo = new Disco();
@@ -109,33 +105,22 @@ public class DiscoService implements IService {
 
     Disco salvo = discoRepository.save(novo);
     registrar(OperacaoLog.INSERIR, salvo, null, RegistradorLog.CURADORIA);
-    return Resultado.com(salvo);
+    return salvo;
   }
 
   /**
-   * RF0014 e RF0016, conforme o que veio preenchido (como no cliente), e a rotina da
-   * RF0013 quando a entidade é o pedido de inativação automática.
+   * RF0014 e RN0014: o cadastro e o preço, ou só o preço quando vem sem título. O status
+   * não muda aqui: ativação e inativação exigem categoria e justificativa.
    */
-  @Override
   @Transactional
-  public Resultado alterar(EntidadeDominio entidade) {
-    if (entidade instanceof InativacaoAutomatica) {
-      return Resultado.de(inativarParados());
-    }
-    Disco entrada = (Disco) entidade;
-    Disco atual = encontrar(entrada.getId());
-    if (atual == null) {
-      return Resultado.erro("Disco não encontrado.");
-    }
-    if (apenasStatus(entrada)) {
-      return ativar(atual, entrada.getMotivoStatus());
-    }
+  public Disco alterar(Long id, Disco entrada) {
+    Disco atual = encontrar(id);
 
     BigDecimal maiorCusto = entradaEstoqueRepository.maiorCusto(atual.getId());
     if (apenasPreco(entrada)) {
       List<String> erros = validarPreco(entrada, maiorCusto, atual.getGrupoPrecificacao());
       if (!erros.isEmpty()) {
-        return Resultado.erro(erros);
+        throw new RegraNegocioException(erros);
       }
       aplicarPreco(entrada, atual, maiorCusto);
     } else {
@@ -145,7 +130,7 @@ public class DiscoService implements IService {
         erros.addAll(validarPreco(entrada, maiorCusto, cadastro.grupo));
       }
       if (!erros.isEmpty()) {
-        return Resultado.erro(erros);
+        throw new RegraNegocioException(erros);
       }
       copiarCadastro(entrada, atual, cadastro);
       if (entrada.getPrecoVenda() != null) {
@@ -155,59 +140,65 @@ public class DiscoService implements IService {
 
     registrar(OperacaoLog.ALTERAR, atual, null, RegistradorLog.CURADORIA);
     enriquecer(List.of(atual));
-    return Resultado.com(atual);
+    return atual;
   }
 
-  /** RF0015 pelo filtro, carga da tela pelo id, a vitrine inteira sem filtro. */
-  @Override
+  /** RF0015 */
   @Transactional(readOnly = true)
-  public Resultado consultar(EntidadeDominio entidade) {
-    if (entidade instanceof DiscoFiltro filtro) {
-      List<Disco> encontrados = discoRepository.findAll(DiscoSpecs.de(filtro), Sort.by("titulo"));
-      enriquecer(encontrados);
-      return Resultado.de(encontrados);
-    }
+  public List<Disco> consultar(DiscoFiltro filtro) {
+    List<Disco> encontrados = discoRepository.findAll(DiscoSpecs.de(filtro), Sort.by("titulo"));
+    enriquecer(encontrados);
+    return encontrados;
+  }
 
-    Disco disco = (Disco) entidade;
-    if (disco.getId() != null) {
-      Disco encontrado = encontrar(disco.getId());
-      if (encontrado == null) {
-        return Resultado.erro("Disco não encontrado.");
-      }
-      enriquecer(List.of(encontrado));
-      return Resultado.com(encontrado);
-    }
-    List<Disco> todos = discoRepository.findAll(Sort.by("titulo"));
-    enriquecer(todos);
-    return Resultado.de(todos);
+  /** A carga da tela do disco. */
+  @Transactional(readOnly = true)
+  public Optional<Disco> buscar(Long id) {
+    Optional<Disco> disco = discoRepository.findById(id);
+    disco.ifPresent(encontrado -> enriquecer(List.of(encontrado)));
+    return disco;
   }
 
   /**
    * RF0012 e RN0015: inativação lógica, com categoria e justificativa. O disco sai da
    * loja, mas continua no histórico dos pedidos e do estoque.
    */
-  @Override
   @Transactional
-  public Resultado excluir(EntidadeDominio entidade) {
-    Disco entrada = (Disco) entidade;
-    Disco atual = encontrar(entrada.getId());
-    if (atual == null) {
-      return Resultado.erro("Disco não encontrado.");
-    }
+  public Disco inativar(Long id, MotivoStatus motivo) {
+    Disco atual = encontrar(id);
     List<String> erros = new ArrayList<>();
-    CategoriaStatus categoria =
-        validarMotivo(entrada.getMotivoStatus(), CategoriaStatus.INATIVACAO, erros);
+    CategoriaStatus categoria = validarMotivo(motivo, CategoriaStatus.INATIVACAO, erros);
     if (Boolean.FALSE.equals(atual.getIsAtivo())) {
       erros.add("O disco já está inativo.");
     }
     if (!erros.isEmpty()) {
-      return Resultado.erro(erros);
+      throw new RegraNegocioException(erros);
     }
 
-    inativar(atual, categoria, entrada.getMotivoStatus().getJustificativa().trim(), false,
-        RegistradorLog.CURADORIA);
+    inativar(atual, categoria, motivo.getJustificativa().trim(), false, RegistradorLog.CURADORIA);
     enriquecer(List.of(atual));
-    return Resultado.com(atual);
+    return atual;
+  }
+
+  /** RF0016 e RN0017: volta à loja com categoria de ativação e justificativa. */
+  @Transactional
+  public Disco ativar(Long id, MotivoStatus motivo) {
+    Disco atual = encontrar(id);
+    List<String> erros = new ArrayList<>();
+    CategoriaStatus categoria = validarMotivo(motivo, CategoriaStatus.ATIVACAO, erros);
+    if (Boolean.TRUE.equals(atual.getIsAtivo())) {
+      erros.add("O disco já está ativo.");
+    }
+    if (!erros.isEmpty()) {
+      throw new RegraNegocioException(erros);
+    }
+
+    atual.setIsAtivo(true);
+    MotivoStatus registro =
+        registrarMotivo(atual, categoria, motivo.getJustificativa().trim(), false);
+    registrar(OperacaoLog.ALTERAR, atual, registro, RegistradorLog.CURADORIA);
+    enriquecer(List.of(atual));
+    return atual;
   }
 
   /** RF0013: a mesma rotina do botão da curadoria, no horário de app.inativacao-automatica.cron. */
@@ -217,34 +208,12 @@ public class DiscoService implements IService {
     inativarParados();
   }
 
-  // ------------------------------------------------------------------
-  // Status
-  // ------------------------------------------------------------------
-
-  /** RF0016 e RN0017: volta à loja com categoria de ativação e justificativa. */
-  private Resultado ativar(Disco atual, MotivoStatus motivo) {
-    List<String> erros = new ArrayList<>();
-    CategoriaStatus categoria = validarMotivo(motivo, CategoriaStatus.ATIVACAO, erros);
-    if (Boolean.TRUE.equals(atual.getIsAtivo())) {
-      erros.add("O disco já está ativo.");
-    }
-    if (!erros.isEmpty()) {
-      return Resultado.erro(erros);
-    }
-
-    atual.setIsAtivo(true);
-    MotivoStatus registro =
-        registrarMotivo(atual, categoria, motivo.getJustificativa().trim(), false);
-    registrar(OperacaoLog.ALTERAR, atual, registro, RegistradorLog.CURADORIA);
-    enriquecer(List.of(atual));
-    return Resultado.com(atual);
-  }
-
   /**
    * RF0013 e RN0016: ativos sem estoque e sem venda há dias-sem-venda dias; nunca
    * vendido conta como parado. A categoria é sempre FORA DE MERCADO.
    */
-  private List<Disco> inativarParados() {
+  @Transactional
+  public List<Disco> inativarParados() {
     CategoriaStatus foraDeMercado = categoriaStatusRepository
         .findByDescIgnoreCaseAndTipo(CategoriaStatus.FORA_DE_MERCADO, CategoriaStatus.INATIVACAO)
         .orElseThrow(() -> new IllegalStateException(
@@ -269,6 +238,10 @@ public class DiscoService implements IService {
     enriquecer(inativados);
     return inativados;
   }
+
+  // ------------------------------------------------------------------
+  // Status
+  // ------------------------------------------------------------------
 
   private void inativar(Disco disco, CategoriaStatus categoria, String justificativa,
       boolean automatico, String usuario) {
@@ -345,11 +318,6 @@ public class DiscoService implements IService {
     atual.setAutorizacaoGerente(RegrasPreco.exigeAutorizacao(preco, sugerido)
         ? entrada.getAutorizacaoGerente().trim()
         : null);
-  }
-
-  private boolean apenasStatus(Disco entrada) {
-    return entrada.getMotivoStatus() != null && entrada.getTitulo() == null
-        && entrada.getPrecoVenda() == null;
   }
 
   private boolean apenasPreco(Disco entrada) {
@@ -621,7 +589,8 @@ public class DiscoService implements IService {
   // ------------------------------------------------------------------
 
   private Disco encontrar(Long id) {
-    return id == null ? null : discoRepository.findById(id).orElse(null);
+    return discoRepository.findById(id)
+        .orElseThrow(() -> new RegraNegocioException("Disco não encontrado."));
   }
 
   /** Os transientes da resposta, com uma consulta agregada para a lista inteira. */
