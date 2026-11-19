@@ -43,6 +43,7 @@ import br.com.rpm33.service.RegraNegocioException;
  * e só a data é movida depois, porque o banco carimba a compra com a hora de agora. Roda
  * na subida quando não há pedido, depois do acervo; o POST /api/dev/reset zera os pedidos,
  * e reiniciar o backend os recarrega. Compra de cliente que não existe mais é pulada.
+ * Primeiro o histórico de datas fixas, depois as compras recentes, relativas a hoje.
  */
 @Component
 @Profile("dev")
@@ -54,6 +55,9 @@ public class CargaVendas implements ApplicationRunner {
    * análise confere os valores dela: mudou o arquivo, mudam os valores esperados.
    */
   private static final String ARQUIVO = "carga/vendas.json";
+
+  /** De 01/2024 a 11/2026, em datas fixas, para o dashboard; os testes não o usam. */
+  private static final String HISTORICO = "carga/vendas-historico.json";
 
   /** O número que a operadora simulada recusa (app.operadora.cartoes-recusados). */
   private static final String NUMERO_RECUSADO = "4000000000000002";
@@ -92,8 +96,11 @@ public class CargaVendas implements ApplicationRunner {
     Map<String, Long> discos = discoRepository.findAll().stream()
         .collect(Collectors.toMap(Disco::getTitulo, Disco::getId, (a, b) -> a));
 
+    List<VendaCarga> vendas = new ArrayList<>(ler(HISTORICO));
+    vendas.addAll(ler(ARQUIVO));
+
     List<String> falhas = new ArrayList<>();
-    for (VendaCarga venda : ler()) {
+    for (VendaCarga venda : vendas) {
       Optional<Cliente> comprador = clienteRepository.findByEmailIgnoreCase(venda.cliente());
       if (comprador.isEmpty()) {
         continue;
@@ -145,7 +152,7 @@ public class CargaVendas implements ApplicationRunner {
       throw new IllegalStateException("Carga das vendas recusada: " + e.getMensagens().stream()
           .map(mensagem -> nome + ": " + mensagem).collect(Collectors.joining(" | ")), e);
     }
-    pedidoRepository.retroagir(id, dataDaVenda(venda.mesesAtras()));
+    pedidoRepository.retroagir(id, dataDaVenda(venda));
 
     String status = pedidoRepository.findById(id).orElseThrow().getStatus().getDescricao();
     if (!status.equals(venda.status())) {
@@ -176,23 +183,28 @@ public class CargaVendas implements ApplicationRunner {
     pedidoService.avancarStatus(id, status);
   }
 
-  /** O dia 15 do mês, para nenhuma compra cair depois de hoje. */
-  private static LocalDateTime dataDaVenda(int mesesAtras) {
-    return LocalDate.now().withDayOfMonth(1).minusMonths(mesesAtras).withDayOfMonth(15)
-        .atTime(12, 0);
+  /** A data do histórico, ou o dia 15 do mês relativo, para nenhuma compra cair depois de hoje. */
+  private static LocalDateTime dataDaVenda(VendaCarga venda) {
+    LocalDate dia = venda.data() != null ? venda.data()
+        : LocalDate.now().withDayOfMonth(1).minusMonths(venda.mesesAtras()).withDayOfMonth(15);
+    return dia.atTime(12, 0);
   }
 
-  private List<VendaCarga> ler() {
-    try (InputStream arquivo = new ClassPathResource(ARQUIVO).getInputStream()) {
+  private List<VendaCarga> ler(String caminho) {
+    try (InputStream arquivo = new ClassPathResource(caminho).getInputStream()) {
       return objectMapper.readValue(arquivo, new TypeReference<List<VendaCarga>>() {
       });
     } catch (IOException e) {
-      throw new UncheckedIOException("Não foi possível ler " + ARQUIVO, e);
+      throw new UncheckedIOException("Não foi possível ler " + caminho, e);
     }
   }
 
-  /** Uma compra da massa: quem comprou, os discos pelo título, há quantos meses e o status final. */
-  record VendaCarga(String cliente, List<ItemCarga> itens, int mesesAtras, String status) {
+  /**
+   * Uma compra da massa: quem comprou, os discos pelo título, quando e o status final. O
+   * histórico traz a data; as compras recentes, há quantos meses.
+   */
+  record VendaCarga(String cliente, List<ItemCarga> itens, Integer mesesAtras, LocalDate data,
+      String status) {
   }
 
   record ItemCarga(String titulo, int quantidade) {

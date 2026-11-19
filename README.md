@@ -76,7 +76,7 @@ Sobe o contêiner `33rpm-db` com PostgreSQL 16 + pgvector, publicado em **localh
 |---|---|
 | [db/schema.sql](db/schema.sql) | o DDL, 37 tabelas |
 | [db/seed.sql](db/seed.sql) | tabelas de domínio do RNF0013: gênero, tipo de telefone, bandeira, as 27 unidades federativas, operações de log, status do pedido, tipos de cupom, grupos de precificação, fornecedores, formatos, edições, categorias de status, artistas, gravadoras, gêneros e estilos |
-| [db/clientes.sql](db/clientes.sql) | cinco clientes de demonstração, com telefone, endereço e cartão |
+| [db/clientes.sql](db/clientes.sql) | doze clientes de demonstração, com telefone, endereço e cartão |
 | [db/administradores.sql](db/administradores.sql) | o administrador da demonstração |
 | [db/cupons.sql](db/cupons.sql) | cupons de troca e promocionais com que a demonstração começa — a única carga direta de dado de negócio, liberada pelo professor; os gerados pela troca e pela sobra de cupons nascem das operações |
 
@@ -88,12 +88,17 @@ O arquivo é gerado a partir do mock do front por
 `cd frontend && node --experimental-strip-types scripts/gerar-acervo.mjs`.
 
 Os pedidos também não entram por SQL. Logo depois do acervo, e só se não houver pedido, a
-`CargaVendas` registra 16 compras, quatro para cada cliente ativo (Ana, Bruno, Diego e Eduarda), de
-[backend/src/main/resources/carga/vendas.json](backend/src/main/resources/carga/vendas.json)
-(ENTREGUE, EM TRANSPORTE, APROVADA e REPROVADA, no dia 15 dos seis meses anteriores) pela
-mesma esteira da loja: cotação, pedido, validação do pagamento e passos do administrador. É a
-massa com que o dashboard e a curadoria abrem. O `POST /api/dev/reset` zera os pedidos;
-reiniciar o backend os recarrega.
+`CargaVendas` registra 177 compras pela mesma esteira da loja: cotação, pedido, validação do
+pagamento e passos do administrador. São dois arquivos:
+
+| Arquivo | Compras |
+|---|---|
+| [carga/vendas-historico.json](backend/src/main/resources/carga/vendas-historico.json) | 161, em datas fixas de 01/2024 a 11/2026, repartidas entre os 11 clientes ativos, com pico em maio, novembro e dezembro |
+| [carga/vendas.json](backend/src/main/resources/carga/vendas.json) | 16 da Ana, do Bruno, do Diego e da Eduarda, no dia 15 dos seis meses anteriores a hoje; é a massa que os testes da análise refazem e conferem |
+
+Quase todas são ENTREGUE; há REPROVADA em todo o período, e APROVADA e EM TRANSPORTE nas
+mais recentes. É a massa com que o dashboard e a curadoria abrem; a carga leva cerca de um
+minuto. O `POST /api/dev/reset` zera os pedidos; reiniciar o backend os recarrega.
 
 `up -d` devolve o prompt antes de o banco aceitar conexões. Só siga quando o `pg_isready`
 responder `accepting connections`, ou quando `docker ps` mostrar o contêiner como
@@ -115,7 +120,7 @@ andarem separados.
 
 ### 3. Massa de demonstração
 
-O banco já sobe com estes cinco cadastros, todos com a senha `Senha@123`:
+O banco já sobe com estes doze cadastros, todos com a senha `Senha@123`:
 
 | Código | Nome | E-mail | Situação |
 |---|---|---|---|
@@ -124,6 +129,13 @@ O banco já sobe com estes cinco cadastros, todos com a senha `Senha@123`:
 | CLI-000003 | Carla Nogueira | `carla.nogueira@email.com` | **inativa**, ranking 1, 1 endereço |
 | CLI-000004 | Diego Ferraz | `diego.ferraz@email.com` | ativo, ranking 4, endereços de cobrança e entrega separados, 2 cartões |
 | CLI-000005 | Eduarda Lins | `eduarda.lins@email.com` | ativo, ranking 2, 1 endereço, 1 cartão |
+| CLI-000006 | Felipe Andrade | `felipe.andrade@email.com` | ativo, ranking 3, Salvador/BA, 1 cartão |
+| CLI-000007 | Gabriela Moura | `gabriela.moura@email.com` | ativa, ranking 4, Recife/PE, 1 cartão |
+| CLI-000008 | Henrique Saraiva | `henrique.saraiva@email.com` | ativo, ranking 2, Brasília/DF, cobrança e entrega separadas |
+| CLI-000009 | Isabela Torres | `isabela.torres@email.com` | ativa, ranking 5, Florianópolis/SC, 2 cartões |
+| CLI-000010 | João Pedro Martins | `joao.martins@email.com` | ativo, ranking 1, Manaus/AM, 1 cartão |
+| CLI-000011 | Larissa Campos | `larissa.campos@email.com` | ativa, ranking 3, Fortaleza/CE |
+| CLI-000012 | Marcelo Vieira | `marcelo.vieira@email.com` | ativo, ranking 4, Goiânia/GO, 1 cartão |
 
 A curadoria só abre para o administrador, que tem tabela própria e senha `Admin@123`:
 
@@ -158,7 +170,7 @@ curl -X POST http://localhost:8080/api/dev/reset      # PowerShell: curl.exe -X 
 Esse endpoint, que só existe no perfil `dev`, é o que os testes usam: ele limpa clientes,
 carrinhos, pedidos, trocas, notificações, cupons, discos e log, deixa **apenas os três primeiros** clientes, recadastra o
 acervo pelos serviços e recria os cupons da Ana e do Bruno — leva cerca de 1,5 s. O
-administrador não é tocado. Para ter os cinco clientes de volta, recrie o volume
+administrador não é tocado. Para ter os doze clientes de volta, recrie o volume
 com `docker compose down -v && docker compose up -d`.
 
 ### 4. Frontend
