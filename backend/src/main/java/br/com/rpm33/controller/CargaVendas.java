@@ -26,22 +26,20 @@ import tools.jackson.databind.ObjectMapper;
 
 import br.com.rpm33.model.Cartao;
 import br.com.rpm33.model.Cliente;
-import br.com.rpm33.model.CotacaoPedido;
 import br.com.rpm33.model.Disco;
 import br.com.rpm33.model.Endereco;
 import br.com.rpm33.model.Pedido;
-import br.com.rpm33.model.ProcessamentoPagamentos;
 import br.com.rpm33.model.StatusPedido;
 import br.com.rpm33.repository.ClienteRepository;
 import br.com.rpm33.repository.DiscoRepository;
 import br.com.rpm33.repository.PedidoRepository;
-import br.com.rpm33.service.IFachada;
-import br.com.rpm33.service.Resultado;
+import br.com.rpm33.service.PedidoService;
+import br.com.rpm33.service.RegraNegocioException;
 
 /**
  * As compras dos clientes de demonstração: a análise de vendas e a curadoria abrem com
  * pedidos de várias categorias, meses e status. Cada compra entra pelas regras da loja
- * (cotação, pedido, validação do pagamento e passos do administrador, tudo pela Fachada)
+ * (cotação, pedido, validação do pagamento e passos do administrador, tudo pelo PedidoService)
  * e só a data é movida depois, porque o banco carimba a compra com a hora de agora. Roda
  * na subida quando não há pedido, depois do acervo; o POST /api/dev/reset zera os pedidos,
  * e reiniciar o backend os recarrega. Compra de cliente que não existe mais é pulada.
@@ -62,16 +60,16 @@ public class CargaVendas implements ApplicationRunner {
   /** Para quem não tem cartão no perfil: um número que a operadora aceita. */
   private static final String NUMERO_ACEITO = "4111111111111111";
 
-  private final IFachada fachada;
+  private final PedidoService pedidoService;
   private final ClienteRepository clienteRepository;
   private final DiscoRepository discoRepository;
   private final PedidoRepository pedidoRepository;
   private final ObjectMapper objectMapper;
 
-  public CargaVendas(IFachada fachada, ClienteRepository clienteRepository,
+  public CargaVendas(PedidoService pedidoService, ClienteRepository clienteRepository,
       DiscoRepository discoRepository, PedidoRepository pedidoRepository,
       ObjectMapper objectMapper) {
-    this.fachada = fachada;
+    this.pedidoService = pedidoService;
     this.clienteRepository = clienteRepository;
     this.discoRepository = discoRepository;
     this.pedidoRepository = pedidoRepository;
@@ -125,31 +123,27 @@ public class CargaVendas implements ApplicationRunner {
   private void comprar(VendaCarga venda, Cliente cliente, Map<String, Object> corpo,
       List<String> falhas) {
     String nome = venda.itens().get(0).titulo();
-    CotacaoPedido cotacao = new CotacaoPedido();
-    cotacao.setPedido(objectMapper.convertValue(corpo, Pedido.class));
-    Resultado cotado = fachada.consultar(cotacao);
-    if (cotado.temErro()) {
-      cotado.getMensagens().forEach(mensagem -> falhas.add(nome + ": " + mensagem));
-      return;
-    }
-    BigDecimal restante = ((CotacaoPedido) cotado.primeira()).getRestante();
+    Long id;
+    try {
+      BigDecimal restante =
+          pedidoService.cotar(objectMapper.convertValue(corpo, Pedido.class)).getRestante();
 
-    Map<String, Object> pedido = new LinkedHashMap<>(corpo);
-    pedido.put("pagamentos", List.of(pagamento(venda, cliente, restante)));
-    Resultado criado = fachada.inserir(objectMapper.convertValue(pedido, Pedido.class));
-    if (criado.temErro()) {
-      criado.getMensagens().forEach(mensagem -> falhas.add(nome + ": " + mensagem));
-      return;
-    }
-    Long id = criado.primeira().getId();
+      Map<String, Object> pedido = new LinkedHashMap<>(corpo);
+      pedido.put("pagamentos", List.of(pagamento(venda, cliente, restante)));
+      id = pedidoService.criar(objectMapper.convertValue(pedido, Pedido.class)).getId();
 
-    fachada.alterar(new ProcessamentoPagamentos());
-    if (StatusPedido.EM_TRANSPORTE.equals(venda.status())
-        || StatusPedido.ENTREGUE.equals(venda.status())) {
-      avancar(id, StatusPedido.EM_TRANSPORTE);
-    }
-    if (StatusPedido.ENTREGUE.equals(venda.status())) {
-      avancar(id, StatusPedido.ENTREGUE);
+      pedidoService.validarPagamentos();
+      if (StatusPedido.EM_TRANSPORTE.equals(venda.status())
+          || StatusPedido.ENTREGUE.equals(venda.status())) {
+        avancar(id, StatusPedido.EM_TRANSPORTE);
+      }
+      if (StatusPedido.ENTREGUE.equals(venda.status())) {
+        avancar(id, StatusPedido.ENTREGUE);
+      }
+    } catch (RegraNegocioException e) {
+      // a recusa já marcou a transação para desfazer: não há como seguir para a próxima compra
+      throw new IllegalStateException("Carga das vendas recusada: " + e.getMensagens().stream()
+          .map(mensagem -> nome + ": " + mensagem).collect(Collectors.joining(" | ")), e);
     }
     pedidoRepository.retroagir(id, dataDaVenda(venda.mesesAtras()));
 
@@ -177,12 +171,9 @@ public class CargaVendas implements ApplicationRunner {
   }
 
   private void avancar(Long id, String destino) {
-    Pedido alvo = new Pedido();
-    alvo.setId(id);
     StatusPedido status = new StatusPedido();
     status.setDescricao(destino);
-    alvo.setStatus(status);
-    fachada.alterar(alvo);
+    pedidoService.avancarStatus(id, status);
   }
 
   /** O dia 15 do mês, para nenhuma compra cair depois de hoje. */

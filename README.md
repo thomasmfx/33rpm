@@ -21,7 +21,7 @@ discos por sonoridade, clima, estética e subgênero detalhado — "rap psicodé
 | Assistente de recomendação | Funciona local; com as chaves do Dify.ai preenchidas, passa a conversar pelo serviço |
 
 O backend cobre Cliente, Administrador, Disco, Estoque, Carrinho, Pedido, Pagamento, Cupom,
-Troca, Notificação e Análise, todos atrás da mesma Fachada.
+Troca, Notificação e Análise, em camadas de controller, serviço e repositório.
 
 ## Stack
 
@@ -83,7 +83,7 @@ Sobe o contêiner `33rpm-db` com PostgreSQL 16 + pgvector, publicado em **localh
 Os discos **não** entram por SQL: na primeira subida do backend com o acervo vazio, a
 `CargaAcervo` cadastra os 69 discos e as entradas em estoque de
 [backend/src/main/resources/carga/acervo.json](backend/src/main/resources/carga/acervo.json)
-pela própria Fachada, passando pelas regras do cadastro (RN0011, RN0050, RN0051) e pelo log.
+pelos próprios serviços, passando pelas regras do cadastro (RN0011, RN0050, RN0051) e pelo log.
 O arquivo é gerado a partir do mock do front por
 `cd frontend && node --experimental-strip-types scripts/gerar-acervo.mjs`.
 
@@ -157,7 +157,7 @@ curl -X POST http://localhost:8080/api/dev/reset      # PowerShell: curl.exe -X 
 
 Esse endpoint, que só existe no perfil `dev`, é o que os testes usam: ele limpa clientes,
 carrinhos, pedidos, trocas, notificações, cupons, discos e log, deixa **apenas os três primeiros** clientes, recadastra o
-acervo pela Fachada e recria os cupons da Ana e do Bruno — leva cerca de 1,5 s. O
+acervo pelos serviços e recria os cupons da Ana e do Bruno — leva cerca de 1,5 s. O
 administrador não é tocado. Para ter os cinco clientes de volta, recrie o volume
 com `docker compose down -v && docker compose up -d`.
 
@@ -341,7 +341,7 @@ interface, por definição de escopo da disciplina.
 
 ## API REST
 
-Todas as escritas passam pela Fachada e devolvem a entidade afetada, ou `400` com
+Todas as escritas passam pelo serviço da entidade e devolvem a entidade afetada, ou `400` com
 `{ "mensagens": [...] }` quando alguma regra de negócio barra a operação.
 
 | Método | Rota | Para quê |
@@ -491,17 +491,17 @@ finalização da compra. O código e os testes seguem o DRS do projeto; a corres
 
 ```
 FormX (React)
-  → XController        um controlador por entidade, dependendo de IFachada
-  → Fachada            Map<String, IService>, delega pelo nome da entidade
-  → XService           regras de negócio
+  → XController        um controlador por recurso: traduz o HTTP e chama o serviço
+  → XService           regras de negócio e transação
   → XRepository        Spring Data JPA
   → PostgreSQL
 ```
 
-As quatro operações — `inserir`, `alterar`, `consultar`, `excluir` — trafegam
-`EntidadeDominio` e devolvem um `Resultado`, que carrega as entidades afetadas ou as
-mensagens de negócio. Incluir uma entidade nova não altera a Fachada: o serviço registra
-sua própria chave no mapa.
+Cada serviço tem um método por caso de uso (`cadastrar`, `alterarSenha`, `inativar`...) e
+devolve a própria entidade. Quando uma regra barra a operação, o serviço lança
+`RegraNegocioException` com as mensagens, a transação é desfeita e o `TratadorDeErros`
+responde `400` com `{ "mensagens": [...] }` (`401` no login). Serviço que depende de outro,
+como o de pedido do de estoque e do de pagamento, recebe a classe dele no construtor.
 
 Regra de negócio vive no serviço. O formulário repete validações de formato para dar
 resposta imediata, mas quem decide é sempre o servidor.
