@@ -1,6 +1,7 @@
 import './commands';
 import './demonstracao';
 import './analise';
+import './assistente';
 
 // A massa volta ao estado conhecido antes de cada teste: sem isso a suíte não repete
 beforeEach(() => {
