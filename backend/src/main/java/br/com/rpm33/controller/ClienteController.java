@@ -71,6 +71,12 @@ public class ClienteController {
     return clienteService.alterarCartoes(id, cliente.getCartoes());
   }
 
+  /** RNF0044: só os gêneros e estilos preferidos, sem tocar no resto do cadastro. */
+  @PutMapping("/{id}/preferencias")
+  public Cliente alterarPreferencias(@PathVariable Long id, @RequestBody Cliente cliente) {
+    return clienteService.alterarPreferencias(id, cliente.getPreferencias());
+  }
+
   /** RF0023: inativação. O cadastro não é apagado. */
   @DeleteMapping("/{id}")
   public Cliente inativar(@PathVariable Long id) {

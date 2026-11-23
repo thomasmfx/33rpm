@@ -58,6 +58,7 @@ public class RegistradorLog {
     dados.put("isAtivo", cliente.getIsAtivo());
     dados.put("enderecos", cliente.getEnderecos().size());
     dados.put("cartoes", cliente.getCartoes().size());
+    dados.put("preferencias", cliente.getPreferencias().stream().map(c -> c.getDesc()).toList());
     registrar(operacao, Cliente.class.getSimpleName(), cliente.getId(), dados, usuario);
   }
 

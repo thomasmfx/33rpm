@@ -1,0 +1,785 @@
+{
+  "preferencias": [
+    {
+      "cliente": "ana.ribeiro@email.com",
+      "categorias": [
+        {
+          "desc": "Electronic",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Psychedelic Rock",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Synth-pop",
+          "tipo": "estilo"
+        }
+      ]
+    },
+    {
+      "cliente": "bruno.tavares@email.com",
+      "categorias": [
+        {
+          "desc": "Rock",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Psychedelic Rock",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Alternative Rock",
+          "tipo": "estilo"
+        }
+      ]
+    },
+    {
+      "cliente": "diego.ferraz@email.com",
+      "categorias": [
+        {
+          "desc": "Rock",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Thrash",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Trap",
+          "tipo": "estilo"
+        }
+      ]
+    },
+    {
+      "cliente": "eduarda.lins@email.com",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Neo Soul",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Contemporary R&B",
+          "tipo": "estilo"
+        }
+      ]
+    },
+    {
+      "cliente": "felipe.andrade@email.com",
+      "categorias": [
+        {
+          "desc": "Latin",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Reggaeton",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        }
+      ]
+    },
+    {
+      "cliente": "isabela.torres@email.com",
+      "categorias": [
+        {
+          "desc": "Hip Hop",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Conscious",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Jazzy Hip-Hop",
+          "tipo": "estilo"
+        }
+      ]
+    },
+    {
+      "cliente": "larissa.campos@email.com",
+      "categorias": [
+        {
+          "desc": "Trap",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Electronic",
+          "tipo": "genero"
+        }
+      ]
+    },
+    {
+      "cliente": "marcelo.vieira@email.com",
+      "categorias": [
+        {
+          "desc": "Funk / Soul",
+          "tipo": "genero"
+        },
+        {
+          "desc": "Soul",
+          "tipo": "estilo"
+        },
+        {
+          "desc": "Conscious",
+          "tipo": "estilo"
+        }
+      ]
+    }
+  ],
+  "interacoes": [
+    {
+      "cliente": "ana.ribeiro@email.com",
+      "pergunta": "Me recomenda uns discos?",
+      "texto": "Pelo que você já levou, separei dois discos que combinam com você e uma descoberta fora do que você costuma ouvir.",
+      "sugestoes": [
+        {
+          "titulo": "Random Access Memories",
+          "motivo": "Tem o Disco de Songs In The Key Of Life, que você levou"
+        },
+        {
+          "titulo": "Damn",
+          "motivo": "Tem o Trap de The Melodic Blue, que você levou"
+        },
+        {
+          "titulo": "África Brasil",
+          "motivo": "Descoberta: quem levou Un Verano Sin Ti também levou este"
+        }
+      ],
+      "util": true,
+      "diasAtras": 60
+    },
+    {
+      "cliente": "ana.ribeiro@email.com",
+      "pergunta": "Tem mais alguma coisa de Travis Scott?",
+      "texto": "Tem sim: estes dois de Travis Scott ainda não estão na sua coleção.",
+      "sugestoes": [
+        {
+          "titulo": "Astroworld",
+          "motivo": "Também é de Travis Scott, que você já levou"
+        },
+        {
+          "titulo": "Birds In The Trap Sing McKnight",
+          "motivo": "Também é de Travis Scott, que você já levou"
+        }
+      ],
+      "util": true,
+      "diasAtras": 59
+    },
+    {
+      "cliente": "ana.ribeiro@email.com",
+      "pergunta": "De que ano é o disco The Miseducation Of Lauryn Hill?",
+      "texto": "The Miseducation Of Lauryn Hill, de Lauryn Hill, saiu em 1998.",
+      "sugestoes": [],
+      "util": true,
+      "diasAtras": 58
+    },
+    {
+      "cliente": "ana.ribeiro@email.com",
+      "pergunta": "Quero algo pra ouvir num dia de chuva.",
+      "texto": "Pra dia de chuva, vale um som mais calmo e introspectivo. Separei estes:",
+      "sugestoes": [
+        {
+          "titulo": "Mezzanine",
+          "motivo": "Leftfield com clima mais calmo, bom pra dia cinzento"
+        },
+        {
+          "titulo": "Blonde",
+          "motivo": "Contemporary R&B com clima mais calmo, bom pra dia cinzento"
+        },
+        {
+          "titulo": "Diamond Life",
+          "motivo": "Soul com clima mais calmo, bom pra dia cinzento"
+        }
+      ],
+      "util": true,
+      "diasAtras": 57
+    },
+    {
+      "cliente": "bruno.tavares@email.com",
+      "pergunta": "O que eu deveria ouvir agora?",
+      "texto": "Olhando o seu histórico, estes dois são a sua cara, e o terceiro é uma descoberta pra variar.",
+      "sugestoes": [
+        {
+          "titulo": "The Slow Rush",
+          "motivo": "Tem o Psychedelic Rock de Are You Experienced, que você levou"
+        },
+        {
+          "titulo": "AM",
+          "motivo": "Tem o Alternative Rock de Favourite Worst Nightmare, que você levou"
+        },
+        {
+          "titulo": "God Does Like Ugly",
+          "motivo": "Descoberta: quem levou Un Verano Sin Ti também levou este"
+        }
+      ],
+      "util": true,
+      "diasAtras": 56
+    },
+    {
+      "cliente": "bruno.tavares@email.com",
+      "pergunta": "Tem mais alguma coisa de Childish Gambino?",
+      "texto": "Tem sim: falta este de Childish Gambino na sua coleção.",
+      "sugestoes": [
+        {
+          "titulo": "Camp",
+          "motivo": "Também é de Childish Gambino, que você já levou"
+        }
+      ],
+      "util": true,
+      "diasAtras": 55
+    },
+    {
+      "cliente": "bruno.tavares@email.com",
+      "pergunta": "Quantas faixas tem o disco Illmatic?",
+      "texto": "Illmatic, de Nas, tem 10 faixas.",
+      "sugestoes": [],
+      "util": true,
+      "diasAtras": 54
+    },
+    {
+      "cliente": "bruno.tavares@email.com",
+      "pergunta": "Quero algo calmo pra ouvir estudando.",
+      "texto": "Esse aqui tem bastante energia e vai te deixar ligado nos estudos!",
+      "sugestoes": [
+        {
+          "titulo": "Ride The Lightning",
+          "motivo": "Muita energia pra manter o foco"
+        }
+      ],
+      "util": false,
+      "diasAtras": 53
+    },
+    {
+      "cliente": "diego.ferraz@email.com",
+      "pergunta": "Quero renovar a coleção. O que você sugere?",
+      "texto": "Separei dois discos pensando no seu gosto e incluí uma descoberta que clientes parecidos com você costumam levar.",
+      "sugestoes": [
+        {
+          "titulo": "Hardstone Psycho",
+          "motivo": "Tem o Trap de Un Verano Sin Ti, que você levou"
+        },
+        {
+          "titulo": "Debí Tirar Más Fotos",
+          "motivo": "Tem o Reggaeton de Un Verano Sin Ti, que você levou"
+        },
+        {
+          "titulo": "Currents",
+          "motivo": "Descoberta: quem levou Thriller também levou este"
+        }
+      ],
+      "util": true,
+      "diasAtras": 52
+    },
+    {
+      "cliente": "diego.ferraz@email.com",
+      "pergunta": "Tem mais alguma coisa de Metallica?",
+      "texto": "Tem sim: falta este de Metallica na sua coleção.",
+      "sugestoes": [
+        {
+          "titulo": "Ride The Lightning",
+          "motivo": "Também é de Metallica, que você já levou"
+        }
+      ],
+      "util": true,
+      "diasAtras": 51
+    },
+    {
+      "cliente": "diego.ferraz@email.com",
+      "pergunta": "Que tipo de som é o disco The College Dropout?",
+      "texto": "É Hip Hop, com Pop Rap, Conscious, Contemporary R&B.",
+      "sugestoes": [],
+      "util": true,
+      "diasAtras": 50
+    },
+    {
+      "cliente": "eduarda.lins@email.com",
+      "pergunta": "Tô sem ideia do próximo disco. Me ajuda?",
+      "texto": "Pelo que você já levou, separei dois discos que combinam com você e uma descoberta fora do que você costuma ouvir.",
+      "sugestoes": [
+        {
+          "titulo": "Channel Orange",
+          "motivo": "Tem o Soul de Back To Black, que você levou"
+        },
+        {
+          "titulo": "Awaken, My Love!",
+          "motivo": "Tem o Contemporary R&B de The Miseducation Of Lauryn Hill, que você levou"
+        },
+        {
+          "titulo": "Nevermind",
+          "motivo": "Descoberta: quem levou Debí Tirar Más Fotos também levou este"
+        }
+      ],
+      "util": true,
+      "diasAtras": 49
+    },
+    {
+      "cliente": "eduarda.lins@email.com",
+      "pergunta": "Tem mais alguma coisa de Kendrick Lamar?",
+      "texto": "Tem sim: estes dois de Kendrick Lamar ainda não estão na sua coleção.",
+      "sugestoes": [
+        {
+          "titulo": "Good Kid, M.A.A.D City (Deluxe Edition)",
+          "motivo": "Também é de Kendrick Lamar, que você já levou"
+        },
+        {
+          "titulo": "Damn",
+          "motivo": "Também é de Kendrick Lamar, que você já levou"
+        }
+      ],
+      "util": true,
+      "diasAtras": 48
+    },
+    {
+      "cliente": "eduarda.lins@email.com",
+      "pergunta": "Quem gravou o disco Blonde?",
+      "texto": "Blonde é de Frank Ocean, lançado em 2016.",
+      "sugestoes": [],
+      "util": true,
+      "diasAtras": 47
+    },
+    {
+      "cliente": "eduarda.lins@email.com",
+      "pergunta": "Quero algo pra ouvir num dia de chuva.",
+      "texto": "Pra dia de chuva, vale um som mais calmo e introspectivo. Separei estes:",
+      "sugestoes": [
+        {
+          "titulo": "Blonde",
+          "motivo": "Contemporary R&B com clima mais calmo, bom pra dia cinzento"
+        },
+        {
+          "titulo": "Diamond Life",
+          "motivo": "Soul com clima mais calmo, bom pra dia cinzento"
+        },
+        {
+          "titulo": "Igor",
+          "motivo": "Contemporary R&B com clima mais calmo, bom pra dia cinzento"
+        }
+      ],
+      "util": true,
+      "diasAtras": 46
+    },
+    {
+      "cliente": "eduarda.lins@email.com",
+      "pergunta": "Me indica um disco que eu ainda não tenha.",
+      "texto": "Acho que você vai gostar deste:",
+      "sugestoes": [
+        {
+          "titulo": "2014 Forest Hills Drive",
+          "motivo": "Combina com o seu gosto"
+        }
+      ],
+      "util": false,
+      "diasAtras": 45
+    },
+    {
+      "cliente": "felipe.andrade@email.com",
+      "pergunta": "Me surpreende com umas recomendações.",
+      "texto": "Olhando o seu histórico, estes dois são a sua cara, e o terceiro é uma descoberta pra variar.",
+      "sugestoes": [
+        {
+          "titulo": "At. Long. Last. A$AP",
+          "motivo": "Tem o Trap de Debí Tirar Más Fotos, que você levou"
+        },
+        {
+          "titulo": "Late Registration",
+          "motivo": "Tem o Contemporary R&B de Thriller, que você levou"
+        },
+        {
+          "titulo": "Purple Rain",
+          "motivo": "Descoberta: quem levou Un Verano Sin Ti também levou este"
+        }
+      ],
+      "util": true,
+      "diasAtras": 44
+    },
+    {
+      "cliente": "felipe.andrade@email.com",
+      "pergunta": "Tem mais alguma coisa de Travis Scott?",
+      "texto": "Tem sim: estes três de Travis Scott ainda não estão na sua coleção.",
+      "sugestoes": [
+        {
+          "titulo": "Utopia",
+          "motivo": "Também é de Travis Scott, que você já levou"
+        },
+        {
+          "titulo": "Birds In The Trap Sing McKnight",
+          "motivo": "Também é de Travis Scott, que você já levou"
+        },
+        {
+          "titulo": "Rodeo",
+          "motivo": "Também é de Travis Scott, que você já levou"
+        }
+      ],
+      "util": true,
+      "diasAtras": 43
+    },
+    {
+      "cliente": "felipe.andrade@email.com",
+      "pergunta": "De que ano é o disco Awaken, My Love!?",
+      "texto": "Awaken, My Love!, de Childish Gambino, saiu em 2016.",
+      "sugestoes": [],
+      "util": true,
+      "diasAtras": 42
+    },
+    {
+      "cliente": "gabriela.moura@email.com",
+      "pergunta": "Que discos combinam comigo?",
+      "texto": "Separei dois discos pensando no seu gosto e incluí uma descoberta que clientes parecidos com você costumam levar.",
+      "sugestoes": [
+        {
+          "titulo": "The College Dropout",
+          "motivo": "Tem o Contemporary R&B de Thriller, que você levou"
+        },
+        {
+          "titulo": "Anti",
+          "motivo": "Tem o Soul de Diamond Life, que você levou"
+        },
+        {
+          "titulo": "Metallica",
+          "motivo": "Descoberta: quem levou Diamond Life também levou este"
+        }
+      ],
+      "util": true,
+      "diasAtras": 41
+    },
+    {
+      "cliente": "gabriela.moura@email.com",
+      "pergunta": "Tem mais alguma coisa de Tame Impala?",
+      "texto": "Tem sim: falta este de Tame Impala na sua coleção.",
+      "sugestoes": [
+        {
+          "titulo": "The Slow Rush",
+          "motivo": "Também é de Tame Impala, que você já levou"
+        }
+      ],
+      "util": true,
+      "diasAtras": 40
+    },
+    {
+      "cliente": "gabriela.moura@email.com",
+      "pergunta": "Quantas faixas tem o disco Mezmerize?",
+      "texto": "Mezmerize, de System Of A Down, tem 11 faixas.",
+      "sugestoes": [],
+      "util": true,
+      "diasAtras": 39
+    },
+    {
+      "cliente": "gabriela.moura@email.com",
+      "pergunta": "Quero algo calmo pra ouvir estudando.",
+      "texto": "Esse aqui tem bastante energia e vai te deixar ligado nos estudos!",
+      "sugestoes": [
+        {
+          "titulo": "Ride The Lightning",
+          "motivo": "Muita energia pra manter o foco"
+        }
+      ],
+      "util": false,
+      "diasAtras": 38
+    },
+    {
+      "cliente": "henrique.saraiva@email.com",
+      "pergunta": "Me recomenda uns discos?",
+      "texto": "Pelo que você já levou, separei dois discos que combinam com você e uma descoberta fora do que você costuma ouvir.",
+      "sugestoes": [
+        {
+          "titulo": "The Score",
+          "motivo": "Tem o Conscious de To Pimp A Butterfly, que você levou"
+        },
+        {
+          "titulo": "Graduation",
+          "motivo": "Tem o Contemporary R&B de Channel Orange, que você levou"
+        },
+        {
+          "titulo": "Long.Live.A$AP",
+          "motivo": "Descoberta: quem levou Debí Tirar Más Fotos também levou este"
+        }
+      ],
+      "util": true,
+      "diasAtras": 37
+    },
+    {
+      "cliente": "henrique.saraiva@email.com",
+      "pergunta": "Tem mais alguma coisa de Kendrick Lamar?",
+      "texto": "Tem sim: estes dois de Kendrick Lamar ainda não estão na sua coleção.",
+      "sugestoes": [
+        {
+          "titulo": "Good Kid, M.A.A.D City (Deluxe Edition)",
+          "motivo": "Também é de Kendrick Lamar, que você já levou"
+        },
+        {
+          "titulo": "Damn",
+          "motivo": "Também é de Kendrick Lamar, que você já levou"
+        }
+      ],
+      "util": true,
+      "diasAtras": 36
+    },
+    {
+      "cliente": "henrique.saraiva@email.com",
+      "pergunta": "Que tipo de som é o disco Are You Experienced?",
+      "texto": "É Rock, com Psychedelic Rock, Blues Rock, Acid Rock.",
+      "sugestoes": [],
+      "util": true,
+      "diasAtras": 35
+    },
+    {
+      "cliente": "henrique.saraiva@email.com",
+      "pergunta": "Quero algo pra ouvir num dia de chuva.",
+      "texto": "Pra dia de chuva, vale um som mais calmo e introspectivo. Separei estes:",
+      "sugestoes": [
+        {
+          "titulo": "Mezzanine",
+          "motivo": "Leftfield com clima mais calmo, bom pra dia cinzento"
+        },
+        {
+          "titulo": "Blonde",
+          "motivo": "Contemporary R&B com clima mais calmo, bom pra dia cinzento"
+        },
+        {
+          "titulo": "Diamond Life",
+          "motivo": "Soul com clima mais calmo, bom pra dia cinzento"
+        }
+      ],
+      "util": true,
+      "diasAtras": 34
+    },
+    {
+      "cliente": "isabela.torres@email.com",
+      "pergunta": "O que eu deveria ouvir agora?",
+      "texto": "Olhando o seu histórico, estes dois são a sua cara, e o terceiro é uma descoberta pra variar.",
+      "sugestoes": [
+        {
+          "titulo": "Illmatic",
+          "motivo": "Tem o Conscious de Damn, que você levou"
+        },
+        {
+          "titulo": "To Pimp A Butterfly",
+          "motivo": "Tem o Conscious de Damn, que você levou"
+        },
+        {
+          "titulo": "Rita Lee",
+          "motivo": "Descoberta: quem levou Un Verano Sin Ti também levou este"
+        }
+      ],
+      "util": true,
+      "diasAtras": 33
+    },
+    {
+      "cliente": "isabela.torres@email.com",
+      "pergunta": "Tem mais alguma coisa de Kanye West?",
+      "texto": "Tem sim: estes três de Kanye West ainda não estão na sua coleção.",
+      "sugestoes": [
+        {
+          "titulo": "The College Dropout",
+          "motivo": "Também é de Kanye West, que você já levou"
+        },
+        {
+          "titulo": "My Beautiful Dark Twisted Fantasy",
+          "motivo": "Também é de Kanye West, que você já levou"
+        },
+        {
+          "titulo": "Late Registration",
+          "motivo": "Também é de Kanye West, que você já levou"
+        }
+      ],
+      "util": true,
+      "diasAtras": 32
+    },
+    {
+      "cliente": "isabela.torres@email.com",
+      "pergunta": "Quem gravou o disco Man On The Moon: The End Of Day?",
+      "texto": "Man On The Moon: The End Of Day é de Kid Cudi, lançado em 2009.",
+      "sugestoes": [],
+      "util": true,
+      "diasAtras": 31
+    },
+    {
+      "cliente": "isabela.torres@email.com",
+      "pergunta": "Me indica um disco que eu ainda não tenha.",
+      "texto": "Acho que você vai gostar deste:",
+      "sugestoes": [
+        {
+          "titulo": "Graduation",
+          "motivo": "Combina com o seu gosto"
+        }
+      ],
+      "util": false,
+      "diasAtras": 30
+    },
+    {
+      "cliente": "joao.martins@email.com",
+      "pergunta": "Quero renovar a coleção. O que você sugere?",
+      "texto": "Separei dois discos pensando no seu gosto e incluí uma descoberta que clientes parecidos com você costumam levar.",
+      "sugestoes": [
+        {
+          "titulo": "Love Sick",
+          "motivo": "Tem o Trap de Birds In The Trap Sing McKnight, que você levou"
+        },
+        {
+          "titulo": "So Much Fun",
+          "motivo": "Tem o Trap de Birds In The Trap Sing McKnight, que você levou"
+        },
+        {
+          "titulo": "Un Verano Sin Ti",
+          "motivo": "Descoberta: quem levou Birds In The Trap Sing McKnight também levou este"
+        }
+      ],
+      "util": true,
+      "diasAtras": 29
+    },
+    {
+      "cliente": "joao.martins@email.com",
+      "pergunta": "Tem mais alguma coisa de Travis Scott?",
+      "texto": "Tem sim: estes dois de Travis Scott ainda não estão na sua coleção.",
+      "sugestoes": [
+        {
+          "titulo": "Astroworld",
+          "motivo": "Também é de Travis Scott, que você já levou"
+        },
+        {
+          "titulo": "Rodeo",
+          "motivo": "Também é de Travis Scott, que você já levou"
+        }
+      ],
+      "util": true,
+      "diasAtras": 28
+    },
+    {
+      "cliente": "joao.martins@email.com",
+      "pergunta": "De que ano é o disco Pet Sounds?",
+      "texto": "Pet Sounds, de The Beach Boys, saiu em 1966.",
+      "sugestoes": [],
+      "util": true,
+      "diasAtras": 27
+    },
+    {
+      "cliente": "larissa.campos@email.com",
+      "pergunta": "Tô sem ideia do próximo disco. Me ajuda?",
+      "texto": "Pelo que você já levou, separei dois discos que combinam com você e uma descoberta fora do que você costuma ouvir.",
+      "sugestoes": [
+        {
+          "titulo": "The Melodic Blue",
+          "motivo": "Tem o Trap de Heroes & Villains, que você levou"
+        },
+        {
+          "titulo": "What A Time To Be Alive",
+          "motivo": "Tem o Trap de Heroes & Villains, que você levou"
+        },
+        {
+          "titulo": "Thriller",
+          "motivo": "Descoberta: quem levou Metallica também levou este"
+        }
+      ],
+      "util": true,
+      "diasAtras": 26
+    },
+    {
+      "cliente": "larissa.campos@email.com",
+      "pergunta": "Tem mais alguma coisa de Kendrick Lamar?",
+      "texto": "Tem sim: estes dois de Kendrick Lamar ainda não estão na sua coleção.",
+      "sugestoes": [
+        {
+          "titulo": "To Pimp A Butterfly",
+          "motivo": "Também é de Kendrick Lamar, que você já levou"
+        },
+        {
+          "titulo": "Good Kid, M.A.A.D City (Deluxe Edition)",
+          "motivo": "Também é de Kendrick Lamar, que você já levou"
+        }
+      ],
+      "util": true,
+      "diasAtras": 25
+    },
+    {
+      "cliente": "larissa.campos@email.com",
+      "pergunta": "Quantas faixas tem o disco God Does Like Ugly?",
+      "texto": "God Does Like Ugly, de J.I.D, tem 15 faixas.",
+      "sugestoes": [],
+      "util": true,
+      "diasAtras": 24
+    },
+    {
+      "cliente": "larissa.campos@email.com",
+      "pergunta": "Quero algo pra ouvir num dia de chuva.",
+      "texto": "Pra dia de chuva, vale um som mais calmo e introspectivo. Separei estes:",
+      "sugestoes": [
+        {
+          "titulo": "Mezzanine",
+          "motivo": "Leftfield com clima mais calmo, bom pra dia cinzento"
+        },
+        {
+          "titulo": "Blonde",
+          "motivo": "Contemporary R&B com clima mais calmo, bom pra dia cinzento"
+        },
+        {
+          "titulo": "Diamond Life",
+          "motivo": "Soul com clima mais calmo, bom pra dia cinzento"
+        }
+      ],
+      "util": true,
+      "diasAtras": 23
+    },
+    {
+      "cliente": "larissa.campos@email.com",
+      "pergunta": "Quero algo calmo pra ouvir estudando.",
+      "texto": "Esse aqui tem bastante energia e vai te deixar ligado nos estudos!",
+      "sugestoes": [
+        {
+          "titulo": "Ride The Lightning",
+          "motivo": "Muita energia pra manter o foco"
+        }
+      ],
+      "util": false,
+      "diasAtras": 22
+    },
+    {
+      "cliente": "marcelo.vieira@email.com",
+      "pergunta": "Me surpreende com umas recomendações.",
+      "texto": "Olhando o seu histórico, estes dois são a sua cara, e o terceiro é uma descoberta pra variar.",
+      "sugestoes": [
+        {
+          "titulo": "Stankonia",
+          "motivo": "Tem o Conscious de The College Dropout, que você levou"
+        },
+        {
+          "titulo": "The Miseducation Of Lauryn Hill",
+          "motivo": "Tem o Conscious de The College Dropout, que você levou"
+        },
+        {
+          "titulo": "The Dark Side Of The Moon",
+          "motivo": "Descoberta: quem levou Thriller também levou este"
+        }
+      ],
+      "util": null,
+      "diasAtras": 21
+    },
+    {
+      "cliente": "marcelo.vieira@email.com",
+      "pergunta": "Tem mais alguma coisa de Daft Punk?",
+      "texto": "Tem sim: falta este de Daft Punk na sua coleção.",
+      "sugestoes": [
+        {
+          "titulo": "Random Access Memories",
+          "motivo": "Também é de Daft Punk, que você já levou"
+        }
+      ],
+      "util": null,
+      "diasAtras": 20
+    },
+    {
+      "cliente": "marcelo.vieira@email.com",
+      "pergunta": "Que tipo de som é o disco Favourite Worst Nightmare?",
+      "texto": "É Rock, com Alternative Rock, Indie Rock.",
+      "sugestoes": [],
+      "util": null,
+      "diasAtras": 19
+    }
+  ]
+}

@@ -180,6 +180,14 @@ CREATE TABLE cartao (
 CREATE UNIQUE INDEX uq_cartao_preferencial
     ON cartao (cliente_id) WHERE is_preferencial;
 
+-- RNF0044: gêneros e estilos que o cliente declara em Minha conta (decisão do grupo).
+-- Pesam na recomendação junto com o histórico de compras, sem filtrar o acervo
+CREATE TABLE cliente_categoria (
+    cliente_id      bigint NOT NULL REFERENCES cliente (id) ON DELETE CASCADE,
+    categoria_id    bigint NOT NULL REFERENCES categoria (id),
+    PRIMARY KEY (cliente_id, categoria_id)
+);
+
 -- ---------------------------------------------------------------------
 -- Disco e agregados
 -- ---------------------------------------------------------------------
@@ -379,6 +387,56 @@ CREATE TABLE notificacao (
 );
 
 -- ---------------------------------------------------------------------
+-- Assistente de recomendação (RNF0044)
+-- ---------------------------------------------------------------------
+-- Uma pergunta do cliente no chat e a resposta da IA. contexto_cliente guarda o
+-- perfil (preferências e compras) como estava na pergunta: a resposta avaliada como
+-- útil vira exemplo de treino com o mesmo contexto que a IA viu
+CREATE TABLE interacao_assistente (
+    id                  bigserial PRIMARY KEY,
+    cliente_id          bigint NOT NULL REFERENCES cliente (id) ON DELETE CASCADE,
+    pergunta            text NOT NULL,
+    resposta            text NOT NULL,
+    contexto_cliente    text NOT NULL,
+    modelo              varchar(300) NOT NULL,
+    -- RNF0044 item 3: útil (true) ou não útil (false); nulo enquanto não avaliada
+    is_util             boolean,
+    data_avaliacao      timestamp,
+    data_cadastro       timestamp NOT NULL DEFAULT now()
+);
+
+CREATE TABLE sugestao_assistente (
+    id              bigserial PRIMARY KEY,
+    interacao_id    bigint NOT NULL REFERENCES interacao_assistente (id) ON DELETE CASCADE,
+    disco_id        bigint NOT NULL REFERENCES disco (id) ON DELETE CASCADE,
+    motivo          varchar(300) NOT NULL,
+    -- afinidade: divide gênero ou estilo com as compras ou preferências; descoberta: não
+    tipo            varchar(12) NOT NULL CHECK (tipo IN ('afinidade', 'descoberta'))
+);
+
+-- Cada ajuste fino do modelo no Vertex AI. Sem chave para cliente nem disco: o reset
+-- da massa de teste não apaga o histórico de treinos nem esquece o modelo ajustado
+CREATE TABLE treinamento_modelo (
+    id                      bigserial PRIMARY KEY,
+    status                  varchar(20) NOT NULL
+                            CHECK (status IN ('EM TREINAMENTO', 'CONCLUIDO', 'FALHOU')),
+    modelo_base             varchar(100) NOT NULL,
+    job                     varchar(300),
+    modelo_ajustado         varchar(300),
+    dataset_uri             varchar(300),
+    -- o JSONL enviado, para a curadoria baixar e mostrar o que foi usado
+    dataset                 text NOT NULL,
+    exemplos_vendas         integer NOT NULL,
+    exemplos_feedback       integer NOT NULL,
+    -- dúvidas, buscas e perguntas fora do tema respondidas com o acervo do exemplo
+    exemplos_acervo         integer NOT NULL DEFAULT 0,
+    feedbacks_descartados   integer NOT NULL,
+    erro                    text,
+    data_conclusao          timestamp,
+    data_cadastro           timestamp NOT NULL DEFAULT now()
+);
+
+-- ---------------------------------------------------------------------
 -- Administrador da curadoria
 -- ---------------------------------------------------------------------
 -- Tabela própria, sem relação com cliente: o administrador não tem CPF,
@@ -429,6 +487,8 @@ CREATE INDEX idx_pagamento_pedido      ON pagamento_cartao (pedido_id);
 CREATE INDEX idx_troca_pedido          ON troca (pedido_id);
 CREATE INDEX idx_carrinho_disco        ON carrinho_item (disco_id);
 CREATE INDEX idx_notificacao_cliente   ON notificacao (cliente_id);
+CREATE INDEX idx_interacao_cliente     ON interacao_assistente (cliente_id);
+CREATE INDEX idx_sugestao_interacao    ON sugestao_assistente (interacao_id);
 CREATE INDEX idx_log_entidade          ON log (entidade, entidade_id);
 CREATE INDEX idx_log_data              ON log (data_hora);
 

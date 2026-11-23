@@ -2,7 +2,9 @@ package br.com.rpm33.service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.rpm33.model.Cartao;
+import br.com.rpm33.model.Categoria;
 import br.com.rpm33.model.Cliente;
 import br.com.rpm33.model.ClienteFiltro;
 import br.com.rpm33.model.Endereco;
@@ -19,6 +22,7 @@ import br.com.rpm33.model.Genero;
 import br.com.rpm33.model.OperacaoLog;
 import br.com.rpm33.model.Telefone;
 import br.com.rpm33.model.TipoTelefone;
+import br.com.rpm33.repository.CategoriaRepository;
 import br.com.rpm33.repository.ClienteRepository;
 import br.com.rpm33.repository.GeneroRepository;
 import br.com.rpm33.repository.TipoTelefoneRepository;
@@ -34,6 +38,7 @@ public class ClienteService {
 
   private final ClienteRepository clienteRepository;
   private final GeneroRepository generoRepository;
+  private final CategoriaRepository categoriaRepository;
   private final TipoTelefoneRepository tipoTelefoneRepository;
   private final RegrasEndereco regrasEndereco;
   private final RegrasCartao regrasCartao;
@@ -43,11 +48,12 @@ public class ClienteService {
   private final EntityManager entityManager;
 
   public ClienteService(ClienteRepository clienteRepository, GeneroRepository generoRepository,
-      TipoTelefoneRepository tipoTelefoneRepository, RegrasEndereco regrasEndereco,
+      CategoriaRepository categoriaRepository, TipoTelefoneRepository tipoTelefoneRepository, RegrasEndereco regrasEndereco,
       RegrasCartao regrasCartao, RegistradorLog registradorLog, RegrasSenha regrasSenha,
       PasswordEncoder encoder, EntityManager entityManager) {
     this.clienteRepository = clienteRepository;
     this.generoRepository = generoRepository;
+    this.categoriaRepository = categoriaRepository;
     this.tipoTelefoneRepository = tipoTelefoneRepository;
     this.regrasEndereco = regrasEndereco;
     this.regrasCartao = regrasCartao;
@@ -168,6 +174,28 @@ public class ClienteService {
       throw new RegraNegocioException(erros);
     }
     registradorLog.registrar(OperacaoLog.ALTERAR, atual);
+    return atual;
+  }
+
+  /**
+   * RNF0044: gêneros e estilos preferidos, declarados pelo cliente (decisão do grupo). O
+   * assistente os soma ao histórico de compras; nenhum é obrigatório.
+   */
+  @Transactional
+  public Cliente alterarPreferencias(Long id, Collection<Categoria> preferencias) {
+    Cliente atual = encontrar(id);
+    Set<Categoria> escolhidas = new LinkedHashSet<>();
+    for (Categoria informada : preferencias == null ? List.<Categoria>of() : preferencias) {
+      Optional<Categoria> categoria = informada.getId() == null ? Optional.empty()
+          : categoriaRepository.findById(informada.getId());
+      if (categoria.isEmpty()) {
+        throw new RegraNegocioException("Escolha gêneros e estilos do acervo.");
+      }
+      escolhidas.add(categoria.get());
+    }
+    atual.getPreferencias().clear();
+    atual.getPreferencias().addAll(escolhidas);
+    registradorLog.registrar(OperacaoLog.ALTERAR, atual, atual.getEmail());
     return atual;
   }
 

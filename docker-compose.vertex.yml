@@ -1,0 +1,13 @@
+# Liga o assistente ao Vertex AI na pilha em contêiner. Sem este arquivo, o backend do
+# contêiner responde no modo simulado. Use junto com o principal:
+#   docker compose -f docker-compose.yml -f docker-compose.vertex.yml up -d --build
+# O projeto, a região e o bucket vêm do backend/.env. A chave da conta de serviço entra
+# montada só para leitura e não vai para a imagem; o caminho do Windows que o .env traz em
+# VERTEX_CREDENCIAIS não existe no contêiner, por isso é trocado aqui.
+services:
+  backend:
+    env_file: ./backend/.env
+    environment:
+      VERTEX_CREDENCIAIS: /run/secrets/vertex-sa.json
+    volumes:
+      - ~/.config/33rpm/vertex-sa.json:/run/secrets/vertex-sa.json:ro

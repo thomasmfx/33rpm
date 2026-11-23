@@ -12,9 +12,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 
@@ -67,6 +70,13 @@ public class Cliente extends EntidadeDominio {
 
   @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
   private Set<Cartao> cartoes = new LinkedHashSet<>();
+
+  /** RNF0044: gêneros e estilos declarados em Minha conta; só a rota própria os altera. */
+  @ManyToMany(fetch = FetchType.EAGER)
+  @JoinTable(name = "cliente_categoria", joinColumns = @JoinColumn(name = "cliente_id"),
+      inverseJoinColumns = @JoinColumn(name = "categoria_id"))
+  @OrderBy("id")
+  private Set<Categoria> preferencias = new LinkedHashSet<>();
 
   public String getCodigo() {
     return codigo;
@@ -170,5 +180,13 @@ public class Cliente extends EntidadeDominio {
 
   public void setCartoes(Set<Cartao> cartoes) {
     this.cartoes = cartoes;
+  }
+
+  public Set<Categoria> getPreferencias() {
+    return preferencias;
+  }
+
+  public void setPreferencias(Set<Categoria> preferencias) {
+    this.preferencias = preferencias;
   }
 }

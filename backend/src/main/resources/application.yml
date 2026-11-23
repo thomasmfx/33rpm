@@ -1,6 +1,10 @@
 spring:
   application:
     name: rpm33
+  # backend/.env (fora do git) guarda a configuração do Vertex AI; sem ele, o assistente
+  # roda no modo simulado
+  config:
+    import: optional:file:.env[.properties]
   profiles:
     default: dev
   datasource:
@@ -50,3 +54,27 @@ app:
   # decisão do grupo, como nos sandboxes de pagamento: estes números são sempre recusados
   operadora:
     cartoes-recusados: "4000000000000002"
+  # RNF0044: o assistente de recomendação. Com app.ia.vertex.projeto vazio, as respostas
+  # vêm do modo simulado, sem IA nem custo, que é o que os testes de interface usam
+  ia:
+    vertex:
+      projeto: ${VERTEX_PROJETO:}
+      # o Gemini 3 roda em global e nos multirregionais us e eu, e o ajuste fino dele só em
+      # us ou eu; regiões como us-central1 servem só o 2.5, aposentado em 20/10/2026
+      regiao: ${VERTEX_REGIAO:us}
+      bucket: ${VERTEX_BUCKET:}
+      # chave JSON da conta de serviço; vazio usa a credencial padrão do gcloud
+      credenciais: ${VERTEX_CREDENCIAIS:}
+      modelo-base: ${VERTEX_MODELO:gemini-3.5-flash}
+      # com 4 épocas, o treino de 22/11/2026 decorou as respostas de exemplo e passou a
+      # responder qualquer pergunta como recomendação
+      epocas: 2
+      # o raciocínio só atrasa a resposta curta do chat, e o Gemini 3 não o desliga. LOW, e
+      # não MINIMAL, porque o MINIMAL exige as thought signatures das respostas anteriores,
+      # que a conversa não guarda. Vazio deixa o padrão do modelo (MEDIUM)
+      nivel-raciocinio: LOW
+    # o ajuste fino recomeça do modelo base com todas as vendas e o feedback útil, e só a
+    # curadoria o dispara; a rotina apenas acompanha o job em andamento
+    treinamento:
+      minimo-exemplos: 10
+      intervalo-acompanhamento: 60s
