@@ -1,11 +1,4 @@
-import type { Pedido, PedidoCliente, TrocaPedido } from '../types/pedido';
-
-/** Massa de demonstração da recomendação: os pedidos de um cliente, o mais recente primeiro. */
-export function pedidosDoCliente(pedidos: Pedido[], clienteId: string): Pedido[] {
-  return pedidos
-    .filter((pedido) => pedido.clienteId === clienteId)
-    .sort((a, b) => b.data.localeCompare(a.data));
-}
+import type { PedidoCliente, TrocaPedido } from '../types/pedido';
 
 export const PASSOS_PEDIDO = ['Recebido', 'Pagamento aprovado', 'Em trânsito', 'Entregue'];
 

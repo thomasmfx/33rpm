@@ -1,5 +1,10 @@
 const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8080/api';
 
+/** Endereço completo de uma rota, para links de download. */
+export function urlDaApi(caminho: string): string {
+  return `${BASE}${caminho}`;
+}
+
 /** O backend devolve as mensagens de negócio em { mensagens: [...] }. */
 export class ErroApi extends Error {
   readonly mensagens: string[];

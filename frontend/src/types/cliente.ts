@@ -93,6 +93,15 @@ export interface Cliente {
   isAtivo: boolean;
   enderecos: Endereco[];
   cartoes: Cartao[];
+  /** RNF0044: gêneros e estilos que o cliente declara; pesam nas recomendações do assistente. */
+  preferencias: CategoriaMusical[];
+}
+
+/** Gênero ou estilo do acervo (RN0012). */
+export interface CategoriaMusical {
+  id: number;
+  desc: string;
+  tipo: 'genero' | 'estilo';
 }
 
 export type StatusFiltro = 'todos' | 'ativos' | 'inativos';

@@ -11,14 +11,15 @@ function App() {
     window.scrollTo(0, 0)
   }, [pathname])
 
-  // a curadoria tem a própria barra lateral, com o caminho de volta para a loja
+  // a curadoria tem a própria barra lateral, com o caminho de volta para a loja; o
+  // assistente é do cliente (RNF0044) e fica só na loja
   const isCuradoria = pathname.startsWith('/curadoria')
 
   return (
     <LojaProvider>
       {!isCuradoria && <Header />}
       <Outlet />
-      <ChatbotBolha />
+      {!isCuradoria && <ChatbotBolha />}
     </LojaProvider>
   )
 }

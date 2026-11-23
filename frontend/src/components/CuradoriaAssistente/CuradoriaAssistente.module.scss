@@ -1,0 +1,129 @@
+@use '../../styles/mixins' as *;
+
+.blocos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  background: var(--cor-nevoa);
+  font-size: 14px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rotuloBloco {
+  @include meta(11px);
+
+  color: var(--cor-auxiliar);
+}
+
+.destaque {
+  font-size: 20px;
+}
+
+.numeros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 12px;
+  margin: 0;
+
+  // rótulos de uma e de duas linhas: o número vai para a base para ficar na mesma linha
+  > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 4px;
+  }
+
+  dt {
+    font-size: 12px;
+    color: var(--cor-auxiliar);
+  }
+
+  dd {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.nota {
+  font-size: 13px;
+  color: var(--cor-auxiliar);
+}
+
+.andamento {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  background: var(--cor-nevoa);
+  font-size: 14px;
+}
+
+.andamentoTopo {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.explicacao {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 300;
+
+  ol {
+    margin: 0;
+    padding-left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+.secao {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cabecalhoSecao {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.tituloSecao {
+  font-size: 20px;
+}
+
+.celulaTreino,
+.celulaConversa {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 14px;
+}
+
+.celulaConversa strong {
+  font-size: 15px;
+}
+
+.erro {
+  font-size: 13px;
+  color: var(--cor-erro-texto);
+  overflow-wrap: anywhere;
+}

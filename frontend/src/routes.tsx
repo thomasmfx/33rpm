@@ -6,6 +6,7 @@ import CuradoriaClientes from "./components/CuradoriaClientes/CuradoriaClientes"
 import CuradoriaInventario from "./components/CuradoriaInventario/CuradoriaInventario";
 import CuradoriaPedidos from "./components/CuradoriaPedidos/CuradoriaPedidos";
 import CuradoriaDashboard from "./components/CuradoriaDashboard/CuradoriaDashboard";
+import CuradoriaAssistente from "./components/CuradoriaAssistente/CuradoriaAssistente";
 import Disco from "./pages/Disco/Disco";
 import Acervo from "./pages/Acervo/Acervo";
 import Carrinho from "./pages/Carrinho/Carrinho";
@@ -37,6 +38,7 @@ export const routes = [
           { path: 'inventario', element: <CuradoriaInventario /> },
           { path: 'pedidos', element: <CuradoriaPedidos /> },
           { path: 'dashboard', element: <CuradoriaDashboard /> },
+          { path: 'assistente', element: <CuradoriaAssistente /> },
         ],
       },
       { path: '/disco/:id', element: <Disco /> },

@@ -4,6 +4,7 @@ import {
   FORNECEDORES,
   GENEROS,
 } from '../types/inventario';
+import type { CategoriaMusical } from '../types/cliente';
 import { requisitar } from './api';
 
 interface Descritor {
@@ -48,4 +49,10 @@ export async function buscarDominiosDisco(): Promise<DominiosDisco> {
     categoriasInativacao: descricoes(bruto.categoriasStatus, (status) => status.tipo === 'inativacao'),
     categoriasAtivacao: descricoes(bruto.categoriasStatus, (status) => status.tipo === 'ativacao'),
   };
+}
+
+/** RNF0044: gêneros e estilos do acervo, com o id que as preferências do cliente gravam. */
+export async function listarCategorias(): Promise<CategoriaMusical[]> {
+  const bruto = await requisitar<DominiosApi>('/dominios');
+  return bruto.categorias;
 }

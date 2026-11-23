@@ -1,11 +1,10 @@
 import { createContext, useContext } from 'react';
-import type { Dispatch, SetStateAction } from 'react';
 import type { Cliente } from '../types/cliente';
 import type { Disco } from '../types/disco';
 import type { ItemCarrinho } from '../types/carrinho';
 import type { Cupom } from '../types/cupom';
 import type { Notificacao } from '../types/notificacao';
-import type { Pedido, PedidoCliente, TrocaPedido } from '../types/pedido';
+import type { PedidoCliente, TrocaPedido } from '../types/pedido';
 import type { Administrador, RespostaSessao, Sessao } from '../types/sessao';
 
 export interface Loja {
@@ -31,9 +30,6 @@ export interface Loja {
   carregandoDiscos: boolean;
   erroDiscos: string | null;
   recarregarDiscos: () => Promise<void>;
-  /** Massa de demonstração do Dashboard e da recomendação, não do cliente. */
-  pedidos: Pedido[];
-  setPedidos: Dispatch<SetStateAction<Pedido[]>>;
   /** Pedidos do cliente da sessão, gravados no servidor, mais recente primeiro. */
   meusPedidos: PedidoCliente[];
   carregandoMeusPedidos: boolean;

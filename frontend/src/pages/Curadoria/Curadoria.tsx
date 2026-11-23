@@ -2,7 +2,7 @@ import styles from './Curadoria.module.scss';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useLoja } from '../../contexts/loja';
 import { pedidoPrecisaDeAcao, trocaPrecisaDeAcao } from '../../utils/pedido';
-import { ArrowLeft, ChartLine, Delivery, Catalog, Logout, UserMultiple } from '@carbon/icons-react';
+import { ArrowLeft, ChartLine, ChatBot, Delivery, Catalog, Logout, UserMultiple } from '@carbon/icons-react';
 
 function Curadoria() {
   const {
@@ -47,6 +47,7 @@ function Curadoria() {
           trocasCuradoria.filter(trocaPrecisaDeAcao).length,
     },
     { rota: 'dashboard', rotulo: 'Dashboard', icone: <ChartLine size={20} />, contagem: null },
+    { rota: 'assistente', rotulo: 'Assistente', icone: <ChatBot size={20} />, contagem: null },
   ];
 
   return (

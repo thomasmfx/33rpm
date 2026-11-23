@@ -1,5 +1,6 @@
 import type {
   Cartao,
+  CategoriaMusical,
   Cliente,
   Endereco,
   FiltrosClientes,
@@ -50,6 +51,7 @@ export interface ClienteApi {
   telefone: { id?: number; tipo: Descritor; ddd: string; numero: string };
   enderecos: EnderecoApi[];
   cartoes: CartaoApi[];
+  preferencias?: CategoriaMusical[];
 }
 
 export function paraCliente(bruto: ClienteApi): Cliente {
@@ -91,6 +93,7 @@ export function paraCliente(bruto: ClienteApi): Cliente {
       codigoSeguranca: cartao.codigoSeguranca,
       isPreferencial: cartao.isPreferencial,
     })),
+    preferencias: bruto.preferencias ?? [],
   };
 }
 
@@ -212,6 +215,15 @@ export async function alterarCartoes(id: string, cartoes: Cartao[]): Promise<Cli
   const bruto = await requisitar<ClienteApi>(`/clientes/${id}/cartoes`, {
     method: 'PUT',
     body: JSON.stringify({ cartoes: cartoes.map(cartaoParaApi) }),
+  });
+  return paraCliente(bruto);
+}
+
+/** RNF0044: só os gêneros e estilos preferidos, sem reenviar o cadastro. */
+export async function alterarPreferencias(id: string, categoriaIds: number[]): Promise<Cliente> {
+  const bruto = await requisitar<ClienteApi>(`/clientes/${id}/preferencias`, {
+    method: 'PUT',
+    body: JSON.stringify({ preferencias: categoriaIds.map((categoriaId) => ({ id: categoriaId })) }),
   });
   return paraCliente(bruto);
 }

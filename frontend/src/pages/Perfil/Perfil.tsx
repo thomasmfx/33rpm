@@ -1,21 +1,32 @@
 import styles from './Perfil.module.scss';
 import formulario from '../../components/FormCliente/Formulario.module.scss';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Alert, Button, PasswordInput, Radio, SegmentedControl, Select, TextInput } from '@mantine/core';
+import {
+  Alert,
+  Button,
+  MultiSelect,
+  PasswordInput,
+  Radio,
+  SegmentedControl,
+  Select,
+  TextInput,
+} from '@mantine/core';
 import { DateInput } from '@mantine/dates';
 import { useForm } from '@mantine/form';
 import { useLoja } from '../../contexts/loja';
-import type { Cartao, Cliente, Endereco, TipoEndereco } from '../../types/cliente';
+import type { Cartao, CategoriaMusical, Cliente, Endereco, TipoEndereco } from '../../types/cliente';
 import { GENEROS, TIPOS_TELEFONE } from '../../types/cliente';
 import { ErroApi } from '../../services/api';
 import {
   alterarCartoes,
   alterarCliente,
   alterarEnderecos,
+  alterarPreferencias,
   alterarSenha,
 } from '../../services/clientesService';
+import { listarCategorias } from '../../services/dominiosService';
 import type { FormClienteValues } from '../../components/FormCliente/FormCliente';
 import FormEndereco, { type FormEnderecoValues } from '../../components/FormCliente/FormEndereco';
 import FormCartao, { type FormCartaoValues } from '../../components/FormCliente/FormCartao';
@@ -40,7 +51,7 @@ import { senhaForte } from '../../utils/senha';
 import { VALIDACOES_DADOS_CLIENTE } from '../../utils/validacaoCliente';
 import { Add, Checkmark, Edit, Logout } from '@carbon/icons-react';
 
-type Secao = 'dados' | 'enderecos' | 'cartoes' | 'senha';
+type Secao = 'dados' | 'enderecos' | 'cartoes' | 'preferencias' | 'senha';
 
 interface Aviso {
   secao: Secao;
@@ -213,6 +224,89 @@ function DadosPessoais({ cliente, salvando, onSalvar }: Readonly<DadosPessoaisPr
   );
 }
 
+interface PreferenciasProps {
+  cliente: Cliente;
+  salvando: boolean;
+  onSalvar: (categoriaIds: number[]) => void;
+}
+
+/**
+ * RNF0044: os gêneros e estilos que o cliente declara. O assistente os soma ao histórico
+ * de compras e continua sugerindo descobertas fora deles.
+ */
+function PreferenciasMusicais({ cliente, salvando, onSalvar }: Readonly<PreferenciasProps>) {
+  const [categorias, setCategorias] = useState<CategoriaMusical[]>([]);
+  const [erroCarga, setErroCarga] = useState(false);
+  const idsDoTipo = (tipo: CategoriaMusical['tipo']) =>
+    cliente.preferencias.filter((categoria) => categoria.tipo === tipo).map((c) => String(c.id));
+  const [generos, setGeneros] = useState<string[]>(() => idsDoTipo('genero'));
+  const [estilos, setEstilos] = useState<string[]>(() => idsDoTipo('estilo'));
+
+  useEffect(() => {
+    let cancelado = false;
+    listarCategorias()
+      .then((lista) => {
+        if (!cancelado) setCategorias(lista);
+      })
+      .catch(() => {
+        if (!cancelado) setErroCarga(true);
+      });
+    return () => {
+      cancelado = true;
+    };
+  }, []);
+
+  const opcoes = (tipo: CategoriaMusical['tipo']) =>
+    categorias
+      .filter((categoria) => categoria.tipo === tipo)
+      .map((categoria) => ({ value: String(categoria.id), label: categoria.desc }))
+      .sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
+
+  return (
+    <div className={styles.preferencias}>
+      <p className={styles.textoPreferencias}>
+        O assistente de recomendação usa estes gêneros e estilos junto com as suas compras. Eles
+        pesam nas sugestões, mas não as limitam: o assistente continua trazendo descobertas fora
+        deles. Nenhum é obrigatório.
+      </p>
+      {erroCarga && (
+        <Alert color="red">Não foi possível carregar os gêneros e estilos do acervo.</Alert>
+      )}
+      <MultiSelect
+        label="Gêneros preferidos"
+        placeholder={generos.length === 0 ? 'Escolha gêneros' : undefined}
+        data={opcoes('genero')}
+        value={generos}
+        onChange={setGeneros}
+        searchable
+        clearable
+        hidePickedOptions
+        data-testid="preferencias-generos"
+      />
+      <MultiSelect
+        label="Estilos preferidos"
+        placeholder={estilos.length === 0 ? 'Escolha estilos' : undefined}
+        data={opcoes('estilo')}
+        value={estilos}
+        onChange={setEstilos}
+        searchable
+        clearable
+        hidePickedOptions
+        data-testid="preferencias-estilos"
+      />
+      <div>
+        <Button
+          loading={salvando}
+          onClick={() => onSalvar([...generos, ...estilos].map(Number))}
+          data-testid="btn-salvar-preferencias"
+        >
+          Salvar preferências
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function Perfil() {
   const { clienteAtivo, administradorAtivo, carregandoSessao, recarregarClientes, sairDaSessao } =
     useLoja();
@@ -368,6 +462,7 @@ function Perfil() {
     { id: 'dados', rotulo: 'Dados pessoais' },
     { id: 'enderecos', rotulo: 'Endereços', contagem: cliente.enderecos.length },
     { id: 'cartoes', rotulo: 'Cartões', contagem: cliente.cartoes.length },
+    { id: 'preferencias', rotulo: 'Preferências musicais', contagem: cliente.preferencias.length },
     { id: 'senha', rotulo: 'Senha' },
   ];
 
@@ -560,6 +655,24 @@ function Perfil() {
                   <Add size={20} /> Adicionar cartão
                 </button>
               )}
+            </>
+          )}
+
+          {secao === 'preferencias' && (
+            <>
+              <h2>Preferências musicais</h2>
+              {renderAviso('preferencias')}
+              <PreferenciasMusicais
+                cliente={cliente}
+                salvando={salvando}
+                onSalvar={(categoriaIds) =>
+                  void salvar(
+                    'preferencias',
+                    () => alterarPreferencias(cliente.id, categoriaIds),
+                    'Preferências salvas. O assistente já passa a considerá-las.',
+                  )
+                }
+              />
             </>
           )}
 

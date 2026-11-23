@@ -3,9 +3,8 @@ import type { ReactNode } from 'react';
 import type { Cliente } from '../types/cliente';
 import type { Disco } from '../types/disco';
 import type { Carrinho } from '../types/carrinho';
-import type { Pedido, PedidoCliente, TrocaPedido } from '../types/pedido';
+import type { PedidoCliente, TrocaPedido } from '../types/pedido';
 import type { Administrador, RespostaSessao, Sessao } from '../types/sessao';
-import { gerarPedidos } from '../utils/pedidosMock';
 import { FILTROS_VAZIOS } from '../utils/filtrarClientes';
 import { ErroApi } from '../services/api';
 import { listarClientes } from '../services/clientesService';
@@ -130,7 +129,6 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
     trocas: TrocaPedido[];
     erro: string | null;
   } | null>(null);
-  const [pedidos, setPedidos] = useState<Pedido[]>(() => ler('pedidos', []));
 
   // RF0023: inativar o cliente derruba a sessão dele na hora
   const clienteAtivo =
@@ -253,29 +251,7 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
     void recarregarDiscos();
   }, [recarregarDiscos]);
 
-  /**
-   * A massa de demonstração do Dashboard continua mockada, mas aponta para clientes e
-   * discos do banco: se os ids não baterem — banco recriado, por exemplo — ela é regerada.
-   */
-  useEffect(() => {
-    if (clientes.length === 0 || discos.length === 0) return;
-    const ids = new Set(clientes.map((cliente) => cliente.id));
-    const idsDiscos = new Set(discos.map((disco) => disco.id));
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setPedidos((atuais) =>
-      atuais.length > 0 &&
-      atuais.every(
-        (pedido) =>
-          ids.has(pedido.clienteId) && pedido.itens.every((item) => idsDiscos.has(item.discoId)),
-      )
-        ? atuais
-        : gerarPedidos(clientes, discos),
-    );
-  }, [clientes, discos]);
-
   useEffect(() => gravar('sessao', sessao), [sessao]);
-  useEffect(() => gravar('pedidos', pedidos), [pedidos]);
 
   const recarregarCarrinho = useCallback(async () => {
     if (!clienteAtivoId) return;
@@ -425,8 +401,6 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
       carregandoDiscos,
       erroDiscos,
       recarregarDiscos,
-      pedidos,
-      setPedidos,
       meusPedidos: meusPedidos.itens,
       carregandoMeusPedidos: meusPedidos.carregando,
       erroMeusPedidos: meusPedidos.erro,
@@ -475,7 +449,6 @@ export default function LojaProvider({ children }: Readonly<{ children: ReactNod
       carregandoDiscos,
       erroDiscos,
       recarregarDiscos,
-      pedidos,
       meusPedidos.itens,
       meusPedidos.carregando,
       meusPedidos.erro,
